@@ -1,0 +1,45 @@
+/* ========================================================================
+   FINANCE LEDGER — Plugin tokens (extends Kuro Signal Protocol)
+   No new primitives. Semantic remap of KSP signals onto ledger states.
+   ======================================================================== */
+
+:root {
+  /* ----- TRANSACTION STATES ----- */
+  --txn-credit:        var(--signal-phosphor);  /* income — money in */
+  --txn-debit:         var(--signal-crimson);   /* expense — money out */
+  --txn-tbc:           var(--signal-ember);     /* uncategorized — pending review */
+  --txn-reconciled:    var(--signal-biolink);   /* settled — matched to bank */
+  --txn-transfer:      var(--signal-circuit);   /* between own accounts */
+  --txn-recurring:     var(--signal-voidwitch); /* repeating pattern */
+  --txn-orphan:        var(--signal-rust);      /* missing counterparty */
+  --txn-future:        var(--signal-ghost);     /* dated forward */
+
+  /* ----- ACCOUNT TYPES (semantic accents on chips) ----- */
+  --acct-asset:        var(--signal-phosphor);
+  --acct-liability:    var(--signal-crimson);
+  --acct-income:       var(--signal-biolink);
+  --acct-expense:      var(--signal-rust);
+  --acct-equity:       var(--signal-pearl);
+
+  /* ----- TYPED-CARD TOP BORDERS (per KSP card rule) ----- */
+  --card-deadline-top: 2px solid var(--signal-crimson);
+  --card-tbc-top:      2px solid var(--signal-ember);
+  --card-balance-top:  2px solid var(--signal-pearl);
+  --card-trend-top:    2px solid var(--signal-spectre);
+  --card-orphan-top:   2px solid var(--signal-rust);
+
+  /* ----- TABULAR FIGURES — required everywhere money is shown ----- */
+  --num-feat: "tnum" 1, "lnum" 1, "ss01" 1;
+}
+
+/* Money figures: monospaced numerals via JetBrains Mono with tabular figs */
+.fl-money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: var(--num-feat);
+  font-weight: 500;
+}
+.fl-money.credit { color: var(--txn-credit); }
+.fl-money.debit  { color: var(--txn-debit); }
+.fl-money.zero   { color: var(--fg-tertiary); }
+.fl-money .sym   { color: var(--fg-tertiary); margin-right: 2px; }

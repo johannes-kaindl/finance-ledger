@@ -1,0 +1,65 @@
+/* ========================================================================
+   FINANCE LEDGER — Light mode
+   Inverts surfaces & foreground. Signal hues stay (slightly desaturated
+   for readability on light grounds). Triggered by [data-mode="light"].
+   ======================================================================== */
+
+[data-mode="light"] {
+  /* surfaces — warm paper, not pure white */
+  --surface-vault:   #f6f4ef;
+  --surface-primary: #ecebe4;
+  --surface-raised:  #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-inset:   #e8e6df;
+
+  /* foreground */
+  --fg-primary:   #1a1d22;
+  --fg-secondary: #4a5260;
+  --fg-tertiary:  #6c7585;
+  --fg-disabled:  #aab2bf;
+  --fg-on-accent: #f6f4ef;
+
+  /* borders */
+  --border-subtle:  #d8d5cc;
+  --border-default: #c2bfb4;
+  --border-strong:  #9c9a90;
+
+  /* signals — darkened slightly for AA on paper */
+  --signal-crimson:        #b8142d;
+  --signal-phosphor:       #1f9a4a;
+  --signal-ember:          #c97a0e;
+  --signal-spectre:        #7a4dd1;
+  --signal-circuit:        #1f8a9a;
+  --signal-ghost:          #4a8090;
+  --signal-biolink:        #5a8c56;
+  --signal-rust:           #a87a3e;
+  --signal-toxic:          #8a7c2e;
+  --signal-voidwitch:      #8866a8;
+  --signal-pearl:          #1a1d22;
+
+  /* txn states re-derived from corrected signals */
+  --txn-credit:        var(--signal-phosphor);
+  --txn-debit:         var(--signal-crimson);
+  --txn-tbc:           var(--signal-ember);
+  --txn-reconciled:    var(--signal-biolink);
+  --txn-transfer:      var(--signal-circuit);
+  --txn-recurring:     var(--signal-voidwitch);
+  --txn-orphan:        var(--signal-rust);
+  --txn-future:        var(--signal-ghost);
+
+  /* shadows softer on paper */
+  --shadow-card: 0 1px 0 0 rgba(255,255,255,0.6) inset,
+                 0 4px 16px -8px rgba(40,30,20,0.18);
+  --shadow-modal: 0 16px 48px -16px rgba(40,30,20,0.30),
+                  0 0 0 1px var(--border-subtle);
+}
+
+/* Light-mode aspect overrides — re-bind accent against the corrected hues */
+[data-mode="light"][data-aspect="shugo"]    { --accent: #1f9a4a; }
+[data-mode="light"][data-aspect="gunshi"]   { --accent: #7a4dd1; }
+[data-mode="light"][data-aspect="kantoku"]  { --accent: #b8142d; }
+[data-mode="light"][data-aspect="sensei"]   { --accent: #c97a0e; }
+[data-mode="light"]                         {
+  --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  --accent-glow: color-mix(in oklab, var(--accent) 35%, transparent);
+}

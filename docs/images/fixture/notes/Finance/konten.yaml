@@ -1,0 +1,26 @@
+# Example account configuration (fixture)
+konten:
+  - id: checking
+    iban: GB00ACME00000001
+    ledger_account: "Aktiva:Bank:Everyday Checking"
+    bank: Acme Bank
+    konto_typ: giro
+    konto_rolle: checking
+    csv_schema: camt52
+    inhaber: Jane Doe
+  - id: pool
+    iban: GB00ACME00000002
+    ledger_account: "Aktiva:Bank:Household Pool"
+    bank: Acme Bank
+    konto_typ: giro
+    konto_rolle: pool
+    csv_schema: camt52
+    inhaber: Jane Doe
+  - id: visa
+    iban: GB00ACME00000003
+    ledger_account: "Passiva:Credit Card:Everyday Visa"
+    bank: Acme Bank
+    konto_typ: kreditkarte
+    konto_rolle: visa
+    csv_schema: sparkasse_visa
+    inhaber: Jane Doe

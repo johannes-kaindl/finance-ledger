@@ -1,0 +1,59 @@
+{
+  "name": "finance-ledger",
+  "version": "0.1.0",
+  "description": "Obsidian plugin that renders hledger journals as filterable ledger tables with balance and category dashboards, transaction triage, and categorizer-rule management.",
+  "main": "main.js",
+  "author": {
+    "name": "Johannes Kaindl",
+    "url": "https://git.jkaindl.de/jkaindl"
+  },
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://git.jkaindl.de/jkaindl/finance-ledger",
+  "repository": {
+    "type": "git",
+    "url": "git+https://git.jkaindl.de/jkaindl/finance-ledger.git"
+  },
+  "bugs": {
+    "url": "https://git.jkaindl.de/jkaindl/finance-ledger/issues"
+  },
+  "scripts": {
+    "dev": "node esbuild.config.mjs --watch",
+    "build": "node esbuild.config.mjs",
+    "test": "node scripts/check-no-nul-bytes.mjs && vitest run",
+    "test:watch": "vitest",
+    "lint": "node scripts/check-no-inline-disables.mjs && eslint src --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "deploy": "npm run build && mkdir -p \"${OBSIDIAN_PLUGIN_DIR:?Set OBSIDIAN_PLUGIN_DIR to <vault>/.obsidian/plugins/finance-ledger}\" && cp manifest.json main.js styles.css \"${OBSIDIAN_PLUGIN_DIR}\"/",
+    "typecheck:scripts": "if test -d ../../tools/obsidian-cdp; then tsc -p tsconfig.scripts.json --noEmit; else echo 'typecheck:scripts uebersprungen: ../../tools/obsidian-cdp fehlt (maintainer-lokal)'; fi",
+    "parity": "esbuild scripts/parity-check.ts --bundle --platform=node --format=esm --outfile=.parity.mjs --log-level=warning && node .parity.mjs",
+    "smoke:gui": "esbuild scripts/gui-smoke.ts --bundle --platform=node --format=esm --outfile=.gui-smoke.mjs --log-level=warning && node .gui-smoke.mjs",
+    "gate": "npm run test && npm run typecheck && npm run typecheck:scripts && npm run lint && npm run build",
+    "shots": "esbuild scripts/shots.ts --bundle --platform=node --format=esm --outfile=.shots.mjs --log-level=warning && node .shots.mjs",
+    "shots:check": "if test -f ../../../_docs/readme/readme_lint.py; then python3 ../../../_docs/readme/readme_lint.py .; else echo 'shots:check uebersprungen: _docs fehlt (maintainer-lokal)'; fi"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "hledger",
+    "ledger",
+    "plaintext-accounting",
+    "finance",
+    "accounting",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-obsidianmd": "^0.3.0",
+    "obsidian": "^1.8.7",
+    "tslib": "^2.8.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0"
+  }
+}

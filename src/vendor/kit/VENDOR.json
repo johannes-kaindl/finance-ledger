@@ -1,0 +1,8 @@
+{
+  "source": "obsidian-kit",
+  "note": "Verbatim snapshots. Never hand-edit. Re-copy from obsidian-kit to update.",
+  "files": [
+    { "vendored": "pure/frontmatter.ts", "as": "frontmatter.ts", "version": "0.26.1", "sha": "c10f6f4" },
+    { "vendored": "pure/i18n.ts", "as": "i18n.ts", "version": "0.16.0", "note": "Rückstand — trägt eigenen Kopfstempel; auf 0.26.1 nachziehen, wenn i18n ohnehin angefasst wird." }
+  ]
+}

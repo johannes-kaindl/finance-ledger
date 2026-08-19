@@ -1,0 +1,6 @@
+node_modules/
+.claude/
+.remember/
+.parity.mjs
+.gui-smoke.mjs
+.shots.mjs
