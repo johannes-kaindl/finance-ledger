@@ -4,3 +4,9 @@ node_modules/
 .parity.mjs
 .gui-smoke.mjs
 .shots.mjs
+
+# Interne Arbeitsdokumente (maintainer-lokal, nie veroeffentlichen)
+docs/superpowers/specs/*
+docs/superpowers/plans/*
+!docs/superpowers/specs/.gitkeep
+!docs/superpowers/plans/.gitkeep
