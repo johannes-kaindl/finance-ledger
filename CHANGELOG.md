@@ -6,6 +6,8 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-08-20
+
 Erstes veröffentlichtes Release. Bündelt die gesamte Vor-Release-Entwicklung
 (Slices 1–10, F15 Design-Wiring, F1/F2, Hub-Migration und den eingebauten
 CSV-Import) zu einer konsolidierten Erstversion.
