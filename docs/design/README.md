@@ -52,7 +52,7 @@ Siehe `../design.md` (im docs-Root) für die Plugin-seitige Erklärung: wann nut
 
 ## Token-Mapping-Tabelle
 
-Vollständige Mapping-Analyse: `../../dispatch-runs/design-system-analysis.md`
+Vollständige Mapping-Analyse: maintainer-lokales Arbeitsdokument (nicht Teil dieses Repos)
 
 ## Vorschau öffnen
 

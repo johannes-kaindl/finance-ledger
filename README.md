@@ -214,10 +214,9 @@ Bei Updates: `npm run deploy` → Plugin-Reload (Toggle off/on im Plugin-Entry o
 | `src/` | TypeScript-Sources (views, ui, parser, resolver, state, types, utils, aggregator, categorizer-rules) |
 | `src/aggregator/openingBalances.ts` | Slice-8 Stand-Am-aware Mini-Parser |
 | `src/aggregator/saldo.ts` | Slice-8 Stand-Am-aware computeSaldo |
-| `tests/` | Vitest-Specs (246 Tests grün) |
+| `tests/` | Vitest-Specs (676 Tests grün) |
 | `docs/design/` | Canonical Design-System Source-of-Truth |
 | `docs/design.md` | High-level Design-System-Erklärung |
-| `dispatch-runs/` | Closeout-Reports + Burst-Analysen |
 | `styles.css` | Plugin-styles mit Tokens + Utilities |
 | `manifest.json` | Obsidian-Plugin-Manifest (id: `finance-ledger`) |
 | `main.js` | esbuild-Output (committed, da Obsidian-Plugin-Convention) |
@@ -230,8 +229,6 @@ Bei Updates: `npm run deploy` → Plugin-Reload (Toggle off/on im Plugin-Entry o
 
 | File | Zweck |
 |------|-------|
-| `HANDOVER.md` | Domain-Schema-Doku + Lessons aus Importer-Slices |
-| `VAULT-CONTEXT.md` | Welche Vault-Files das Plugin liest, mit Pfaden |
 | `AGENTS.md` | Architektur-Konventionen für CC-Agenten |
 | `CHANGELOG.md` | Release-Notes (Slice-3 bis Slice-9) |
 

@@ -184,7 +184,7 @@ Das verhindert Icon-Platzhalter auf iOS, wo `currentColor`-Inheritance manchmal 
 ## Referenz
 
 - Token-Werte canonical: [`docs/design/`](design/README.md)
-- Token-Mapping-Analyse: [`../dispatch-runs/design-system-analysis.md`](../dispatch-runs/design-system-analysis.md)
+- Token-Mapping-Analyse: maintainer-lokales Arbeitsdokument (nicht Teil dieses Repos)
 - Visuelle Vorschau: `docs/design/system-reference.html` (im Browser öffnen)
 
 ## Stand-Am-aware Saldo (Slice-8)
