@@ -7,7 +7,7 @@ Obsidian-Plugin, das hledger-Journale als filterbare Tabellen mit Saldo-/Kategor
 [![Release](https://img.shields.io/gitea/v/release/jkaindl/finance-ledger?gitea_url=https%3A%2F%2Fgit.jkaindl.de&label=release)](https://git.jkaindl.de/jkaindl/finance-ledger/releases)
 ![Platform](https://img.shields.io/badge/platform-Obsidian%20%7C%20Desktop%2BMobile-lightgrey)
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/hero.png" width="600" alt="Obsidian mit geöffneter Konto-Notiz links und dem Finance-Hub rechts: eine filterbare Buchungstabelle mit Datum, Empfänger, Konto-Chips, Beträgen und Tags.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/hero.png" width="640" alt="Obsidian mit geöffneter Konto-Notiz links und dem Finance-Hub rechts: eine filterbare Buchungstabelle mit Datum, Empfänger, Konto-Chips, Beträgen und Tags.">
 
 > Plugin-ID: `finance-ledger` (bis 2026-06-10: `finance`). Veröffentlichungs-Roadmap siehe AGENTS.md.
 
@@ -45,13 +45,13 @@ Obsidian-Plugin, das hledger-Journale als filterbare Tabellen mit Saldo-/Kategor
 
 ### So sieht das aus
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/dashboard.png" width="600" alt="Dashboard-Reiter mit Karten für Kontostände, letzte Aktivität, Schnellnavigation, Schnellaktionen und den größten Ausgabenkategorien des laufenden Monats.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/dashboard.png" width="640" alt="Dashboard-Reiter mit Karten für Kontostände, letzte Aktivität, Schnellnavigation, Schnellaktionen und den größten Ausgabenkategorien des laufenden Monats.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/balances.png" width="600" alt="Balances-Reiter: je Konto Anfangssaldo mit Stichtag, Bewegung seit dem Stichtag und aktueller Stand.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/balances.png" width="640" alt="Balances-Reiter: je Konto Anfangssaldo mit Stichtag, Bewegung seit dem Stichtag und aktueller Stand.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/categories.png" width="600" alt="Categories-Reiter: Ausgabenkategorien als Hierarchie mit Betrag und Anteil in Prozent.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/categories.png" width="640" alt="Categories-Reiter: Ausgabenkategorien als Hierarchie mit Betrag und Anteil in Prozent.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/triage.png" width="600" alt="To-classify-Reiter: vier noch nicht zugeordnete Buchungen mit Betrag und je einem Classify-Knopf, darunter die Summenzeile.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/triage.png" width="640" alt="To-classify-Reiter: vier noch nicht zugeordnete Buchungen mit Betrag und je einem Classify-Knopf, darunter die Summenzeile.">
 
 ## How it works
 
