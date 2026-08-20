@@ -6,15 +6,30 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
-_Noch keine Änderungen seit dem letzten Release._
-
-## [0.1.0] — 2026-05-11
-
 Erstes veröffentlichtes Release. Bündelt die gesamte Vor-Release-Entwicklung
-(Slices 1–10 + F15 Design-Wiring) zu einer konsolidierten Erstversion.
+(Slices 1–10, F15 Design-Wiring, F1/F2, Hub-Migration und den eingebauten
+CSV-Import) zu einer konsolidierten Erstversion.
 
 ### Added
 
+- **Finance-Hub** (`FinanceHubView`) — EINE View mit Tab-Leiste statt fünf
+  Einzel-Views; mount-once-Panels (Filter/Scroll überleben Tab-Wechsel),
+  Panel-Navigation über late-bound Callback.
+- **Eingebauter CSV-Import** — vollständiger TypeScript-Port des Importer-Kerns
+  (CSV-Parser CAMT52/Visa, Kategorisierung, Journal-/Accounts-/Opening-Balances-
+  Schreiber), mobile-fähig ohne Node-APIs; Geld-Arithmetik über decimal.js mit
+  kaufmännischer Rundung; per Parity-Check byte-gleich zur Python-Referenz gehalten.
+- **Stammdaten-Schreiben** — Konto- und Vertrags-Notizen mit Marker-Idempotenz
+  und chirurgischem Zeilen-Patch: User-Felder (`anfangssaldo_eur`, `created`,
+  eigene Abschnitte) überleben jeden Import-Lauf.
+- **i18n DE/EN** — folgt automatisch Obsidians Spracheinstellung
+  (`getLanguage()`); EN kanonisch, DE vollständig.
+- **Vorzeichen- und Farbdarstellung** (F1) — `formatMoneyAmount` mit
+  konfigurierbaren Farbschemata über Theme-Variablen, Settings-Tab mit
+  Dropdowns und Farb-Swatches.
+- **Konto-Auto-Detect im Import-Modal** — Zuordnung CSV-Datei → Konto über
+  Ziffernvergleich (führende Nullen, maskierte Kartennummern), Format-Diagnose
+  mit verständlichen Hinweisen statt Traceback.
 - **Ledger Viewer** (`LedgerView`) — filter- und sortierbare Buchungstabelle mit
   Klick-Navigation und Summen-Footer; hledger-Subset-Parser + Account-Resolver
   (Frontmatter-Crawl auf `ledger_account`).
