@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { Money } from "../../../src/core/money";
-import { wrapCallout } from "../../../src/core/notes/callout";
 import {
 	renderBasesEmbed,
 	renderMermaidBar,
@@ -104,31 +103,5 @@ describe("renderBasesEmbed", () => {
 
 	it("bettet ohne Ansichtsnamen die ganze Base ein", () => {
 		expect(renderBasesEmbed("pfad/zur/base")).toBe("![[pfad/zur/base]]");
-	});
-});
-
-describe("wrapCallout", () => {
-	it("zitiert jede Zeile des Rumpfs", () => {
-		expect(wrapCallout("Titel", "zeile1\nzeile2", "quote", false)).toBe(
-			"> [!quote]- Titel\n> zeile1\n> zeile2",
-		);
-	});
-
-	it("lässt in Leerzeilen das nachlaufende Leerzeichen weg", () => {
-		expect(wrapCallout("T", "a\n\nb", "quote", false)).toBe(
-			"> [!quote]- T\n> a\n>\n> b",
-		);
-	});
-
-	it("nimmt eine andere Callout-Art", () => {
-		expect(wrapCallout("T", "x", "info", false)).toContain("> [!info]- T");
-	});
-
-	it("öffnet den Callout mit einem Plus", () => {
-		expect(wrapCallout("T", "x", "quote", true)).toContain("> [!quote]+ T");
-	});
-
-	it("lässt bei leerem Titel kein Leerzeichen am Kopf stehen", () => {
-		expect(wrapCallout("", "x", "quote", false)).toBe("> [!quote]-\n> x");
 	});
 });

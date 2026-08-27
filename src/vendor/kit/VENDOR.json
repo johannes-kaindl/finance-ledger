@@ -1,8 +1,11 @@
 {
   "source": "obsidian-kit",
-  "note": "Verbatim snapshots. Never hand-edit. Re-copy from obsidian-kit to update.",
+  "note": "Verbatim snapshots. Never hand-edit. Re-vendor via tools/sync-kit.sh.",
   "files": [
-    { "vendored": "pure/frontmatter.ts", "as": "frontmatter.ts", "version": "0.26.1", "sha": "c10f6f4" },
-    { "vendored": "pure/i18n.ts", "as": "i18n.ts", "version": "0.16.0", "note": "Rückstand — trägt eigenen Kopfstempel; auf 0.26.1 nachziehen, wenn i18n ohnehin angefasst wird." }
+    { "vendored": "pure/callout.ts", "as": "callout.ts", "version": "0.27.0", "sha": "548041b" },
+    { "vendored": "pure/clipboard.ts", "as": "clipboard.ts", "version": "0.27.0", "sha": "548041b" },
+    { "vendored": "pure/frontmatter.ts", "as": "frontmatter.ts", "version": "0.27.0", "sha": "548041b" },
+    { "vendored": "pure/i18n.ts", "as": "i18n.ts", "version": "0.27.0", "sha": "548041b" },
+    { "vendored": "pure/sha256.ts", "as": "sha256.ts", "version": "0.27.0", "sha": "548041b" }
   ]
 }

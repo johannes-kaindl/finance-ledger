@@ -174,6 +174,60 @@ describe("planVertragNotes", () => {
 		expect(note).toContain("[[Finanzplan/40-Monatsberichte/2026-07 Monatsbericht\\|2026-07-06]]");
 	});
 
+	it("prefixt jede Zeile einer mehrzeiligen note_extra_warning", () => {
+		// Regression: bis zum Kit-0.27.0-Vendoring wurde der Wert mit genau EINEM "> "
+		// vorangestellt ins Template geschoben — alles ab der zweiten Zeile stand als
+		// nackter Text NEBEN dem Callout. Kein Typ-, kein Testfehler, nur eine falsch
+		// aussehende Notiz. wrapCallout prefixt jede Zeile.
+		const mehrzeilig = parseVertraegeConfig({
+			vertraege: [
+				{
+					filename: "ACME Telecom – Festnetz.md",
+					ledger_kategorie: "Ausgaben:Kommunikation:Festnetz:ACME",
+					vertragspartner: "ACME Telecom GmbH",
+					vertrag_kategorie: "kommunikation",
+					vertrag_subkategorie: "festnetz",
+					abbucht_von_konto: "hauptkonto",
+					aliases: ["ACME Festnetz"],
+					sticker: "lucide//phone",
+					note_extra_warning: "Erste Zeile.\nZweite Zeile.\n\nVierte Zeile.",
+				},
+			],
+		}).vertraege;
+
+		const note = planVertragNotes(ctx, mehrzeilig, drei, {}).plans[0].content;
+
+		expect(note).toContain(
+			"> [!warning] Hinweis aus Auto-Generation\n> Erste Zeile.\n> Zweite Zeile.\n>\n> Vierte Zeile.",
+		);
+	});
+
+	it("haengt an den Info-Callout keine leere >-Schlusszeile", () => {
+		// Das trailing "\n" der Body-Zeile darf NICHT in den wrapCallout-Body: es erzeugte
+		// dort (korrekterweise) eine zusaetzliche ">"-Zeile, die bei gesetzter Warnung
+		// mitten im Dokument staende.
+		const mitWarnung = parseVertraegeConfig({
+			vertraege: [
+				{
+					filename: "ACME Telecom – Festnetz.md",
+					ledger_kategorie: "Ausgaben:Kommunikation:Festnetz:ACME",
+					vertragspartner: "ACME Telecom GmbH",
+					vertrag_kategorie: "kommunikation",
+					vertrag_subkategorie: "festnetz",
+					abbucht_von_konto: "hauptkonto",
+					aliases: ["ACME Festnetz"],
+					sticker: "lucide//phone",
+					note_extra_warning: "Achtung.",
+				},
+			],
+		}).vertraege;
+
+		const note = planVertragNotes(ctx, mitWarnung, drei, {}).plans[0].content;
+
+		expect(note).not.toContain("\n>\n\n> [!warning]");
+		expect(note).toContain(".\n\n> [!warning] Hinweis aus Auto-Generation");
+	});
+
 	it("überspringt einen Vertrag mit zu wenigen Buchungen und sagt warum", () => {
 		const { plans, skipped } = planVertragNotes(ctx, vertraege, [drei[0]], {});
 

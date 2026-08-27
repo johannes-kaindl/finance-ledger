@@ -11,6 +11,7 @@ import type { PluginData } from '../types/plugin-data';
 import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { writeClipboard } from '../vendor/kit/clipboard';
 
 export type DataAccessor = {
   loadData: () => Promise<PluginData>;
@@ -39,7 +40,15 @@ class ImportErrorModal extends Modal {
     btnRetry.onclick = () => { this.close(); this.onRetry(); };
 
     const btnCopy = btnRow.createEl('button', { text: t('tbc.importError.copyCmd') });
-    btnCopy.onclick = () => { void navigator.clipboard.writeText(cmd); new Notice(t('tbc.importError.copied')); };
+    // Die Erfolgs-Notice haengt am onCopied-Callback, nicht neben dem Aufruf: vorher las
+    // der Nutzer 'Kopiert!' auch dann, wenn writeText ablehnte (Fokusverlust im
+    // unfokussierten Electron-Fenster, verweigerte Permission) — bei leerer Zwischenablage.
+    btnCopy.onclick = () => {
+      void writeClipboard(cmd, {
+        onCopied: () => new Notice(t('tbc.importError.copied')),
+        onFailed: () => new Notice(t('tbc.importError.copyFailed')),
+      });
+    };
 
     btnRow.createEl('button', { text: t('tbc.importError.close') }).onclick = () => this.close();
   }

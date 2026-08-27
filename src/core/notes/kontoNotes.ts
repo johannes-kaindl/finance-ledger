@@ -18,6 +18,7 @@ import type { KontoSpec } from "../config/konten";
 import type { IsoDate } from "../dates";
 import type { BankTransaction } from "../import/transaction";
 import { Money, ZERO, type MoneyValue } from "../money";
+import { wrapCallout } from "../../vendor/kit/callout";
 import { replaceAutoSection } from "./markers";
 import { patchFrontmatter } from "./frontmatter";
 
@@ -106,6 +107,16 @@ export function kontoNotePath(
 	return `${ctx.notesPrefix}/${ctx.folders.konten}/${kontoNoteName(ctx, spec)}.md`;
 }
 
+/** Statischer Rumpf des Saldo-Warn-Callouts — vier Zeilen, kein Freitext.
+ *  Steht ausserhalb des Notiz-Templates, weil `wrapCallout` das Zeilen-Prefixing
+ *  uebernimmt; die Backticks brauchen hier keine Maskierung mehr. */
+const SALDO_WARNUNG = [
+	"`saldo_eur` zeigt nur die kumulierte Summe aller Buchungen aus dem Import.",
+	"Echter Bank-Saldo = `anfangssaldo_eur` + dieser Wert. Steht dort `null`,",
+	"einmal aus dem Online-Banking nachtragen und `anfangssaldo_stand_am` setzen.",
+	"Der Importer überschreibt diese beiden Felder nie.",
+].join("\n");
+
 /** Eine neue Konto-Notiz von Grund auf. */
 export function renderKontoNote(
 	ctx: ImporterContext,
@@ -153,14 +164,9 @@ sticker: ${spec.sticker}
 
 # 🏦 ${title}
 
-> [!info] Rolle
-> ${spec.rolleBeschreibung}
+${wrapCallout("Rolle", spec.rolleBeschreibung, "info")}
 
-> [!warning] Saldo ist relativ
-> \`saldo_eur\` zeigt nur die kumulierte Summe aller Buchungen aus dem Import.
-> Echter Bank-Saldo = \`anfangssaldo_eur\` + dieser Wert. Steht dort \`null\`,
-> einmal aus dem Online-Banking nachtragen und \`anfangssaldo_stand_am\` setzen.
-> Der Importer überschreibt diese beiden Felder nie.
+${wrapCallout("Saldo ist relativ", SALDO_WARNUNG, "warning")}
 
 ${replaceAutoSection("", autoSection(ctx, kennzahlen), USER_DEFAULT).trimStart()}`;
 }

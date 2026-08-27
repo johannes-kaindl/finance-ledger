@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { sha256, sha256Bytes } from "../../src/core/hash/sha256";
+import { sha256Hex, sha256HexUtf8 } from "../../src/vendor/kit/sha256";
 
 /**
  * Der Hash ist die Identität einer Buchung beim Dedupe. Weicht er von Pythons
@@ -10,26 +10,26 @@ import { sha256, sha256Bytes } from "../../src/core/hash/sha256";
  */
 describe("sha256 gegen die NIST-Vektoren", () => {
 	it("hasht den leeren String", () => {
-		expect(sha256("")).toBe(
+		expect(sha256HexUtf8("")).toBe(
 			"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		);
 	});
 
 	it("hasht 'abc'", () => {
-		expect(sha256("abc")).toBe(
+		expect(sha256HexUtf8("abc")).toBe(
 			"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
 		);
 	});
 
 	it("hasht die 448-Bit-Nachricht", () => {
-		expect(sha256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")).toBe(
+		expect(sha256HexUtf8("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")).toBe(
 			"248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
 		);
 	});
 
 	it("hasht die 896-Bit-Nachricht (zwei Blöcke)", () => {
 		expect(
-			sha256(
+			sha256HexUtf8(
 				"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno" +
 					"ijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
 			),
@@ -37,7 +37,7 @@ describe("sha256 gegen die NIST-Vektoren", () => {
 	});
 
 	it("hasht eine Million 'a'", () => {
-		expect(sha256("a".repeat(1_000_000))).toBe(
+		expect(sha256HexUtf8("a".repeat(1_000_000))).toBe(
 			"cd C7 6e 5c 99 14 fb 92 81 a1 c7 e2 84 d7 3e 67 f1 80 9a 48 a4 97 20 0e 04 6d 39 cc c7 11 2c d0"
 				.replace(/\s/g, "")
 				.toLowerCase(),
@@ -51,7 +51,7 @@ describe("sha256 gegen node:crypto", () => {
 		// zusätzlichen Block erzwingt — die klassische Fehlerstelle.
 		for (const length of [0, 1, 54, 55, 56, 57, 63, 64, 65, 119, 120, 128]) {
 			const bytes = randomBytes(length);
-			expect(sha256Bytes(new Uint8Array(bytes)), `Länge ${length}`).toBe(
+			expect(sha256Hex(new Uint8Array(bytes)), `Länge ${length}`).toBe(
 				createHash("sha256").update(bytes).digest("hex"),
 			);
 		}
@@ -60,7 +60,7 @@ describe("sha256 gegen node:crypto", () => {
 	it("stimmt für zufällige Eingaben überein", () => {
 		for (let i = 0; i < 50; i++) {
 			const bytes = randomBytes(1 + ((i * 37) % 500));
-			expect(sha256Bytes(new Uint8Array(bytes))).toBe(
+			expect(sha256Hex(new Uint8Array(bytes))).toBe(
 				createHash("sha256").update(bytes).digest("hex"),
 			);
 		}
@@ -73,7 +73,7 @@ describe("sha256 gegen node:crypto", () => {
 			"sref:2025080100000001",
 			"Ärger mit Öl und Übermut — 100 % Straße",
 		]) {
-			expect(sha256(text)).toBe(
+			expect(sha256HexUtf8(text)).toBe(
 				createHash("sha256").update(text, "utf8").digest("hex"),
 			);
 		}

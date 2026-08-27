@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf, type ViewStateResult } from 'obsidian';
-import { buildHubInto } from './hubController';
+import { buildHubInto } from '../../vendor/kit-obsidian/hub';
 import type { FinancePanel, FinanceTabId, HubController } from './panelTypes';
 import { t } from '../../i18n/strings';
 
@@ -27,7 +27,12 @@ export class FinanceHubView extends ItemView {
 
   async onOpen(): Promise<void> {
     const root = this.containerEl.children[1] as HTMLElement;
-    this.ctrl = buildHubInto(root, this.panels, this.navState);
+    // rootClasses ist Pflicht, nicht Kosmetik: styles.css haengt die SVG-Haertung fuer iOS
+    // an `.finance-plugin svg` — ohne die Klasse sind die Tab-Icons dort Platzhalter-Kaesten.
+    // Die Kit-Fassung setzt von sich aus nur `okit-hub-root`.
+    this.ctrl = buildHubInto<FinanceTabId>(root, this.panels, this.navState, {
+      rootClasses: ['finance-plugin'],
+    });
   }
 
   async onClose(): Promise<void> {

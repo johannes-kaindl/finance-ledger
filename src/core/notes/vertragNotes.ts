@@ -16,6 +16,7 @@ import type { VertragSpec } from "../config/vertraege";
 import { addDays, daysBetween, type IsoDate } from "../dates";
 import type { CategorizedTx } from "../import/journal";
 import { MONEY_SCALE, ZERO, type MoneyValue } from "../money";
+import { wrapCallout } from "../../vendor/kit/callout";
 import { assembleBody, replaceAutoSection } from "./markers";
 import type { NotePlan } from "./kontoNotes";
 import { renderMermaidBar } from "./render";
@@ -239,16 +240,26 @@ sticker: ${spec.sticker}
 ---
 `;
 
+	// Das fuehrende "\n" ist die Leerzeile zwischen den beiden Callouts; das
+	// abschliessende trimmt assembleBody ohnehin weg. Der Leerfall bleibt "",
+	// sonst entstuende ein leerer Warn-Callout.
 	const warnung =
 		spec.noteExtraWarning === ""
 			? ""
-			: `\n> [!warning] Hinweis aus Auto-Generation\n> ${spec.noteExtraWarning}\n`;
+			: `\n${wrapCallout("Hinweis aus Auto-Generation", spec.noteExtraWarning, "warning")}\n`;
 
+	// Das "\n" gehoert NICHT in den wrapCallout-Body: ein trailing \n erzeugt dort
+	// (bewusst, s. Kit-Modulkopf Punkt 5) eine zusaetzliche ">"-Schlusszeile, die
+	// bei gesetztem warnung mitten im Dokument stuende.
 	const header =
 		`# ${title}\n\n` +
-		"> [!info] Auto-generierter Vertrag aus Ledger-Import\n" +
-		`> ${matching.length} Lastschriften erkannt, Median-Betrag ${betrag.toFixed(MONEY_SCALE)} €, ` +
-		`Rhythmus „${rhythmus}". Letzte erkannte Zahlung: ${letzte}.\n` +
+		wrapCallout(
+			"Auto-generierter Vertrag aus Ledger-Import",
+			`${matching.length} Lastschriften erkannt, Median-Betrag ${betrag.toFixed(MONEY_SCALE)} €, ` +
+				`Rhythmus „${rhythmus}". Letzte erkannte Zahlung: ${letzte}.`,
+			"info",
+		) +
+		"\n" +
 		warnung;
 
 	return frontmatter + assembleBody(header, autoSection(ctx, matching), USER_DEFAULT);

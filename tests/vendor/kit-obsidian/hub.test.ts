@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { makeFakeEl } from '../../__mocks__/obsidian';
-import { buildHubInto } from '../../../src/views/hub/hubController';
+import { buildHubInto } from '../../../src/vendor/kit-obsidian/hub';
 import type { FinancePanel, FinanceTabId } from '../../../src/views/hub/panelTypes';
 
 type FakeEl = ReturnType<typeof makeFakeEl>;

@@ -1,7 +1,8 @@
 {
   "source": "obsidian-kit",
-  "version": "0.22.0",
-  "sha": "d87e9e2",
-  "vendored": "obsidian/confirm.ts",
-  "note": "Verbatim snapshot. Never hand-edit. Re-copy from obsidian-kit to update."
+  "note": "Verbatim snapshots. Never hand-edit. Re-vendor via tools/sync-kit.sh.",
+  "files": [
+    { "vendored": "obsidian/confirm.ts", "as": "confirm.ts", "version": "0.27.0", "sha": "548041b" },
+    { "vendored": "obsidian/hub.ts", "as": "hub.ts", "version": "0.27.0", "sha": "548041b" }
+  ]
 }

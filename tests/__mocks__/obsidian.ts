@@ -117,7 +117,20 @@ export class Setting {
   addButton(cb: (b: ButtonComponent) => void): this { cb(new ButtonComponent(this.controlEl)); return this; }
 }
 
-export function makeFakeEl(tag: string, opts?: { text?: string; value?: string; cls?: string; type?: string }) {
+type FakeElOpts = {
+  text?: string;
+  value?: string;
+  cls?: string;
+  type?: string;
+  /** Obsidians createEl/createDiv/createSpan setzen Attribute ueber diese Option.
+   *  Der Mock liess sie bis zum Kit-0.27.0-Vendoring fallen — buildHubInto setzt
+   *  `data-tab` genau so (statt per setAttribute), und `el.attrs['data-tab']` blieb
+   *  dadurch undefined. Wer das nicht mitzieht, haelt einen Mock-Defekt fuer einen
+   *  Kit-Fehler. */
+  attr?: Record<string, string>;
+};
+
+export function makeFakeEl(tag: string, opts?: FakeElOpts) {
   const el: Record<string, unknown> = {
     tag,
     text: opts?.text ?? '',
@@ -135,18 +148,18 @@ export function makeFakeEl(tag: string, opts?: { text?: string; value?: string; 
     oninput: null as unknown,
     onclick: null as unknown,
     selected: false,
-    attrs: {} as Record<string, string>,
+    attrs: { ...(opts?.attr ?? {}) } as Record<string, string>,
     createEl(childTag: string, childOpts?: Record<string, unknown>) {
-      const child = makeFakeEl(childTag, childOpts as { text?: string; value?: string; cls?: string });
+      const child = makeFakeEl(childTag, childOpts as FakeElOpts);
       (el.children as unknown[]).push(child);
       return child;
     },
-    createDiv(divOpts?: { cls?: string }) {
+    createDiv(divOpts?: FakeElOpts) {
       const child = makeFakeEl('div', divOpts);
       (el.children as unknown[]).push(child);
       return child;
     },
-    createSpan(spanOpts?: { text?: string; cls?: string }) {
+    createSpan(spanOpts?: FakeElOpts) {
       const child = makeFakeEl('span', spanOpts);
       (el.children as unknown[]).push(child);
       return child;

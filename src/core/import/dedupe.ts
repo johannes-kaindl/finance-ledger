@@ -12,7 +12,7 @@
  * nicht die Kleinschreibung.
  */
 
-import { sha256 } from "../hash/sha256";
+import { sha256HexUtf8 } from "../../vendor/kit/sha256";
 import type { BankTransaction } from "./transaction";
 
 /** Zeichen des Verwendungszwecks, die in den Hash eingehen. */
@@ -27,7 +27,7 @@ export function txHash(tx: BankTransaction): string {
 			? `sref:${sref}`
 			: `comp:${tx.accountIban}|${tx.buchungstag}|${formatBetragForHash(tx)}|` +
 				tx.verwendungszweck.slice(0, VZ_PREFIX_LENGTH).trim().toLowerCase();
-	return sha256(payload).slice(0, HASH_LENGTH);
+	return sha256HexUtf8(payload).slice(0, HASH_LENGTH);
 }
 
 /**
