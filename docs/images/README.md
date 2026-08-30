@@ -58,7 +58,12 @@ richtige Schlüssel).
 
 ## Was der Lauf voraussetzt
 
-- Obsidian mit `--remote-debugging-port=9222`.
+- Obsidian mit `--remote-debugging-port=9222`. ⚠️ **Vorher prüfen, wer sonst dranhängt:**
+  `lsof -nP -iTCP:9222 -sTCP:LISTEN`. Obsidian ist Single-Instance — ein Quit trifft die
+  Instanz, an der möglicherweise eine andere Session arbeitet, und zerstört deren Zustand,
+  während der eigene Lauf sauber grün bleibt. Dieses Rezept braucht den frischen Start (ein
+  Bild pro Start), Mitnutzen ist also keine Alternative: hört der Port, erst fragen, dann
+  quitten.
 - Den Aufnahme-Vault (`npm run shots -- --setup` legt ihn an) **einmal in Obsidian öffnen**
   und dem Vault vertrauen.
 - Die Aufnahmesprache ist **app-weit** (`localStorage["language"]`): der Treiber stellt sie
