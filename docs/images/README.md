@@ -4,7 +4,9 @@ Was jedes Bild zeigen **muss**, damit eine Neuaufnahme dieselbe Aussage trifft. 
 Bild-Standard (Klassen, Breiten, Budgets) liegt zentral in
 `_docs/readme/readme-spec.json`; geprüft wird mit `npm run shots:check`.
 
-Aufnahme: `npm run shots -- --setup`, Obsidian neu starten, dann `npm run shots`.
+Aufnahme: `npm run shots -- --setup`, **Zweitinstanz** mit eigenem Profil starten
+(nicht die laufende App quitten — s. „Was der Lauf voraussetzt“), dann
+`npm run shots -- --port <port>`.
 
 ## Bilder
 
@@ -20,7 +22,7 @@ Aufnahme: `npm run shots -- --setup`, Obsidian neu starten, dann `npm run shots`
 
 | Datei | Warum es (noch) nicht existiert |
 |---|---|
-| `settings.png` | Die Einstellungen sind seit **Obsidian 1.13 ein eigenes Fenster**. Im Workspace-Fenster findet `.modal.mod-settings` nichts; der Ausschnitt bleibt leer, und `capture` nimmt dann klaglos das **ganze Fenster** auf — ein Bild, das jede Größenprüfung besteht und das Falsche zeigt (so geschehen im zweiten Lauf am 2026-08-17). Der Weg dorthin ist `attachTo("settings", port)`, also ein zweites CDP-Ziel im selben Rezept. Bis das gebaut ist, steht hier eine Lücke statt eines irreführenden Bildes |
+| `settings.png` | **Rezept steht seit 2026-09-02, die Aufnahme fehlt noch.** `settingsBild()` in `scripts/shots.ts` dockt über `attachTo("settings", …)` an das eigene Einstellungen-Fenster an (Obsidian 1.13; im Workspace-Fenster findet `.modal.mod-settings` nichts, und `capture` nimmt dann klaglos das ganze Fenster auf — ein Bild, das jede Größenprüfung besteht und das Falsche zeigt, so geschehen am 2026-08-17). Was fehlt, ist der Lauf: `npm run shots -- --port <zweitinstanz> --only settings.png`. Am 2026-09-02 kam er nicht zustande, weil der CDP-Lock über Stunden von drei anderen Sessions gehalten wurde — kein Befund am Rezept |
 
 ## Was die Bilder NICHT zeigen dürfen
 
@@ -58,14 +60,21 @@ richtige Schlüssel).
 
 ## Was der Lauf voraussetzt
 
-- Obsidian mit `--remote-debugging-port=9222`. ⚠️ **Vorher prüfen, wer sonst dranhängt:**
-  `lsof -nP -iTCP:9222 -sTCP:LISTEN`. Obsidian ist Single-Instance — ein Quit trifft die
-  Instanz, an der möglicherweise eine andere Session arbeitet, und zerstört deren Zustand,
-  während der eigene Lauf sauber grün bleibt. Dieses Rezept braucht den frischen Start (ein
-  Bild pro Start), Mitnutzen ist also keine Alternative: hört der Port, erst fragen, dann
-  quitten.
+- **Eine Zweitinstanz mit eigenem Profil**, nicht die reguläre App. Dieses Rezept braucht
+  einen frischen Start je Bild; auf der regulären Instanz wäre das ein Quit, der die Sitzung
+  einer fremden Session zerstört, während der eigene Lauf sauber grün bleibt. Die Sperre
+  hängt am **Profil**, nicht am Rechner (gemessen 2026-09-02): eigenes `--user-data-dir`,
+  eigener Debug-Port. Das Rezept in `scripts/shots.ts` nennt die vier Schritte im Kopf.
+- **Den CDP-Lock nehmen** (`~/.claude/hooks/obsidian-cdp-lock.py acquire --exclusive focus`).
+  Er sieht den Port nicht, sondern den Kommandotext — ohne Halter blockt er genauso wie bei
+  fremdem Halter, die Zweitinstanz entbindet also nicht davon.
 - Den Aufnahme-Vault (`npm run shots -- --setup` legt ihn an) **einmal in Obsidian öffnen**
-  und dem Vault vertrauen.
+  und dem Vault vertrauen. ⚠️ Ein frisches Profil kennt den Vault-Namen noch nicht —
+  `obsidian://open?vault=…` tut dann schlicht nichts. Der Weg ist der **Pfad**-URI
+  (`obsidian://open?path=<url-kodierte Datei im Vault>`), der den Vault dabei registriert.
+- **Den eigenen Build im Aufnahme-Vault** (`npm run deploy` mit `OBSIDIAN_PLUGIN_DIR` auf
+  dessen Plugin-Ordner). `npm run shots` baut und deployt nicht selbst: es fotografiert, was
+  installiert ist, nicht was im Arbeitsbaum liegt — und meldet dabei Erfolg.
 - Die Aufnahmesprache ist **app-weit** (`localStorage["language"]`): der Treiber stellt sie
   auf Englisch und **danach auf den Vorwert zurück** — sonst startet der Arbeits-Vault des
   Maintainers in der Aufnahmesprache.

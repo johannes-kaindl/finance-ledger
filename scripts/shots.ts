@@ -9,32 +9,52 @@
  *
  * ## Ablauf
  *
- * ⚠️ **Vor dem Quit koordinieren — Obsidian ist geteilte Infrastruktur.** Dieses Rezept
- * braucht den frischen Start (ein Bild pro Start, jeder Lauf hinterlässt Zustand); Mitnutzen ist
- * hier keine Alternative. Aber Obsidian ist Single-Instance: der Quit trifft die Instanz, an der
- * möglicherweise eine andere Session arbeitet, und zerstört deren Zustand. Der eigene Lauf ist
- * danach sauber grün; der Schaden fällt nicht auf.
+ * ⚠️ **Dieses Rezept braucht einen frischen Start je Bild** — jeder Lauf hinterlässt Zustand.
+ * Auf der **regulären** Instanz wäre das ein Quit, der die Sitzung einer fremden Session
+ * zerstört (offene Fenster, laufende Indizierung, Messreihe); der eigene Lauf ist danach
+ * sauber grün und der Schaden fällt nicht auf.
+ *
+ * **Deshalb läuft dieser Treiber auf einer ZWEITINSTANZ.** Die Sperre hängt am Profil, nicht
+ * am Rechner (gemessen 2026-09-02, Dach-`AGENTS.md`): eigenes `--user-data-dir`, eigener Port,
+ * fertig — dann ist die Frage „wer hängt gerade an Obsidian" gegenstandslos. Ein Port ist frei
+ * zu wählen, solange ihn niemand hört (`lsof -nP -iTCP:<port> -sTCP:LISTEN`); 9333 ist im
+ * Workspace bereits vergeben.
  *
  * ```bash
- * lsof -nP -iTCP:9222 -sTCP:LISTEN >/dev/null && echo "belegt — erst fragen, wem"
- * ```
- *
- * Hört der Port, hängt jemand dran: **erst fragen, dann quitten.** ⚠️ Und die Prüfung ersetzt die
- * Frage nicht — sie zeigt aktive CDP-Treiber, aber nicht, wer ein Fenster offen hält oder auf den
- * Port wartet; am 2026-08-30 hätte sie einen zwei Stunden alten Reindex nicht gezeigt, denn der
- * hing an Ollama, nicht am Port.
- *
- * ```bash
- * export STAGING_VAULTS_DIR="$HOME/StagingVaults"   # einmalig
+ * # 1) Vault bauen (kein CDP, kein laufendes Obsidian nötig)
  * npm run build && npm run shots -- --setup
  *
- * osascript -e 'quit app "Obsidian"'
- * open -a Obsidian --args --remote-debugging-port=9222
- * #   ... den Aufnahme-Vault öffnen und einmalig als vertrauenswürdig markieren
+ * # 2) Den EIGENEN Build in den Aufnahme-Vault legen — `shots` baut und deployt NICHT selbst,
+ * #    es fotografiert, was im Vault installiert ist.
+ * OBSIDIAN_PLUGIN_DIR="$STAGING_VAULTS_DIR/finance-ledger/.obsidian/plugins/finance-ledger" \
+ *   npm run deploy
  *
- * npm run shots
- * npm run shots -- --only hero.png
+ * # 3) Zweitinstanz mit eigenem Profil starten
+ * UD=/tmp/obs-finance-ledger; mkdir -p "$UD"
+ * /Applications/Obsidian.app/Contents/MacOS/Obsidian \
+ *   --user-data-dir="$UD" --remote-debugging-port=9334 &
+ * #    Den Vault registriert man über den PFAD-URI, nicht über `?vault=` — den Namen kennt
+ * #    ein frisches Profil noch nicht:
+ * #      open "obsidian://open?path=<url-kodierter Pfad zu einer Datei im Vault>"
+ * #    Beim ersten Öffnen nach Vertrauen fragen → bestätigen, sonst läuft das Plugin nicht.
+ *
+ * # 4) Aufnehmen
+ * npm run shots -- --port 9334
+ * npm run shots -- --port 9334 --only settings.png
  * ```
+ *
+ * ⚠️ **Der CDP-Lock bleibt trotzdem die Eintrittskarte** — er sieht den Port nicht, sondern den
+ * Kommandotext, und blockt ohne Halter genauso wie bei fremdem Halter:
+ *
+ * ```bash
+ * python3 ~/.claude/hooks/obsidian-cdp-lock.py acquire --label finance-ledger \
+ *   --exclusive focus --intent "README-Bilder aufnehmen (Zweitinstanz, Port 9334)"
+ * # … Lauf …
+ * python3 ~/.claude/hooks/obsidian-cdp-lock.py release
+ * ```
+ *
+ * `--exclusive focus` und nicht `quit-reload`: ein fremdes `activate` reißt das Fenster nach
+ * vorn und zerschießt eine laufende Aufnahme, und `quit-reload` deckt den Fokus nicht ab.
  *
  * ## Was hier anders ist als im Referenz-Rezept
  *
@@ -49,8 +69,15 @@ import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { argv, cwd, env } from "node:process";
 
-import { attachTo, Cdp, pollUntil } from "../../../tools/obsidian-cdp/cdp.js";
 import {
+  attachTo,
+  Cdp,
+  pollUntil,
+  releaseAlwaysOnTop,
+  requireVisible,
+} from "../../../tools/obsidian-cdp/cdp.js";
+import {
+  boxOf,
   capture,
   setWindowSize,
   writeShot,
@@ -267,7 +294,72 @@ const SHOTS: Shot[] = [
       return box;
     },
   },
+  {
+    name: "settings.png",
+    klasse: "detail",
+    /**
+     * Kein eigener Ausschnitt: Obsidians Einstellungen sind seit 1.13 ein **eigenes
+     * Fenster** (URL `about:blank`, kein `window.app`). Im Workspace-Fenster findet
+     * `.modal.mod-settings` nichts — und `capture` nimmt dann klaglos das ganze Fenster
+     * auf, ein Bild, das jede Größenprüfung besteht und das Falsche zeigt (so geschehen
+     * im zweiten Lauf am 2026-08-17).
+     *
+     * Aufgenommen wird unten in `settingsBild()` über `attachTo("settings", …)`. Dieser
+     * Eintrag stellt nur den Zustand her und steht im Rezept, damit `--list` den Vertrag
+     * vollständig zeigt.
+     */
+    async run(cdp) {
+      // Das Einstellungen-Fenster schließt sich, sobald ein anderes den Fokus bekommt —
+      // deshalb hier NICHT öffnen, sondern nur dafür sorgen, dass der Tab etwas zu
+      // zeigen hat. Der Finanzordner steht bereits (main() setzt ihn vor dem ersten Bild).
+      await cdp.send("Page.bringToFront");
+      return null;
+    },
+  },
 ];
+
+/**
+ * Der Einstellungen-Tab lebt in einem **eigenen Fenster** (Obsidian 1.13, URL
+ * `about:blank`). Muster übernommen aus `calendar-notes/scripts/shots.ts::settingsBild`
+ * (dort wiederum aus `3d-codeblocks`), 2026-09-02.
+ *
+ * Das Fenster schließt sich, sobald ein anderes den Fokus bekommt — deshalb passiert
+ * alles in einem Zug: Werkstatt-Fenster öffnet den Tab, Verbindung dorthin schließen,
+ * dann an das Einstellungen-Fenster andocken und aufnehmen.
+ */
+async function settingsBild(
+  port: number,
+  opts: ShotOptions,
+): Promise<string> {
+  const werkstatt = await attachTo("workspace", port, REPO_NAME);
+  if (!werkstatt) return "settings.png — kein Werkstatt-Fenster gefunden";
+  await werkstatt.evaluate(`
+    app.setting.open();
+    app.setting.openTabById(${JSON.stringify(PLUGIN_ID)});
+    await new Promise((r) => setTimeout(r, 900));
+    return true;
+  `);
+  werkstatt.close();
+
+  const fenster = await attachTo("settings", port, REPO_NAME);
+  if (!fenster) return "settings.png — kein Einstellungen-Fenster gefunden";
+  try {
+    await requireVisible(fenster);
+    // `.vertical-tab-content` ist der Inhaltsbereich OHNE die Tab-Liste am linken Rand —
+    // die gehört dem Wirt, nicht dem Plugin. `.modal-content` ist der Rückfall für den
+    // Fall, dass Obsidian die Struktur ändert.
+    const box =
+      (await boxOf(fenster, ".vertical-tab-content", 0)) ??
+      (await boxOf(fenster, ".modal-content", 0));
+    if (!box) return "settings.png — kein Inhaltsbereich im Einstellungen-Fenster";
+    const png = await capture(fenster, box);
+    return await writeShot(fenster, "settings.png", png, { ...opts, thumb: true });
+  } finally {
+    await releaseAlwaysOnTop(fenster).catch(() => undefined);
+    await fenster.evaluate("window.close(); return true;").catch(() => undefined);
+    fenster.close();
+  }
+}
 
 function flag(name: string): string | undefined {
   const i = argv.indexOf(name);
@@ -312,16 +404,23 @@ async function main(): Promise<void> {
       console.log(`  ${zeile}`);
     }
     console.log(
-      "\n⚠️  Erst prüfen, ob schon ein Obsidian läuft — ein Quit zerstört den Zustand\n" +
-      "    einer fremden Session, und der eigene Lauf ist danach trotzdem grün:\n" +
-      "      lsof -nP -iTCP:9222 -sTCP:LISTEN\n" +
-      "    Hört der Port, hängt jemand dran: erst fragen, dann quitten.\n" +
-      "\n⚠️  Lief Obsidian während dieses Setups, muss es JETZT neu starten.\n" +
-        "\n  osascript -e 'quit app \"Obsidian\"'\n" +
-        "  open -a Obsidian --args --remote-debugging-port=9222\n" +
-        `\nDann diesen Vault öffnen: ${vaultDir}\n` +
-        "Beim ersten Mal fragt Obsidian nach Vertrauen — bestätigen, sonst läuft das\n" +
-        "Plugin nicht und jedes Bild zeigt eine leere Seitenleiste.",
+      "\n⚠️  NICHT die laufende Obsidian-App quitten — dieses Rezept fährt gegen eine\n" +
+        "    ZWEITINSTANZ mit eigenem Profil. Die Sperre hängt am --user-data-dir, nicht am\n" +
+        "    Rechner (gemessen 2026-09-02); ein Quit auf der regulären Instanz zerstört die\n" +
+        "    Sitzung einer fremden Session, während der eigene Lauf sauber grün bleibt.\n" +
+        "\n  # freien Port wählen (9333 ist im Workspace vergeben):\n" +
+        "  lsof -nP -iTCP:9334 -sTCP:LISTEN\n" +
+        "  UD=/tmp/obs-finance-ledger; mkdir -p \"$UD\"\n" +
+        "  /Applications/Obsidian.app/Contents/MacOS/Obsidian \\\n" +
+        "    --user-data-dir=\"$UD\" --remote-debugging-port=9334 &\n" +
+        `\n  # Vault registrieren — ein frisches Profil kennt den NAMEN noch nicht,\n` +
+        `  # also über den PFAD (URL-kodiert, auf eine Datei IM Vault zeigend):\n` +
+        `  open "obsidian://open?path=..."   # unter ${vaultDir}\n` +
+        "\nBeim ersten Öffnen fragt Obsidian nach Vertrauen — bestätigen, sonst läuft das\n" +
+        "Plugin nicht und jedes Bild zeigt eine leere Seitenleiste.\n" +
+        "\nDann aufnehmen mit:  npm run shots -- --port 9334\n" +
+        "⚠️  Vorher den CDP-Lock nehmen (--exclusive focus) — er sieht den Port nicht,\n" +
+        "    sondern den Kommandotext, und blockt ohne Halter genauso wie bei fremdem.",
     );
     return;
   }
@@ -367,6 +466,13 @@ async function main(): Promise<void> {
 
     for (const shot of SHOTS) {
       if (nur && shot.name !== nur) continue;
+      // settings.png hat keinen eigenen Ausschnitt im Werkstatt-Fenster — der Tab lebt
+      // in einem eigenen Fenster. Zustand herstellen, dann dort aufnehmen.
+      if (shot.name === "settings.png") {
+        await shot.run(cdp);
+        console.log(`  ${await settingsBild(port, { ...opts, thumb: true })}`);
+        continue;
+      }
       process.stdout.write(`  ${shot.name} … `);
       const box = await shot.run(cdp);
       const png = await capture(cdp, box ?? undefined);
