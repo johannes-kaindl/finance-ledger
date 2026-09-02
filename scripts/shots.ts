@@ -84,6 +84,7 @@ import {
   Cdp,
   pollUntil,
   releaseAlwaysOnTop,
+  requireUntil,
   requireVisible,
 } from "../../../tools/obsidian-cdp/cdp.js";
 import {
@@ -168,16 +169,25 @@ async function statusleisteAus(cdp: Cdp): Promise<void> {
   `);
 }
 
-/** Hub öffnen und den gewünschten Reiter zeigen. */
+/**
+ * Hub öffnen und den gewünschten Reiter zeigen.
+ *
+ * `requireUntil` statt `pollUntil`: bleibt der Hub aus, lieferte `pollUntil` still `null`,
+ * der Lauf ginge weiter und das Bild zeigte den **vorigen** Reiter — bei fünf Panel-Bildern
+ * aus derselben Sidebar sieht das aus wie ein echtes Bild und ist keines. Ein Timeout muss
+ * hier den Lauf abbrechen, nicht ein falsches Motiv durchreichen.
+ */
 async function hubTab(cdp: Cdp, tab: string): Promise<void> {
   await cdp.send("Page.bringToFront");
   await cdp.evaluate(`
     app.commands.executeCommandById(${JSON.stringify(`${PLUGIN_ID}:${tab}`)});
     return true;
   `);
-  await pollUntil<boolean>(
+  await requireUntil(
     cdp,
-    `return !!document.querySelector(${JSON.stringify(HUB)});`,
+    `document.querySelector(${JSON.stringify(HUB)})`,
+    `Hub-Blatt kam nach dem Befehl "${PLUGIN_ID}:${tab}" nicht zustande — ` +
+      "läuft das Plugin im Aufnahme-Vault, und ist der Finanzordner gesetzt?",
     15_000,
   );
 }
@@ -187,13 +197,22 @@ async function hubTab(cdp: Cdp, tab: string): Promise<void> {
  *
  * `setSize` wirkt asynchron; wer sofort misst, bekommt die Box der alten Breite. Zwei
  * gleiche Messungen hintereinander sind das Signal, dass die Animation durch ist.
+ *
+ * ⚠️ **Warum hier abgebrochen wird und nicht stillschweigend weitergemacht.** Die Bedingung
+ * ist eine *Ruhe*-Heuristik, und die kann legitim mal nicht eintreten — das spricht auf den
+ * ersten Blick gegen einen harten Abbruch. Es überwiegt aber, was ein Weiterlaufen bedeutet:
+ * der Ausschnitt nimmt die Breite **vom Blatt**, ein Bild mitten in der Layout-Animation hat
+ * also die richtige Größe an der falschen Stelle und besteht danach jede Prüfung. Deshalb
+ * Abbruch — aber **mit der letzten gemessenen Breite in der Meldung**, damit unterscheidbar
+ * bleibt, ob die Animation nur langsam war (Wert nahe am Ziel) oder die Sidebar gar nicht
+ * aufging (Wert weit darunter). `requireUntil` kann das nicht liefern, deshalb von Hand.
  */
 async function sidebarBreit(cdp: Cdp, breite: number): Promise<void> {
   await cdp.evaluate(`
     app.workspace.rightSplit.setSize(${breite});
     return true;
   `);
-  await pollUntil<boolean>(
+  const ruhig = await pollUntil<boolean>(
     cdp,
     `
       const el = document.querySelector(${JSON.stringify(HUB)});
@@ -205,6 +224,15 @@ async function sidebarBreit(cdp: Cdp, breite: number): Promise<void> {
     `,
     10_000,
     250,
+  );
+  if (ruhig) return;
+  const gemessen = await cdp.evaluate<number | null>(
+    `return window.__shotsBreite ?? null;`,
+  );
+  throw new Error(
+    `Sidebar kam in 10s nicht zur Ruhe (angefordert ${breite}px, zuletzt gemessen ` +
+      `${gemessen ?? "nichts"}px). Ein Bild aus der laufenden Layout-Animation hätte die ` +
+      "richtige Größe an der falschen Stelle.",
   );
 }
 
