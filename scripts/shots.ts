@@ -33,10 +33,20 @@
  * UD=/tmp/obs-finance-ledger; mkdir -p "$UD"
  * /Applications/Obsidian.app/Contents/MacOS/Obsidian \
  *   --user-data-dir="$UD" --remote-debugging-port=9334 &
- * #    Den Vault registriert man über den PFAD-URI, nicht über `?vault=` — den Namen kennt
- * #    ein frisches Profil noch nicht:
- * #      open "obsidian://open?path=<url-kodierter Pfad zu einer Datei im Vault>"
- * #    Beim ersten Öffnen nach Vertrauen fragen → bestätigen, sonst läuft das Plugin nicht.
+ * #    ⚠️ Den Vault NICHT über einen obsidian://-Link öffnen — der geht an die REGULÄRE
+ * #    Instanz, die den Protokoll-Handler hält. Ein frisches Profil erfährt seinen Vault
+ * #    über die eigene obsidian.json, und die liest Obsidian nur BEIM START:
+ * #
+ * #      python3 - <<'EOF'
+ * #      import json, time, pathlib
+ * #      ud = pathlib.Path("/tmp/obs-finance-ledger")
+ * #      vault = "/Users/Shared/60_StagingVaults/finance-ledger"
+ * #      (ud / "obsidian.json").write_text(json.dumps({"vaults": {
+ * #          "finledger01": {"path": vault, "ts": int(time.time() * 1000), "open": True}}}))
+ * #      EOF
+ * #
+ * #    Also: obsidian.json schreiben, DANN starten. Beim ersten Öffnen fragt Obsidian nach
+ * #    Vertrauen → bestätigen, sonst läuft das Plugin nicht und jedes Bild ist leer.
  *
  * # 4) Aufnehmen
  * npm run shots -- --port 9334

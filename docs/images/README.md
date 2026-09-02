@@ -68,10 +68,12 @@ richtige Schlüssel).
 - **Den CDP-Lock nehmen** (`~/.claude/hooks/obsidian-cdp-lock.py acquire --exclusive focus`).
   Er sieht den Port nicht, sondern den Kommandotext — ohne Halter blockt er genauso wie bei
   fremdem Halter, die Zweitinstanz entbindet also nicht davon.
-- Den Aufnahme-Vault (`npm run shots -- --setup` legt ihn an) **einmal in Obsidian öffnen**
-  und dem Vault vertrauen. ⚠️ Ein frisches Profil kennt den Vault-Namen noch nicht —
-  `obsidian://open?vault=…` tut dann schlicht nichts. Der Weg ist der **Pfad**-URI
-  (`obsidian://open?path=<url-kodierte Datei im Vault>`), der den Vault dabei registriert.
+- Den Aufnahme-Vault (`npm run shots -- --setup` legt ihn an) **in der Zweitinstanz öffnen**
+  und ihm vertrauen. ⚠️ **Nicht über einen `obsidian://`-Link** — der geht an die *reguläre*
+  Instanz, die den Protokoll-Handler hält. Ein frisches Profil erfährt seinen Vault über die
+  **eigene `obsidian.json`** (`{"vaults":{"<id>":{"path":"…","ts":…,"open":true}}}`), und die
+  liest Obsidian **nur beim Start**: erst schreiben, dann starten. Das Rezept in
+  `scripts/shots.ts` zeigt den Dreizeiler.
 - **Den eigenen Build im Aufnahme-Vault** (`npm run deploy` mit `OBSIDIAN_PLUGIN_DIR` auf
   dessen Plugin-Ordner). `npm run shots` baut und deployt nicht selbst: es fotografiert, was
   installiert ist, nicht was im Arbeitsbaum liegt — und meldet dabei Erfolg.
