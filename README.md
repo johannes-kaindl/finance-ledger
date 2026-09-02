@@ -1,67 +1,94 @@
 # Finance Ledger
 
-Obsidian-Plugin, das hledger-Journale als filterbare Tabellen mit Saldo-/Kategorie-Dashboards, Transaktions-Triage und Categorizer-Rule-Verwaltung rendert — gespeist vom Sister-Repo `26-011-finanzplan-importer`.
+> 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
+
+An Obsidian plugin that renders hledger journals as filterable tables with balance and
+category dashboards, transaction triage and categorizer-rule management — fed by a
+companion Python importer.
 
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-DOCS)
 [![Release](https://img.shields.io/gitea/v/release/jkaindl/finance-ledger?gitea_url=https%3A%2F%2Fgit.jkaindl.de&label=release)](https://git.jkaindl.de/jkaindl/finance-ledger/releases)
 ![Platform](https://img.shields.io/badge/platform-Obsidian%20%7C%20Desktop%2BMobile-lightgrey)
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/hero.png" width="640" alt="Obsidian mit geöffneter Konto-Notiz links und dem Finance-Hub rechts: eine filterbare Buchungstabelle mit Datum, Empfänger, Konto-Chips, Beträgen und Tags.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/hero.png" width="640" alt="Obsidian with an account note open on the left and the Finance hub on the right: a filterable transaction table with date, payee, account chips, amounts and tags.">
 
-> Plugin-ID: `finance-ledger` (bis 2026-06-10: `finance`). Veröffentlichungs-Roadmap siehe AGENTS.md.
+> Plugin ID: `finance-ledger` (until 2026-06-10: `finance`).
 
 ## Status
 
-**Stand 2026-06-10 (post Phase 1 Publikations-Track):** Slices 1–10 + F15-Design-System gemergt. Mobile-Readiness (Platform.isMobile-Guards) + Design-System (KSP + Finance-Tokens + Light-Mode) integriert.
+**As of 2026-08-17 — importer port, stages E0–E3:** the built-in import now writes
+`journal.ledger`, `accounts.ledger`, `opening_balances.ledger` **and** the account and
+contract notes — without Python. It only touches what it produced itself: `anfangssaldo_eur`,
+`created`, foreign frontmatter fields and everything below the `AUTO-GENERATED` marker
+survive every run. Verified by `npm run smoke:gui` against a running Obsidian (21/21;
+control run with the patch path removed: 15/20). Reports and dimension notes (E4–E7) still
+go through the importer subprocess.
 
-**Vitest:** 676 grün. **Plugin-Size:** ~161kb (`main.js`). **Importer-Tests:** 425 grün.
+**Before that, as of 2026-08-04 — stages E0+E1:** CSV import runs **inside the plugin
+itself** (TypeScript, no Python subprocess). Verified byte-for-byte against the Python
+importer on real data: `journal.ledger` identical (1,576 transactions, 12 CSVs).
+Reproducible with `npm run parity`.
 
-**Stand 2026-08-17 — Importer-Port, Etappen E0–E3:** Der eingebaute Import erzeugt `journal.ledger`, `accounts.ledger`, `opening_balances.ledger` **und** die Konto- und Vertrags-Notizen — ohne Python. Dabei fasst er nur an, was er selbst erzeugt hat: `anfangssaldo_eur`, `created`, eigene Frontmatter-Felder und alles unterhalb des `AUTO-GENERATED`-Markers überleben jeden Lauf. Belegt durch `npm run smoke:gui` gegen ein laufendes Obsidian (21/21; Gegenprobe mit ausgebautem Patch-Pfad 15/20). Berichte und Dimensions-Notizen (E4–E7) laufen weiterhin über den Importer-Subprozess.
+**As of 2026-06-10 (post phase 1 of the publication track):** slices 1–10 plus the F15
+design system merged. Mobile readiness (`Platform.isMobile` guards) and the design system
+(KSP palette + finance tokens + light mode) integrated.
 
-**Davor, Stand 2026-08-04 — Etappen E0+E1:** Der CSV-Import läuft jetzt auch **im Plugin selbst** (TypeScript, ohne Python-Subprozess). Belegt per Byte-Vergleich gegen den Python-Importer über echte Daten: `journal.ledger` identisch (1.576 Buchungen, 12 CSVs). Wiederholbar mit `npm run parity`. Die Berichts- und Notiz-Generatoren (E3–E7) laufen weiterhin über den Importer-Subprozess.
+**Slice-10 detail-pages layer:** the importer writes 7 additional wikilink axes, 2 new note
+classes (transaction types + mandates) and a life-area layer into the vault. Plugin code
+unchanged (tolerant of extended note schemas).
 
-**Slice-10 Detail-Pages-Layer:** Importer schreibt 7 zusätzliche Wikilink-Achsen + 2 neue Note-Klassen (Tx-Typen + Mandate) + Lebensbereich-Schicht in den Vault. Plugin-Code unverändert (tolerant gegen erweiterte Note-Schemas).
+**Tests:** 682 green. **Bundle size:** ~165 kB (`main.js`).
 
 ## Features
 
 ### Views
 
-- **Ledger Viewer** — sortier-/filterbare Tabelle aller Buchungen aus `journal.ledger`, mit Click-Nav zu Kategorie-/Konto-/Empfänger-Notes
-- **Saldo Overview** — **Stand-Am-aware** (Slice-8-B): zeigt `Anfangssaldo (Stand-Am pro Konto) + Tx ab Stand-Am`. Tx vor Stand-Am gefiltert (keine Doppelzählung im Bootstrap-Workflow). Plus TBC-Marker für Konten ohne `anfangssaldo_eur:`.
-- **Category Overview** — hierarchisches Aggregat aller Kategorien mit Anteil-%
-- **TBC Triage** — alle `:tbc:`-Buchungen mit Quick-Action „Account zuweisen + Categorizer-Rule speichern + Tag entfernen"
-- **Finance Dashboard** — 5-Card-Übersicht (Saldi, TBC-Backlog, Recurring, Top-Spend-Kategorien, Vertrags-Auflauf)
+- **Ledger viewer** — sortable and filterable table of every transaction in `journal.ledger`,
+  with click-through navigation to category, account and payee notes
+- **Balance overview** — **as-of-aware**: shows `opening balance (as-of date per account) +
+  transactions after that date`. Transactions before the as-of date are filtered out, so the
+  bootstrap workflow never double-counts. Accounts without `anfangssaldo_eur:` get a TBC marker.
+- **Category overview** — hierarchical aggregate of all categories with percentage share
+- **TBC triage** — every `:tbc:` transaction with a one-click action: *assign account, save
+  categorizer rule, remove tag*
+- **Finance dashboard** — five-card overview (balances, TBC backlog, recurring items, top
+  spending categories, upcoming contract payments)
 
-### Aktionen
+### Actions
 
-- **Journal aus CSVs neu aufbauen (eingebaut)** — Befehl, der `journal.ledger` + `accounts.ledger` direkt im Plugin erzeugt: kein Python, kein `uv`, kein Subprozess. Läuft auch auf Mobilgeräten. Konten-Konfiguration kommt aus `konten.yaml` im Vault (Einstellung „Konten-Datei")
-- **CSV-Import-Modal** (Desktop-only) — Mehrere CSVs hochladen, gegen vorhandene Imports dedupen (Slice-7 Anti-Dup), anschließend Importer-Subprocess auslösen
-- **Re-Import** — `uv run python -m importer.cli` im Sister-Repo via subprocess (mit UI-Lock + Counter-Reset)
-- **Git-Auto-Backup** — pre-write-Commit mit lock-retry + detached-head-detection
-- **Categorizer-Rule-Modal** — neue Pattern-Rule definieren mit Live-Match-Counter + Conflict-Check, schreibt nach `categorizer-rules/`
-- **Account-Suggestions** — Type-Ahead aus `accounts.ledger` + Frontmatter-Crawl + Dedup
-- **Deep-Link-URI** — `obsidian://finance?mode=ledger&filter=…` zur direkten Filter-Steuerung von außen
+- **Rebuild journal from CSVs (built-in)** — a command that produces `journal.ledger` and
+  `accounts.ledger` inside the plugin: no Python, no `uv`, no subprocess. Works on mobile too.
+  Account configuration comes from a `konten.yaml` in the vault (setting: *accounts file*).
+- **CSV import modal** (desktop only) — upload several CSVs, deduplicate against previous
+  imports, then trigger the importer subprocess
+- **Re-import** — runs the Python importer via subprocess, with a UI lock and counter reset
+- **Git auto-backup** — pre-write commit with lock retry and detached-head detection
+- **Categorizer rule modal** — define a new pattern rule with a live match counter and
+  conflict check; writes to `categorizer-rules/`
+- **Account suggestions** — type-ahead built from `accounts.ledger` plus a frontmatter crawl,
+  deduplicated
+- **Deep-link URI** — `obsidian://finance?mode=ledger&filter=…` to drive the filters from outside
 
-### So sieht das aus
+### What it looks like
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/dashboard.png" width="640" alt="Dashboard-Reiter mit Karten für Kontostände, letzte Aktivität, Schnellnavigation, Schnellaktionen und den größten Ausgabenkategorien des laufenden Monats.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/dashboard.png" width="640" alt="Dashboard tab with cards for account balances, recent activity, quick navigation, quick actions and the largest spending categories of the current month.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/balances.png" width="640" alt="Balances-Reiter: je Konto Anfangssaldo mit Stichtag, Bewegung seit dem Stichtag und aktueller Stand.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/balances.png" width="640" alt="Balances tab: per account the opening balance with its as-of date, the movement since that date and the current balance.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/categories.png" width="640" alt="Categories-Reiter: Ausgabenkategorien als Hierarchie mit Betrag und Anteil in Prozent.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/categories.png" width="640" alt="Categories tab: spending categories as a hierarchy with amount and percentage share.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/triage.png" width="640" alt="To-classify-Reiter: vier noch nicht zugeordnete Buchungen mit Betrag und je einem Classify-Knopf, darunter die Summenzeile.">
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/triage.png" width="640" alt="To-classify tab: four unassigned transactions with amount and a Classify button each, with the total row below.">
 
 ## How it works
 
-Das Plugin **rechnet nicht selbst aus Rohdaten** — es liest das hledger-Journal, das der
-Importer geschrieben hat, und macht daraus Ansichten. Die eine Stelle, an der es doch
-rechnet, ist der Kontostand:
+The plugin **does not compute from raw data** — it reads the hledger journal the importer
+wrote and turns it into views. The one place where it does compute is the account balance:
 
-### Stand-Am-aware Saldo-Logik
+### As-of-aware balance logic
 
-Plugin parst `opening_balances.ledger` via Mini-Parser (`src/aggregator/openingBalances.ts`):
+The plugin parses `opening_balances.ledger` with a small dedicated parser
+(`src/aggregator/openingBalances.ts`):
 
 ```typescript
 parseOpeningBalances(text: string): Map<account, {amount, standAm}>
@@ -69,172 +96,175 @@ parseOpeningBalances(text: string): Map<account, {amount, standAm}>
 
 `computeSaldo(account)` = `opening.amount + Sum(tx where tx.date > opening.standAm)`.
 
-Bootstrap-Workflow: User trägt aktuellen Bank-Saldo + heutiges Datum in Konto-Note Frontmatter (`anfangssaldo_eur` + `anfangssaldo_stand_am`). Importer schreibt daraus `opening_balances.ledger`. Plugin filtert Tx vor Stand-Am.
+Bootstrap workflow: you put the current bank balance and today's date into the account
+note's frontmatter (`anfangssaldo_eur` + `anfangssaldo_stand_am`). The importer turns that
+into `opening_balances.ledger`. The plugin then filters out transactions before the as-of date.
 
 ## Requirements
 
-- **Obsidian 1.8.7 oder neuer**, Desktop und Mobile (`isDesktopOnly: false`).
-- Ein **hledger-Journal im Vault** — `journal.ledger`, `accounts.ledger` und optional
-  `opening_balances.ledger`. Ohne Journal zeigen die Ansichten nichts an.
-- Für den **eingebauten** Journal-Aufbau aus CSVs: eine `konten.yaml` im Vault. Kein Python,
-  kein `uv` — dieser Weg läuft auch mobil.
-- Nur für den **Re-Import über das Schwester-Repo** (Berichte und Notiz-Generatoren):
-  Desktop, `uv` und ein Checkout von `26-011-finanzplan-importer`.
+- **Obsidian 1.8.7 or newer**, desktop and mobile (`isDesktopOnly: false`).
+- An **hledger journal in the vault** — `journal.ledger`, `accounts.ledger` and optionally
+  `opening_balances.ledger`. Without a journal the views show nothing.
+- For the **built-in** journal rebuild from CSVs: a `konten.yaml` in the vault. No Python,
+  no `uv` — this path works on mobile as well.
+- Only for the **re-import through the companion repository** (reports and note generators):
+  desktop, `uv`, and a checkout of the Python importer.
 
 ## Install
 
-Das Plugin ist **nicht im Community-Store** (Veröffentlichungs-Roadmap siehe `AGENTS.md`),
-also von Hand:
+The plugin is **not in the community store** yet, so install it by hand:
 
-1. `main.js`, `manifest.json` und `styles.css` aus dem
-   [neuesten Release](https://git.jkaindl.de/jkaindl/finance-ledger/releases) herunterladen.
-2. Nach `<vault>/.obsidian/plugins/finance-ledger/` kopieren.
-3. Obsidian → Einstellungen → Community-Plugins → **Finance Ledger** aktivieren.
+1. Download `main.js`, `manifest.json` and `styles.css` from the
+   [latest release](https://git.jkaindl.de/jkaindl/finance-ledger/releases).
+2. Copy them into `<vault>/.obsidian/plugins/finance-ledger/`.
+3. Obsidian → Settings → Community plugins → enable **Finance Ledger**.
 
-Aus dem Quelltext: `npm install && npm run build` erzeugt dieselben Dateien; `npm run deploy`
-legt sie direkt in ein konfiguriertes Vault (siehe *Build & Deploy*).
+From source: `npm install && npm run build` produces the same files; `npm run deploy` puts
+them straight into a configured vault (see *Build and deploy*).
 
 ## Usage
 
-Das Pie-Chart-Symbol in der Seitenleiste öffnet das Dashboard. Alles Weitere über die
-Befehlspalette:
+The pie-chart icon in the ribbon opens the dashboard. Everything else lives in the command
+palette:
 
-| Befehl | Ansicht |
+| Command | View |
 |---|---|
-| `Open finance dashboard` | Fünf-Karten-Übersicht: Saldi, TBC-Rückstand, Wiederkehrendes, Top-Ausgaben, Vertrags-Auflauf |
-| `Open ledger viewer` | die filterbare Buchungstabelle |
-| `Open balance overview` | Kontostände je Konto, Stand-Am-korrigiert |
-| `Open category overview` | hierarchisches Kategorie-Aggregat |
-| `Open TBC triage` | die offenen `:tbc:`-Buchungen samt Ein-Klick-Zuordnung |
-| `Rebuild journal from CSVs (built-in)` | baut `journal.ledger` und `accounts.ledger` neu — ohne externen Prozess |
-| `Import CSV` | Mehrfach-Upload mit Dedup (nur Desktop) |
+| `Open finance dashboard` | five-card overview: balances, TBC backlog, recurring items, top spending, upcoming contracts |
+| `Open ledger viewer` | the filterable transaction table |
+| `Open balance overview` | balance per account, corrected for the as-of date |
+| `Open category overview` | hierarchical category aggregate |
+| `Open TBC triage` | the open `:tbc:` transactions with one-click assignment |
+| `Rebuild journal from CSVs (built-in)` | rebuilds `journal.ledger` and `accounts.ledger` — no external process |
+| `Import CSV` | multi-file upload with deduplication (desktop only) |
 
-Der übliche Ablauf: Journal aufbauen oder importieren → **TBC-Triage** abarbeiten (jede
-Zuordnung schreibt zugleich eine Categorizer-Regel, damit dieselbe Buchung künftig von
-selbst landet) → Dashboard lesen.
+The usual loop: rebuild or import the journal → work through **TBC triage** (each assignment
+also writes a categorizer rule, so the same transaction lands by itself next time) → read
+the dashboard.
 
-Von außen ansteuerbar ist das Plugin über
+From outside, the plugin can be driven through
 `obsidian://finance?mode=ledger&filter=…`.
 
 ## Configuration
 
-Einstellungen → Community-Plugins → **Finance Ledger**:
+Settings → Community plugins → **Finance Ledger**:
 
+- **Amount display**: sign mode (*intuitive*: income +, expenses − · *accounting*: raw, as in
+  hledger) plus a colour scheme (classic / monochrome / inverted) shown as swatch tiles with a
+  live preview. Cash flow follows the setting, balances stay sign-based; colour follows the
+  account type and is orthogonal to the sign.
+- Vault-relative paths to ledger, accounts, contracts and categorizer rules
+- `uv` binary path, with auto-detect fallback
+- Filter presets (create, edit, delete — stored locally)
 
-- **Amount display** (F1): Vorzeichen-Modus (Intuitiv: Einnahmen +/Ausgaben − · Buchhalterisch: roh nach hledger) + Farbschema (Klassisch/Monochrom/Invertiert) als Swatch-Kacheln mit Live-Vorschau. Fluss folgt den Settings, Saldos bleiben vorzeichen-basiert; Farbe hängt am Konto-Typ (orthogonal zum Vorzeichen).
-- Vault-relative Pfade zu Ledger / Konten / Verträge / Categorizer-Rules
-- `uv`-Binary-Pfad mit Auto-Detect-Fallback
-- Filter-Preset-CRUD (lokal persistiert)
+## Design system
 
-## Design-System
+The plugin uses three layers:
 
-Plugin nutzt einen drei-Schichten-Ansatz:
+- **Obsidian CSS variables** for layout, typography, borders and surfaces (theme-agnostic)
+- **`--fl-*` tokens** for finance-specific semantics (credit/debit/TBC colours, account-type
+  accents, money display, typed card top borders)
+- the **KSP signal palette** as the foundation of the `--fl-*` tokens, with light-mode
+  corrections for AA contrast
 
-- **Obsidian-CSS-Variablen** für UI-Layout, Typography, Borders, Surfaces (theme-agnostic)
-- **`--fl-*`-Tokens** für finance-spezifische Semantik (Credit/Debit/TBC-Farben, Account-Type-Akzente, Money-Display, Typed-Card-Top-Borders)
-- **KSP-Signal-Palette** als Foundation der `--fl-*`-Tokens, mit Light-Mode-Korrekturen für AA-Kontrast
+Wired into five views — balance overview, finance dashboard, ledger view, TBC triage and
+category overview. Money values carry `.fl-money` plus a sign colour, account chips a
+`data-type` outline, cards a `data-card` top border, status dots `.fl-txn-state`. The
+light-mode bridge dims the signal colours to keep AA contrast.
 
-**F15-Wiring-Stand (Slice-9):** in 5 Views appliziert — SaldoOverview, FinanceDashboard, LedgerView, TBCTriage, CategoryOverview. Money-Werte mit `.fl-money` + sign-color, Konto-Chips mit `data-type`-Outline, Cards mit `data-card`-Top-Border, Status-Dots mit `.fl-txn-state`. Light-Mode-Bridge dimmt Signal-Farben für AA-Kontrast.
+Detailed documentation: [`docs/design.md`](docs/design.md) (high level plus wiring state)
+and [`docs/design/README.md`](docs/design/README.md) (canonical token files).
 
-Detaillierte Doku: [`docs/design.md`](docs/design.md) (high-level + Wiring-Stand) + [`docs/design/README.md`](docs/design/README.md) (canonical token files).
+## Mobile status
 
-## Mobile-Status
+- **Desktop-only paths:** the CSV import modal and the re-import subprocess. On mobile they
+  show a notice saying so.
+- **Mobile is read-only:** views render, but there are no subprocess or git actions.
+- **Mobile icons:** on iPhone and iPad some placeholder icons are still visible after the
+  last icon fix — diagnosis is pending on a desktop with mobile dev tools.
 
-- **Desktop-only-Pfade:** CSV-Import-Modal + Re-Import-Subprocess. Mobile zeigt Notice „nur auf Desktop verfügbar".
-- **Mobile = Read-Only:** Views rendern, aber keine subprocess- oder Git-Aktionen.
-- **Mobile-Icons:** Auf iPhone/iPad nach letztem Mobile-Icons-Fix-Burst noch teils Platzhalter sichtbar — F14-Backlog (Diagnose pending am Desktop mit Mobile-DevTools).
+## The companion importer
 
-## Schwester-Repo (Importer)
+The Python CLI importer that produces the journal is a separate project and is **not
+published yet**. Its output in the vault lives under `<vault>/<financeRoot>/Ledger/` plus
+the note folders `10-accounts`, `20-contracts`, `30-savings-goals`, `40-monthly-reports`,
+`45-categories`, `55-categorizer-rules`, `60-payees`, `70-quarterly-reports`,
+`80-annual-reports` and `05-bases`.
 
-- **Importer:** [`finance-ledger-importer`](https://git.jkaindl.de/jkaindl/finance-ledger-importer) (Python-CLI)
-- **Output im Vault:** `<vault>/<financeRoot>/Ledger/` plus 10-Konten / 20-Verträge / 30-Sparziele / 40-Monatsberichte / 45-Kategorien / 55-Categorizer-Rules / 60-Empfänger / 70-Quartalsberichte / 80-Jahresberichte / 05-Bases
+Everything the plugin needs beyond that journal — the built-in rebuild from CSVs — it does
+on its own.
 
-### Slice-9 Output-Note-Schema (Marker-System)
+### Output note schema (marker system)
 
-Alle vom Importer geschriebenen Notes (Konto/Bericht/Kategorie/Empfänger/Rule) nutzen seit Slice-9 ein Marker-Pattern für sauberen User-Edit-Schutz:
+Every note the importer writes (account, report, category, payee, rule) uses a marker
+pattern that protects user edits:
 
 ```
 ---
-Frontmatter
+frontmatter
 ---
 <user-editable header>
 
 <!-- BEGIN: AUTO-GENERATED -->
-Auto-Section (Tabellen, Mermaid-Charts, Bases-Embeds, Verweise)
+auto section (tables, mermaid charts, bases embeds, cross-references)
 <!-- END: AUTO-GENERATED -->
 
-## 📌 Notizen / 📌 Bemerkungen
-User-Edit-Zone — bleibt bei Re-Run unangetastet.
+## 📌 Notes
+user edit zone — untouched on re-runs.
 ```
 
-Plus: Mermaid-Charts (Pie für Top-Kategorien, Bar/xy-Line für Trends), collapsible Bases-Embeds in `[!quote]-`-Callouts.
+On top of that: mermaid charts (pie for top categories, bar and xy-line for trends) and
+collapsible bases embeds inside `[!quote]` callouts.
 
-### Slice-9 Budget-Layer
+### Budget layer
 
-Monatsberichte haben jetzt eine `💰 Budget-Übersicht`-Section: Soll (12-Mon-Avg) / Ist / Prognose (lineare Hochrechnung) / Diff / Ampel (🟢 unter 90% Soll, 🟡 90-110%, 🔴 über 110%). Plus Caveat-Warning wenn Avg auf <12 Monaten basiert.
+Monthly reports carry a budget section: target (12-month average) / actual / forecast
+(linear extrapolation) / difference / traffic light (🟢 below 90 % of target, 🟡 90–110 %,
+🔴 above 110 %). A caveat warning appears when the average rests on fewer than 12 months.
 
-## Build & Deploy
+## Build and deploy
 
 ```bash
-npm install                # einmalig
-npm test                   # vitest run (260 grün)
-npm run build              # esbuild → main.js (Repo-Root)
-npm run dev                # esbuild --watch (sourcemap inline, kein minify)
-npm run deploy             # build + cp manifest.json + main.js + styles.css → Vault
+npm install                # once
+npm test                   # vitest run (682 green)
+npm run build              # esbuild → main.js (repo root)
+npm run dev                # esbuild --watch (inline sourcemap, no minify)
+npm run deploy             # build + copy manifest.json, main.js, styles.css into a vault
 ```
 
-`npm run deploy` kopiert in das per Env-Variable gesetzte Ziel (PROF-OBS-02):
+`npm run deploy` copies into the target set through an environment variable:
 
 ```bash
 export OBSIDIAN_PLUGIN_DIR="<vault>/.obsidian/plugins/finance-ledger"
 npm run deploy
 ```
 
-## Plugin in Obsidian aktivieren
+Then in Obsidian: Settings → Community plugins → turn off safe mode → enable **Finance
+Ledger**. On updates, run `npm run deploy` again and reload the plugin (toggle it off and
+on, or `Cmd+R`).
 
-1. `npm run deploy` im Terminal ausführen
-2. Obsidian → Settings → Community Plugins → „Safe mode" deaktivieren
-3. „Finance Ledger" in der Plugin-Liste aktivieren
-4. Ribbon-Icon (Pie-Chart) öffnet das Dashboard, oder Command Palette → „Open Ledger Viewer / Saldo Overview / Category Overview / TBC Triage / Finance Dashboard / Finance: Import CSV"
+## Repository layout
 
-Bei Updates: `npm run deploy` → Plugin-Reload (Toggle off/on im Plugin-Entry oder `Cmd+R`).
-
-## Konventionen
-
-- Repo-Naming analog zum Importer: `26-011-finanzplan-plugin`
-- **Plugin-ID** im Manifest: `finance-ledger` (deployed unter `.obsidian/plugins/finance-ledger/`; bis 2026-06-10: `finance`)
-- Source-Code lebt im Habitat-Repo, Plugin-Install-Spot lebt im Vault — getrennt wegen git-Domains
-- Pre/Post-Phase-Tags: `26-011-plugin-pre-<change>`, `26-011-plugin-post-<change>` (Slice-7 + Mobile-Readiness)
-- Slice-Tag-Konvention ab Slice-8: `26-011-finanzplan-plugin-pre/post-slice-<n>-<phase>`
-
-## Repo-Layout
-
-| Pfad | Zweck |
-|------|-------|
-| `src/` | TypeScript-Sources (views, ui, parser, resolver, state, types, utils, aggregator, categorizer-rules) |
-| `src/aggregator/openingBalances.ts` | Slice-8 Stand-Am-aware Mini-Parser |
-| `src/aggregator/saldo.ts` | Slice-8 Stand-Am-aware computeSaldo |
-| `tests/` | Vitest-Specs (676 Tests grün) |
-| `docs/design/` | Canonical Design-System Source-of-Truth |
-| `docs/design.md` | High-level Design-System-Erklärung |
-| `styles.css` | Plugin-styles mit Tokens + Utilities |
-| `manifest.json` | Obsidian-Plugin-Manifest (id: `finance-ledger`) |
-| `main.js` | esbuild-Output (committed, da Obsidian-Plugin-Convention) |
-| `package.json` | npm-Scripts |
-| `esbuild.config.mjs` | Bundle-Config |
-| `vitest.config.ts` | Test-Config |
-| `tsconfig.json` | TypeScript-Config |
-
-## Habitat-Docs
-
-| File | Zweck |
-|------|-------|
-| `AGENTS.md` | Architektur-Konventionen für CC-Agenten |
-| `CHANGELOG.md` | Release-Notes (Slice-3 bis Slice-9) |
+| Path | Purpose |
+|------|---------|
+| `src/` | TypeScript sources (views, ui, parser, resolver, state, types, utils, aggregator, categorizer rules) |
+| `src/aggregator/openingBalances.ts` | as-of-aware parser for `opening_balances.ledger` |
+| `src/aggregator/saldo.ts` | as-of-aware `computeSaldo` |
+| `tests/` | vitest specs (682 tests green) |
+| `docs/design/` | canonical design-system source of truth |
+| `docs/design.md` | high-level design-system explanation |
+| `styles.css` | plugin styles with tokens and utilities |
+| `manifest.json` | Obsidian plugin manifest (id: `finance-ledger`) |
+| `main.js` | esbuild output (committed, as Obsidian plugins require) |
+| `package.json` | npm scripts |
+| `esbuild.config.mjs` | bundle config |
+| `vitest.config.ts` | test config |
+| `tsconfig.json` | TypeScript config |
+| `AGENTS.md` | architecture conventions for coding agents |
+| `CHANGELOG.md` | release notes |
 
 ## License
 
 - **Code:** AGPL-3.0-or-later ([`LICENSE`](LICENSE))
-- **Dokumentation/Text:** CC BY-SA 4.0 ([`LICENSE-DOCS`](LICENSE-DOCS))
+- **Documentation and prose:** CC BY-SA 4.0 ([`LICENSE-DOCS`](LICENSE-DOCS))
 
 Copyright © 2026 Johannes Kaindl.

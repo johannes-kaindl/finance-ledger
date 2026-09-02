@@ -152,16 +152,16 @@ Session-Handoff unter `.remember/` (gitignored).
 - [x] CORE-AGENT-05/06 — `.gitignore` · `.editorconfig`
 - [x] PROF-TS-01/04 — lint + typecheck · `tsconfig.build.json`-Split
 - [x] PROF-OBS-02 — Deploy per `${OBSIDIAN_PLUGIN_DIR:?…}`
-- [ ] CORE-GIT-01 — Forgejo-`origin` + GitHub-Mirror einrichten (Repos anlegen = Maintainer;
-      `release.yml`/`test.yml` liegen bereit)
+- [x] CORE-GIT-01 — Forgejo-`origin` + GitHub-Mirror eingerichtet, 0.1.0 released
+- [x] CORE-META-09 — `README.md` EN-kanonisch + `README.de.md`, mit Sprach-Toggle-Zeile
 - [ ] PROF-OBS-14 — Store-Einreichung übers Obsidian **Developer Dashboard**
       (community.obsidian.md); der PR-Flow gegen `obsidianmd/obsidian-releases` ist retired
 
 ## Abweichungen von der Leitkonvention
 
-- CORE-META-09 — README Deutsch statt EN-kanonisch (+ keine `README.de.md`): Tool ist
-  domänen-deutsch (Sparkasse-CSV-Format, deutsche hledger-Konten). EN-README später
-  (wie Schwester-Repo `finance-ledger-importer`).
+Derzeit keine. *(Die CORE-META-09-Abweichung „README bleibt deutsch" ist am 2026-09-02
+aufgelöst — `README.md` ist jetzt EN-kanonisch, `README.de.md` trägt die deutsche Fassung.
+Beide Fassungen sind inhaltsgleich zu halten; wer eine ändert, ändert die andere mit.)*
 
 ## Kontext-Quellen (für tiefere Architektur-Recherche)
 
