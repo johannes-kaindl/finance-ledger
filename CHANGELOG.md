@@ -6,6 +6,8 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-09-03
+
 ### Fixed
 
 - **Einstellungen-Tab rendert beim zweiten Öffnen alles doppelt.** `display()` leerte den
