@@ -111,16 +111,16 @@ export class TBCPanel implements FinancePanel {
   private buildHeader(container: HTMLElement): void {
     const header = container.createDiv({ cls: 'fl-view-header' });
 
-    header.createEl('span', { text: t('tbc.header.title'), cls: 'fl-bold' });
+    header.createSpan({ text: t('tbc.header.title'), cls: 'fl-bold' });
 
-    this.counterEl = header.createEl('span', { cls: 'fl-badge' });
+    this.counterEl = header.createSpan({ cls: 'fl-badge' });
 
     header.createDiv({ cls: 'fl-spacer' });
 
     // Re-import is a desktop-only feature (importer subprocess). On mobile the
     // core renderer stays read-only — show a hint instead of a dead button.
     if (isMobile()) {
-      header.createEl('span', { text: t('tbc.header.desktopOnly'), cls: 'fl-muted fl-fs-sm' });
+      header.createSpan({ text: t('tbc.header.desktopOnly'), cls: 'fl-muted fl-fs-sm' });
       return;
     }
     this.reimportBtn = header.createEl('button', { text: t('tbc.header.reimportNow'), cls: 'fl-fs-sm' });

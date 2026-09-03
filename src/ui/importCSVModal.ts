@@ -245,7 +245,7 @@ export class ImportCSVModal extends Modal {
     if (!this.previewEl) return;
     this.previewEl.empty();
     if (this.previewData.size === 0) {
-      this.previewEl.createEl('span', { text: t('modal.importCsv.noPreviewYet'), cls: 'fl-muted' });
+      this.previewEl.createSpan({ text: t('modal.importCsv.noPreviewYet'), cls: 'fl-muted' });
       return;
     }
     for (const [file, result] of this.previewData) {
@@ -254,9 +254,9 @@ export class ImportCSVModal extends Modal {
         'modal.importCsv.previewSummary',
         file.name, result.new, result.duplicate, result.first_date, result.last_date, result.konto_match,
       );
-      row.createEl('span', { text: summary });
+      row.createSpan({ text: summary });
       if (result.warnings.length > 0) {
-        const warn = row.createEl('div', { cls: 'fl-warning fl-fs-sm' });
+        const warn = row.createDiv({ cls: 'fl-warning fl-fs-sm' });
         setIcon(warn.createSpan({ cls: 'fl-inline-icon' }), 'alert-triangle');
         warn.createSpan({ text: result.warnings.join('; ') });
       }

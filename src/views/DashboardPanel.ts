@@ -154,20 +154,20 @@ export class DashboardPanel implements FinancePanel {
     for (const s of saldos) {
       total += s.saldoEur;
       const row = card.createDiv({ cls: 'fl-stat-row' });
-      const left = row.createEl('span', { text: s.account.replace(/^Aktiva:/, ''), cls: 'fl-acct-chip fl-ellipsis fl-mr-2' });
+      const left = row.createSpan({ text: s.account.replace(/^Aktiva:/, ''), cls: 'fl-acct-chip fl-ellipsis fl-mr-2' });
       left.setAttribute('data-type', 'asset');
       const saldo = formatMoneyAmount(s.saldoEur, 'balance', this.getDisplay());
-      const right = row.createEl('span', { text: saldo.text, cls: 'fl-money fl-num' });
+      const right = row.createSpan({ text: saldo.text, cls: 'fl-money fl-num' });
       right.addClass(`is-${saldo.tone}`);
     }
 
     card.createDiv({ cls: 'fl-divider' });
 
     const totalRow = card.createDiv({ cls: 'fl-total-row' });
-    totalRow.createEl('span', { text: t('common.total') });
+    totalRow.createSpan({ text: t('common.total') });
     const totalRounded = Math.round(total * 100) / 100;
     const totalFmt = formatMoneyAmount(totalRounded, 'balance', this.getDisplay());
-    const totalRight = totalRow.createEl('span', { text: totalFmt.text, cls: 'fl-money' });
+    const totalRight = totalRow.createSpan({ text: totalFmt.text, cls: 'fl-money' });
     totalRight.addClass(`is-${totalFmt.tone}`);
 
     const link = card.createEl('a', { text: t('dashboard.card.saldo.openLink'), cls: 'fl-card-link' });
@@ -184,20 +184,20 @@ export class DashboardPanel implements FinancePanel {
     const card = this.makeCard(grid, t('dashboard.card.activity.title'), 'card-activity', 'trend');
 
     const tsLine = card.createDiv({ cls: 'fl-stat-line' });
-    tsLine.createEl('span', { text: t('dashboard.card.activity.lastReimport'), cls: 'fl-muted' });
+    tsLine.createSpan({ text: t('dashboard.card.activity.lastReimport'), cls: 'fl-muted' });
     const tsValue = data.lastReimportTimestamp
       ? new Date(data.lastReimportTimestamp).toLocaleString('de-DE')
       : t('dashboard.card.activity.never');
-    tsLine.createEl('span', { text: tsValue });
+    tsLine.createSpan({ text: tsValue });
 
     const cntLine = card.createDiv({ cls: 'fl-stat-line' });
-    cntLine.createEl('span', { text: t('dashboard.card.activity.postings'), cls: 'fl-muted' });
+    cntLine.createSpan({ text: t('dashboard.card.activity.postings'), cls: 'fl-muted' });
     const totalPostings = txs.reduce((sum, tx) => sum + tx.postings.length, 0);
-    cntLine.createEl('span', { text: String(totalPostings) });
+    cntLine.createSpan({ text: String(totalPostings) });
 
     const tbcLine = card.createDiv({ cls: 'fl-stat-line' });
-    tbcLine.createEl('span', { text: t('dashboard.card.activity.newRules'), cls: 'fl-muted' });
-    tbcLine.createEl('span', { text: String(data.rulesAddedSinceReimport) });
+    tbcLine.createSpan({ text: t('dashboard.card.activity.newRules'), cls: 'fl-muted' });
+    tbcLine.createSpan({ text: String(data.rulesAddedSinceReimport) });
 
     const link = card.createEl('a', { text: t('dashboard.card.activity.openLink'), cls: 'fl-card-link' });
     link.onclick = (e: Event) => { e.preventDefault(); this.navigate('tbc'); };
@@ -212,7 +212,7 @@ export class DashboardPanel implements FinancePanel {
 
     const basesFolder = this.getPaths().basesFolder;
     if (!(this.app.vault.getAbstractFileByPath(basesFolder) instanceof TFolder)) {
-      btnGrid.createEl('span', { text: t('dashboard.card.quicknav.noBases'), cls: 'fl-empty' });
+      btnGrid.createSpan({ text: t('dashboard.card.quicknav.noBases'), cls: 'fl-empty' });
       return;
     }
 
@@ -335,9 +335,9 @@ export class DashboardPanel implements FinancePanel {
 
     for (const node of top3) {
       const row = card.createDiv({ cls: 'fl-stat-row fl-link-affordance' });
-      row.createEl('span', { text: node.account.split(':').slice(-1)[0] });
+      row.createSpan({ text: node.account.split(':').slice(-1)[0] });
       const amt = formatMoneyAmount(node.totalEur, moneyCtx(node.account), this.getDisplay());
-      const right = row.createEl('span', { text: amt.text, cls: 'fl-money' });
+      const right = row.createSpan({ text: amt.text, cls: 'fl-money' });
       right.addClass(`is-${amt.tone}`);
       row.onclick = () => this.openLedgerWithFilter(node.account);
     }
