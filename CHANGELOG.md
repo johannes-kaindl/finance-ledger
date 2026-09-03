@@ -6,6 +6,27 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Fixed
+
+- **Einstellungen-Tab rendert beim zweiten Öffnen alles doppelt.** `display()` leerte den
+  Container synchron, rendert aber asynchron nach dem Laden der Einstellungen — ruft Obsidian
+  `display()` beim Öffnen mehrfach, schrieben beide Durchgänge hinein (8 Abschnitte statt 4).
+  Beim allerersten Öffnen war der Fehler unsichtbar. Behoben über einen Render-Zähler; gegen ein
+  laufendes Obsidian gegengeprüft.
+- **Mehrzeilige Hinweistexte in generierten Vertrags-Notizen brachen aus ihrem Callout aus.**
+  `note_extra_warning` und `rolle_beschreibung` wurden mit nur einem `> ` ins Template gesetzt,
+  wodurch alles ab der zweiten Zeile als nackter Text neben dem Callout stand. Behoben mit dem
+  Wechsel auf die Kit-Fassung von `wrapCallout` (obsidian-kit 0.27.0), zwei Regressionstests.
+
+### Changed
+
+- **README ist jetzt englisch-kanonisch**, die deutsche Fassung liegt als `README.de.md`
+  daneben (beide mit Sprachumschalter). Dazu ein sechstes Bild, das den Einstellungen-Tab zeigt.
+- **Vier Module aus `obsidian-kit` 0.27.0 vendoriert** (`callout`, `sha256`, `clipboard`, `hub`)
+  statt lokaler Nachbauten; drei ältere Pins nachgezogen. Kein Verhaltensunterschied außer den
+  oben genannten Fixes.
+
+
 ## [0.1.0] — 2026-08-20
 
 Erstes veröffentlichtes Release. Bündelt die gesamte Vor-Release-Entwicklung
