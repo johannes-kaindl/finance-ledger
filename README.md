@@ -148,6 +148,8 @@ From outside, the plugin can be driven through
 
 Settings → Community plugins → **Finance Ledger**:
 
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/settings.png" width="820" alt="The plugin settings: an Amount display section with a live preview showing income in green and expenses in red, a sign-convention dropdown, and three colour-scheme tiles (Classic selected, Monochrome, Inverted), followed by the vault path setting for the finance project folder.">
+
 - **Amount display**: sign mode (*intuitive*: income +, expenses − · *accounting*: raw, as in
   hledger) plus a colour scheme (classic / monochrome / inverted) shown as swatch tiles with a
   live preview. Cash flow follows the setting, balances stay sign-based; colour follows the

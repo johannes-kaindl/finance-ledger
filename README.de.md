@@ -150,6 +150,8 @@ Von außen ansteuerbar ist das Plugin über
 
 Einstellungen → Community-Plugins → **Finance Ledger**:
 
+<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/settings.png" width="820" alt="Die Plugin-Einstellungen: der Abschnitt „Amount display" mit Live-Vorschau (Einnahmen grün, Ausgaben rot), das Auswahlfeld für die Vorzeichen-Konvention und drei Farbschema-Kacheln (Classic ausgewählt, Monochrome, Inverted), darunter der Vault-Pfad zum Finanzprojekt-Ordner.">
+
 - **Betragsdarstellung**: Vorzeichen-Modus (*intuitiv*: Einnahmen +, Ausgaben − ·
   *buchhalterisch*: roh nach hledger) plus Farbschema (klassisch / monochrom / invertiert)
   als Swatch-Kacheln mit Live-Vorschau. Der Fluss folgt der Einstellung, Saldi bleiben

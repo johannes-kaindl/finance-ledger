@@ -17,12 +17,7 @@ Aufnahme: `npm run shots -- --setup`, **Zweitinstanz** mit eigenem Profil starte
 | `balances.png` | feature | `README.md`, `README.de.md` | Reiter **Balances**: die drei Konten mit Anfangssaldo, Bewegung und Endstand. Zeigt die Stand-Am-Logik — deshalb muss das Anfangssaldo-Datum sichtbar sein |
 | `categories.png` | feature | `README.md`, `README.de.md` | Reiter **Categories**: die Kategorie-Hierarchie mit Beträgen und Anteil in Prozent, mindestens eine aufgeklappte Ebene |
 | `triage.png` | feature | `README.md`, `README.de.md` | Reiter **Triage** mit den vier `:tbc:`-Buchungen des Fixtures und der Aktion, die daraus eine Regel macht. Das ist der Arbeitsablauf, den das Plugin eigentlich verkauft |
-
-## Offen
-
-| Datei | Warum es (noch) nicht existiert |
-|---|---|
-| `settings.png` | **Rezept steht seit 2026-09-02, die Aufnahme fehlt noch.** `settingsBild()` in `scripts/shots.ts` dockt über `attachTo("settings", …)` an das eigene Einstellungen-Fenster an (Obsidian 1.13; im Workspace-Fenster findet `.modal.mod-settings` nichts, und `capture` nimmt dann klaglos das ganze Fenster auf — ein Bild, das jede Größenprüfung besteht und das Falsche zeigt, so geschehen am 2026-08-17). Was fehlt, ist der Lauf: `npm run shots -- --port <zweitinstanz> --only settings.png`. Am 2026-09-02 kam er nicht zustande, weil der CDP-Lock über Stunden von drei anderen Sessions gehalten wurde — kein Befund am Rezept |
+| `settings.png` | feature | `README.md`, `README.de.md` | Der Einstellungen-Tab, beginnend mit **Amount display**: die Live-Vorschau (Einnahme grün, Ausgabe rot), das Auswahlfeld für die Vorzeichen-Konvention und die drei Farbschema-Kacheln mit der aktiven sichtbar markiert. Das ist der visuell aussagekräftigste Teil der Einstellungen; darunter reicht das Bild bis zum vollständig sichtbaren Pfad-Feld. **Klasse `feature`, nicht `detail`** — gemessen ist das Bild quadratisch (Verhältnis 0,98), nicht hoch |
 
 ## Was die Bilder NICHT zeigen dürfen
 

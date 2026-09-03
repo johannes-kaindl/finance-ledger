@@ -334,7 +334,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "settings.png",
-    klasse: "detail",
+    klasse: "feature",
     /**
      * Kein eigener Ausschnitt: Obsidians Einstellungen sind seit 1.13 ein **eigenes
      * Fenster** (URL `about:blank`, kein `window.app`). Im Workspace-Fenster findet
@@ -365,6 +365,38 @@ const SHOTS: Shot[] = [
  * alles in einem Zug: Werkstatt-Fenster öffnet den Tab, Verbindung dorthin schließen,
  * dann an das Einstellungen-Fenster andocken und aufnehmen.
  */
+/**
+ * Ausschnitt des Einstellungen-Tabs: **bis zur Unterkante des letzten VOLLSTÄNDIG sichtbaren
+ * Abschnitts**, nicht bis zur Viewport-Kante.
+ *
+ * Der Tab scrollt (gemessen 2026-09-03: 1905px Inhalt bei 670px sichtbarer Höhe). Ein
+ * Ausschnitt auf den Container endet deshalb hart am unteren Fensterrand — mitten in einer
+ * Einstellung, was im README wie ein kaputtes Bild aussieht. Gemessen wird stattdessen der
+ * letzte `.setting-item`, der noch ganz im sichtbaren Bereich liegt.
+ */
+async function einstellungsBox(cdp: Cdp): Promise<Rect | null> {
+  return cdp.evaluate<Rect | null>(`
+    const c = document.querySelector(".vertical-tab-content") ?? document.querySelector(".modal-content");
+    if (!c) return null;
+    const r = c.getBoundingClientRect();
+    const items = [...c.querySelectorAll(".setting-item")]
+      .map((el) => ({ box: el.getBoundingClientRect(), heading: el.classList.contains("setting-item-heading") }))
+      .filter((i) => i.box.height > 2);
+    // Kante ist das erste Element, das NICHT mehr ganz sichtbar ist.
+    let letzterGanzer = -1;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].box.bottom <= r.bottom - 4) letzterGanzer = i;
+      else break;
+    }
+    // Endet der Schnitt auf einer Ueberschrift, stuende sie ohne ihren Abschnitt da —
+    // dann lieber davor schneiden. (Gemessen 2026-09-03: "Vault paths" blieb als
+    // Ueberschrift ohne Inhalt am unteren Bildrand stehen.)
+    while (letzterGanzer >= 0 && items[letzterGanzer].heading) letzterGanzer--;
+    const unten = letzterGanzer >= 0 ? items[letzterGanzer].box.bottom : r.bottom;
+    return { x: r.x, y: r.y, width: r.width, height: Math.max(200, unten - r.y + 12) };
+  `);
+}
+
 async function settingsBild(
   port: number,
   opts: ShotOptions,
@@ -386,12 +418,10 @@ async function settingsBild(
     // `.vertical-tab-content` ist der Inhaltsbereich OHNE die Tab-Liste am linken Rand —
     // die gehört dem Wirt, nicht dem Plugin. `.modal-content` ist der Rückfall für den
     // Fall, dass Obsidian die Struktur ändert.
-    const box =
-      (await boxOf(fenster, ".vertical-tab-content", 0)) ??
-      (await boxOf(fenster, ".modal-content", 0));
+    const box = await einstellungsBox(fenster);
     if (!box) return "settings.png — kein Inhaltsbereich im Einstellungen-Fenster";
     const png = await capture(fenster, box);
-    return await writeShot(fenster, "settings.png", png, { ...opts, thumb: true });
+    return await writeShot(fenster, "settings.png", png, { ...opts, thumb: false });
   } finally {
     await releaseAlwaysOnTop(fenster).catch(() => undefined);
     await fenster.evaluate("window.close(); return true;").catch(() => undefined);
@@ -508,7 +538,7 @@ async function main(): Promise<void> {
       // in einem eigenen Fenster. Zustand herstellen, dann dort aufnehmen.
       if (shot.name === "settings.png") {
         await shot.run(cdp);
-        console.log(`  ${await settingsBild(port, { ...opts, thumb: true })}`);
+        console.log(`  ${await settingsBild(port, opts)}`);
         continue;
       }
       process.stdout.write(`  ${shot.name} … `);
