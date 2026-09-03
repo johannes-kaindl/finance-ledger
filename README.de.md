@@ -114,12 +114,27 @@ daraus `opening_balances.ledger`. Das Plugin filtert dann die Buchungen vor dem 
 
 ## Installation
 
-Das Plugin ist **noch nicht im Community-Store**, also von Hand:
+Dieses Plugin wird **nicht über den Community-Store verteilt**. Es liegt auf einer eigenen Forge,
+und es führen zwei Wege hin.
+
+**Empfohlen — über den [AnySource Sideloader](https://git.jkaindl.de/jkaindl/anysource-sideloader)**,
+der Plugins von jeder git-Forge installiert und aktualisiert. Einmalig diesen Katalog abonnieren:
+
+```
+https://git.jkaindl.de/jkaindl/obsidian-plugin-catalog/raw/branch/main/catalog.json
+```
+
+Finance Ledger taucht danach in der Plugin-Liste des Sideloaders auf und aktualisiert sich wie
+jedes andere Plugin — ohne Kopiererei, und jeder Download wird per Prüfsumme verifiziert.
+
+**Von Hand**, wenn kein weiteres Plugin dazukommen soll:
 
 1. `main.js`, `manifest.json` und `styles.css` aus dem
    [neuesten Release](https://git.jkaindl.de/jkaindl/finance-ledger/releases) herunterladen.
 2. Nach `<vault>/.obsidian/plugins/finance-ledger/` kopieren.
 3. Obsidian → Einstellungen → Community-Plugins → **Finance Ledger** aktivieren.
+
+Updates müssen dann von Hand wiederholt werden — genau dafür gibt es den Sideloader-Weg.
 
 Aus dem Quelltext: `npm install && npm run build` erzeugt dieselben Dateien; `npm run deploy`
 legt sie direkt in ein konfiguriertes Vault (siehe *Bauen und ausliefern*).
