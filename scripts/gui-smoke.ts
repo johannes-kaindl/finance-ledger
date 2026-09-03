@@ -248,11 +248,17 @@ async function main(): Promise<void> {
     const vaultBase = await cdp.evaluate<string>(`return app.vault.adapter.basePath;`);
     console.log(`    Finanzordner: ${root}`);
 
+    // Namensschema: `Konto 01 – …` im deutschen Arbeits-Vault, `Account 01 – …` im
+    // getrackten Fixture unter docs/images/fixture (dort englisch, weil die README-Bilder
+    // englisch sein muessen). Bis 2026-09-03 filterte der Treiber nur auf `Konto \d` und
+    // brach deshalb gegen den EIGENEN Staging-Vault ab — er lief faktisch nur gegen den
+    // Arbeits-Vault, was die Dach-Doktrin ausdruecklich ausschliesst (fremder Build,
+    // fremdes Pruefmaterial).
     const kontenOrdner = `${root}/10-Konten`;
     const kontoPfade = await cdp.evaluate<string[]>(`
       return app.vault.getMarkdownFiles()
         .map((f) => f.path)
-        .filter((p) => p.startsWith(${JSON.stringify(kontenOrdner + "/")}) && /Konto \\d/.test(p))
+        .filter((p) => p.startsWith(${JSON.stringify(kontenOrdner + "/")}) && /(Konto|Account) \\d/.test(p))
         .sort();
     `);
     record(
