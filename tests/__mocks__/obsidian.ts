@@ -111,6 +111,9 @@ export class Setting {
     this.controlEl = this.settingEl.createDiv({ cls: 'setting-item-control' });
   }
   setName(n: string): this { this.nameEl.setText(n); return this; }
+  /** Obsidian markiert Abschnitts-Ueberschriften mit dieser Klasse am settingEl —
+   *  ueber sie zaehlt ein Test die Abschnitte eines Tabs. */
+  setHeading(): this { this.settingEl.addClass('setting-item-heading'); return this; }
   setDesc(d: string): this { this.descEl.setText(d); return this; }
   addText(cb: (t: TextComponent) => void): this { cb(new TextComponent(this.controlEl)); return this; }
   addDropdown(cb: (d: DropdownComponent) => void): this { cb(new DropdownComponent(this.controlEl)); return this; }
@@ -200,4 +203,19 @@ export function makeFakeEl(tag: string, opts?: FakeElOpts) {
     removeEventListener() { /* no-op */ },
   };
   return el;
+}
+
+
+/** Minimaler PluginSettingTab: Obsidian setzt `containerEl` selbst, Tests setzen es
+ *  danach auf ein FakeEl. Mehr braucht die Basisklasse nicht. */
+export class PluginSettingTab {
+  app: unknown;
+  plugin: unknown;
+  containerEl: FakeEl = makeFakeEl('div');
+  constructor(app: unknown, plugin: unknown) {
+    this.app = app;
+    this.plugin = plugin;
+  }
+  display(): void {}
+  hide(): void {}
 }

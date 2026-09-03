@@ -29,14 +29,27 @@ export class FinanceSettingTab extends PluginSettingTab {
     this.refreshHub = refreshHub;
   }
 
+  /**
+   * Zaehlt die Render-Durchgaenge. `empty()` laeuft synchron, das Rendern haengt am
+   * `.then()` von `loadData()` — ohne diesen Zaehler leeren zwei schnell aufeinander
+   * folgende `display()`-Aufrufe beide den Container und rendern beide hinein.
+   *
+   * Gemessen am 2026-09-03 gegen ein laufendes Obsidian: beim ZWEITEN Oeffnen des
+   * Einstellungen-Tabs stand alles doppelt (8 Abschnitts-Ueberschriften statt 4,
+   * Inhaltshoehe 3713px statt 1905px). Obsidian ruft `display()` beim Oeffnen mehrfach.
+   */
+  private renderLauf = 0;
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
 
-    let data: PluginData;
+    const meinLauf = ++this.renderLauf;
     void this.accessor.loadData().then(d => {
-      data = d;
-      this.renderSettings(containerEl, data);
+      // Ein spaeterer Aufruf hat den Container inzwischen geleert und rendert selbst —
+      // dieser hier wuerde nur ein zweites Mal hineinschreiben.
+      if (meinLauf !== this.renderLauf) return;
+      this.renderSettings(containerEl, d);
     });
   }
 
