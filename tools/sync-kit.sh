@@ -13,7 +13,17 @@ set -e
 KIT=../../obsidian-kit
 REF=${1:-0.27.0}
 VER=$(echo "$REF" | sed 's/^v//')
-SHA=$(git -C "$KIT" rev-parse --short "$REF")
+# ^{commit} ist Pflicht, nicht Kosmetik: ../../tools/release/release.mjs taggt
+# ANNOTIERT (git tag -a), und `rev-parse --short <annotierter Tag>` liefert die SHA
+# des TAG-OBJEKTS, nicht die des Commits. In VENDOR.json staende dann eine SHA, die
+# im `git log` des Kits gar nicht vorkommt — ein Auffindbarkeitsschaden, der erst
+# auffaellt, wenn jemand den Stand nachschlagen will.
+#
+# Dass der bisherige Pin trotzdem stimmte, war Glueck: 0.27.0 ist zufaellig
+# LEICHTGEWICHTIG, dort sind Tag-Objekt und Commit dieselbe SHA (548041b). Der
+# naechste annotierte Tag haette es still gebrochen. Gemessen am 2026-09-02 an
+# code-kit 0.5.0, wo genau das passiert ist (Tag-Objekt 41e96e0 vs. Commit efcd456).
+SHA=$(git -C "$KIT" rev-parse --short "$REF^{commit}")
 
 mkdir -p src/vendor/kit src/vendor/kit-obsidian
 
