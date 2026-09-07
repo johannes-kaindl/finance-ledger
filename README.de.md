@@ -121,7 +121,7 @@ und es führen zwei Wege hin.
 der Plugins von jeder git-Forge installiert und aktualisiert. Einmalig diesen Katalog abonnieren:
 
 ```
-https://git.jkaindl.de/jkaindl/obsidian-plugin-catalog/raw/branch/main/catalog.json
+https://git.jkaindl.de/jkaindl/obsidian-catalog/raw/branch/main/catalog.json
 ```
 
 Finance Ledger taucht danach in der Plugin-Liste des Sideloaders auf und aktualisiert sich wie
