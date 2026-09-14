@@ -88,7 +88,7 @@ npm run smoke:gui       # GUI-Smoke gegen laufendes Obsidian (maintainer-lokal, 
 ```
 
 `npm run typecheck:scripts`, `parity`, `smoke:gui` und `shots` brauchen Werkzeuge aus dem
-Maintainer-Workspace (`../../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
+Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
 bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
 
 ## Test-Konventionen

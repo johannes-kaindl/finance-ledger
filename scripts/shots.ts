@@ -3,9 +3,9 @@
  * gegen ein **laufendes** Obsidian, statt die Bilder von Hand zu klicken.
  *
  * Brücke, Aufnahme-Primitive und Fixture→Vault liegen zentral im Dach
- * (`obsidian-plugins/tools/obsidian-cdp/`); hier steht nur das Rezept. ⚠️ Der Import geht
- * **drei** Ebenen hoch, nicht zwei wie in den anderen Plugins: dieses Repo liegt unter dem
- * Container `finance-ledger-plugin/`.
+ * (`obsidian-plugins/tools/obsidian-cdp/`); hier steht nur das Rezept. Der Import geht zwei
+ * Ebenen hoch wie in den anderen Plugins (bis 2026-09-14 drei, solange das Repo im
+ * Container `finance-ledger-plugin/` lag).
  *
  * ## Ablauf
  *
@@ -86,7 +86,7 @@ import {
   releaseAlwaysOnTop,
   requireUntil,
   requireVisible,
-} from "../../../tools/obsidian-cdp/cdp.js";
+} from "../../tools/obsidian-cdp/cdp.js";
 import {
   boxOf,
   capture,
@@ -94,8 +94,8 @@ import {
   writeShot,
   type Rect,
   type ShotOptions,
-} from "../../../tools/obsidian-cdp/shot.js";
-import { buildVault, stagingVaultDir } from "../../../tools/obsidian-cdp/vault.js";
+} from "../../tools/obsidian-cdp/shot.js";
+import { buildVault, stagingVaultDir } from "../../tools/obsidian-cdp/vault.js";
 
 const PLUGIN_ID = "finance-ledger";
 const REPO_NAME = "finance-ledger";

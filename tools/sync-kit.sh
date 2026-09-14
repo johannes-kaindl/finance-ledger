@@ -2,18 +2,18 @@
 # Vendort Kit-Module byte-identisch aus dem Schwester-Repo obsidian-kit (Dach-AGENTS.md, Kit-first).
 # Nie von Hand editieren — Skript neu laufen lassen. Zielordner nach Quellbereich getrennt (Kit-README).
 #
-# Zwei Abweichungen vom Vorbild (audio-interface/tools/sync-kit.sh), beide mit Grund:
-#  1. KIT=../../obsidian-kit — dieses Repo liegt eine Ebene tiefer, im Container
-#     finance-ledger-plugin/ (dieselbe Tiefe wie ../../tools/release, ../../tools/obsidian-cdp).
-#  2. Vendoriert wird aus einem TAG (git show), nicht aus dem Worktree. Zwingend: seit
+# Eine Abweichung vom Vorbild (audio-interface/tools/sync-kit.sh), mit Grund. (Bis 2026-09-14
+# gab es eine zweite: KIT=../../obsidian-kit, solange das Repo im Container
+# finance-ledger-plugin/ lag; seitdem liegt es wie die anderen direkt im Dach.)
+#  Vendoriert wird aus einem TAG (git show), nicht aus dem Worktree. Zwingend: seit
 #     Kit-HEAD 2ab1bb5 ("pure-Teilmenge zieht nach code-kit") existieren src/pure/sha256.ts
 #     und src/pure/clipboard.ts im Worktree gar nicht mehr — ein `cat` daraus liefe leer.
 #     Der Pin steht damit im Skript und nicht in der Laune des Kit-Checkouts.
 set -e
-KIT=../../obsidian-kit
+KIT=../obsidian-kit
 REF=${1:-0.27.0}
 VER=$(echo "$REF" | sed 's/^v//')
-# ^{commit} ist Pflicht, nicht Kosmetik: ../../tools/release/release.mjs taggt
+# ^{commit} ist Pflicht, nicht Kosmetik: ../tools/release/release.mjs taggt
 # ANNOTIERT (git tag -a), und `rev-parse --short <annotierter Tag>` liefert die SHA
 # des TAG-OBJEKTS, nicht die des Commits. In VENDOR.json staende dann eine SHA, die
 # im `git log` des Kits gar nicht vorkommt — ein Auffindbarkeitsschaden, der erst

@@ -37,14 +37,13 @@
  * npm run smoke:gui -- --vault <VaultName>
  * ```
  *
- * ⚠️ Der Import der Brücke geht hier **drei** Ebenen hoch, nicht zwei wie in den anderen
- * Plugins: dieses Repo liegt unter dem Container `finance-ledger-plugin/`, nicht direkt
- * unter `obsidian-plugins/`.
+ * Der Import der Brücke geht zwei Ebenen hoch wie in den anderen Plugins. Bis 2026-09-14
+ * lag dieses Repo im Container `finance-ledger-plugin/` und der Import ging drei hoch.
  */
 
 import { execFileSync } from "node:child_process";
 
-import { Cdp, pollUntil } from "../../../tools/obsidian-cdp/cdp.js";
+import { Cdp, pollUntil } from "../../tools/obsidian-cdp/cdp.js";
 
 const PLUGIN_ID = "finance-ledger";
 /** Zeile, die der Treiber in einen Nutzer-Abschnitt schreibt, um ihn prüfbar zu machen.
