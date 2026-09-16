@@ -76,23 +76,4 @@ export default [
       "obsidianmd/no-nodejs-modules": "off",
     },
   },
-  {
-    files: ["src/ui/settingsTab.ts"],
-    rules: {
-      // STORE-SCHULD: Der Settings-Tab ist imperativ (`new Setting(containerEl)`) statt
-      // deklarativ ueber `getSettingDefinitions()`. Folge fuer Nutzer ab Obsidian 1.13:
-      // die Einstellungen dieses Plugins erscheinen NICHT in Obsidians Settings-Suche.
-      // Das ist ein echter Faehigkeitsmangel, keine Konventionsfrage — deshalb dieser
-      // Marker und kein stilles Abschalten.
-      //
-      // Abloesung ist vorgezeichnet, nicht offen: der Kit-Baustein
-      // `kit-obsidian/settings_walker.ts` loest genau das und laeuft bereits in
-      // 3d-codeblocks und anysource-sideloader. Uebernahme ist ein eigener Posten
-      // (Task "Settings-Tab auf getSettingDefinitions umstellen"), kein Nebenher-Umbau
-      // in einem Patch-Release.
-      //
-      // gilt-solange: der Settings-Tab imperativ bleibt. Faellt mit der Kit-Uebernahme.
-      "obsidianmd/settings-tab/prefer-setting-definitions": "off",
-    },
-  },
 ];

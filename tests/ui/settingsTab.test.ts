@@ -1,27 +1,31 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import { FinanceSettingTab } from '../../src/ui/settingsTab';
+import { DEFAULT_PLUGIN_DATA, type PluginData } from '../../src/types/plugin-data';
 import { makeFakeEl } from '../__mocks__/obsidian';
 
 /**
- * Gemessen am 2026-09-03 gegen ein laufendes Obsidian (Zweitinstanz, Port 9334):
- * beim ZWEITEN Oeffnen des Einstellungen-Tabs stand der gesamte Inhalt doppelt —
- * 8 Abschnitts-Ueberschriften statt 4, Inhaltshoehe 3713px statt 1905px.
+ * Ursprünglich (bis Welle 3, 2026-09-16) gemessen gegen ein laufendes Obsidian
+ * (Zweitinstanz, Port 9334): beim ZWEITEN Öffnen des Einstellungen-Tabs stand der
+ * gesamte Inhalt doppelt — 8 Abschnitts-Überschriften statt 4. Ursache war die Naht
+ * zwischen synchronem `containerEl.empty()` und dem `.then()` von `loadData()`: zwei
+ * schnell aufeinanderfolgende `display()`-Aufrufe leerten beide den Container und
+ * rendern beide hinein.
  *
- * Ursache ist die Naht in `display()`: `containerEl.empty()` laeuft SYNCHRON, das
- * Rendern haengt am `.then()` von `loadData()`. Ruft Obsidian `display()` zweimal,
- * bevor das erste Laden fertig ist (genau das passiert bei `setting.open()` plus
- * `openTabById()`), leeren beide Aufrufe den Container und BEIDE rendern danach hinein.
+ * Mit dem Umbau auf `getSettingDefinitions()` (Kit-Walker) entfällt die Naht
+ * strukturell: `SettingsAccessor.getData()` ist synchron (Obsidian ≥1.13 ruft
+ * `getSettingDefinitions()` selbst ohne await auf, das erzwingt es), `display()`
+ * rendert deshalb ohne Async-Lücke zwischen `empty()` und dem Aufbau. Der Test bleibt
+ * als Regression stehen: er belegt, dass ein zweiter `display()`-Aufruf den ersten
+ * sauber ersetzt statt sich daneben zu häufen.
  */
-function fakeAccessor(verzoegerung = 0) {
+function fakeAccessor(overrides: Partial<PluginData> = {}) {
+  let data: PluginData = { ...DEFAULT_PLUGIN_DATA, ...overrides };
   return {
-    loadData: vi.fn(
-      () =>
-        new Promise<Record<string, unknown>>((r) =>
-          setTimeout(() => r({ financeRoot: 'Finance' }), verzoegerung),
-        ),
-    ),
-    saveData: vi.fn(async () => undefined),
+    getData: vi.fn((): PluginData => data),
+    saveData: vi.fn(async (d: PluginData): Promise<void> => {
+      data = d;
+    }),
   };
 }
 
@@ -36,8 +40,8 @@ function zaehleUeberschriften(el: ReturnType<typeof makeFakeEl>): number {
 }
 
 describe('FinanceSettingTab.display', () => {
-  it('rendert die Abschnitte einmal, auch bei zwei ueberlappenden Aufrufen', async () => {
-    const accessor = fakeAccessor(5);
+  it('rendert die Abschnitte einmal, auch bei zwei aufeinanderfolgenden Aufrufen', () => {
+    const accessor = fakeAccessor({ financeRoot: 'Finance' });
     const tab = new FinanceSettingTab(
       {} as never,
       {} as never,
@@ -46,17 +50,29 @@ describe('FinanceSettingTab.display', () => {
     );
     tab.containerEl = makeFakeEl('div') as never;
 
-    // Erster Aufruf einzeln — das ist die Referenz.
     tab.display();
-    await new Promise((r) => setTimeout(r, 40));
     const einmal = zaehleUeberschriften(tab.containerEl as never);
     expect(einmal).toBeGreaterThan(0);
 
-    // Zwei Aufrufe OHNE Wartezeit dazwischen: genau der Fall aus dem Live-Befund.
     tab.display();
     tab.display();
-    await new Promise((r) => setTimeout(r, 60));
 
     expect(zaehleUeberschriften(tab.containerEl as never)).toBe(einmal);
+  });
+
+  it('liefert dieselben Feld-Keys, die getControlValue/setControlValue bedienen', () => {
+    const accessor = fakeAccessor({ financeRoot: 'Finance' });
+    const tab = new FinanceSettingTab(
+      {} as never,
+      {} as never,
+      accessor as never,
+      () => undefined,
+    );
+    tab.containerEl = makeFakeEl('div') as never;
+    tab.display();
+
+    // financeRoot ist über die Vault-Paths-Gruppe deklarativ eingebunden — der Wert
+    // muss über getControlValue lesbar sein (das ist es, was Obsidian ≥1.13 nativ tut).
+    expect(tab.getControlValue('financeRoot')).toBe('Finance');
   });
 });

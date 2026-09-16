@@ -37,6 +37,27 @@ export class TAbstractFile { path = ''; name = ''; }
 export class TFile extends TAbstractFile { extension = ''; }
 export class TFolder extends TAbstractFile { children: TAbstractFile[] = []; }
 
+/**
+ * Minimal, damit `src/vendor/kit-obsidian/folder-suggest.ts` (Kit-Walker-Abhängigkeit,
+ * Welle 3) beim Modul-Laden nicht an einem `extends undefined` scheitert — der Walker
+ * importiert sie unbedingt, auch wenn kein Consumer einen `type: 'folder'`-Control
+ * einsetzt. Nie tatsächlich instanziiert in den Tests dieses Repos, deshalb genügt der
+ * Rumpf ohne echte Vorschlags-Logik (Vorbild: `3d-codeblocks/tests/__mocks__/obsidian.ts`).
+ */
+export class AbstractInputSuggest<T> {
+  app: unknown;
+  inputEl: HTMLInputElement;
+  constructor(app: unknown, inputEl: HTMLInputElement) {
+    this.app = app;
+    this.inputEl = inputEl;
+  }
+  getSuggestions(_query: string): T[] { return []; }
+  renderSuggestion(_value: T, _el: unknown): void {}
+  selectSuggestion(_value: T, _evt: MouseEvent | KeyboardEvent): void {}
+  setValue(_value: string): void {}
+  close(): void {}
+}
+
 export const Notice = vi.fn();
 
 /**

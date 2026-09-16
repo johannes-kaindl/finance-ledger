@@ -6,6 +6,19 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Changed
+
+- **Einstellungen-Tab auf `getSettingDefinitions()` umgestellt** (`kit-obsidian/settings_walker.ts`,
+  obsidian-kit@0.37.1 vendoriert). Ab Obsidian 1.13 erscheinen alle Felder jetzt in der
+  Settings-Suche — vorher fand `eslint-plugin-obsidianmd` das als echten Fähigkeitsmangel, nicht
+  nur als Konventionsbefund. Live-Vorschau und Farbschema-Kacheln bleiben als native
+  `render`-Hatches erhalten (Teil der deklarativen API seit 1.13.0, keine Abweichung). Sichtbare
+  Folge: die Abschnitte zeigen jetzt native Trennlinien zwischen den Zeilen (`docs/images/settings.png`
+  neu aufgenommen).
+- `SettingsAccessor`/`Accessor` (`main.ts`) bekommen ein synchrones `getData()` — Obsidian ruft
+  `getSettingDefinitions()` ohne await auf, ein Reload von `data.json` je Tab-Öffnen war ohnehin
+  nur historisch (die Einstellungen liegen seit `onload()` bereits im Speicher).
+
 ## [0.1.1] — 2026-09-03
 
 ### Fixed

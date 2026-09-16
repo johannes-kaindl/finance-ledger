@@ -25,6 +25,9 @@ const REBUILD_NOTICE_MS = 20_000;
 type Accessor = {
   loadData: () => Promise<PluginData>;
   saveData: (data: PluginData) => Promise<void>;
+  /** Synchron — `FinanceSettingTab.getSettingDefinitions()` braucht sie ohne await
+   *  (Obsidian ≥1.13 ruft sie beim Öffnen der Einstellungen direkt auf). */
+  getData: () => PluginData;
 };
 
 export default class FinancePlugin extends Plugin {
@@ -53,6 +56,7 @@ export default class FinancePlugin extends Plugin {
         this.pluginData = data;
         await this.saveData(data);
       },
+      getData: () => this.pluginData,
     };
 
     const getPaths = (): ResolvedFinancePaths => this.resolvePaths();
