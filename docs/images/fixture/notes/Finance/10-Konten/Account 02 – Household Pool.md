@@ -31,6 +31,6 @@ updated: 2026-08-17
 | Balance (€) | `see Balances tab` |
 <!-- END: AUTO-GENERATED -->
 
-## 📌 Notes
+## 📌 Notizen
 
 _Your own remarks — never overwritten by an import._

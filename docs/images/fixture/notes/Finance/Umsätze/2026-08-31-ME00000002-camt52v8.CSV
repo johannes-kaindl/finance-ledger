@@ -1,0 +1,3 @@
+Auftragskonto;Buchungstag;Valutadatum;Buchungstext;Verwendungszweck;Glaeubiger ID;Mandatsreferenz;Kundenreferenz (End-to-End);Sammlerreferenz;Lastschrift Ursprungsbetrag;Auslagenersatz Ruecklastschrift;Beguenstigter/Zahlungspflichtiger;Kontonummer/IBAN;BIC (SWIFT-Code);Betrag;Waehrung;Info
+GB00ACME00000002;08.08.26;08.08.26;UEBERWEISUNG;Reparatur Invoice 88213;;;;;;;Oscorp Repairs;;;-410,00;EUR;Umsatz gebucht
+GB00ACME00000002;15.08.26;15.08.26;LASTSCHRIFT;Regal;;;;;;;Wayne Hardware;;;-233,90;EUR;Umsatz gebucht

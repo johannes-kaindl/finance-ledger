@@ -1,0 +1,11 @@
+Auftragskonto;Buchungstag;Valutadatum;Buchungstext;Verwendungszweck;Glaeubiger ID;Mandatsreferenz;Kundenreferenz (End-to-End);Sammlerreferenz;Lastschrift Ursprungsbetrag;Auslagenersatz Ruecklastschrift;Beguenstigter/Zahlungspflichtiger;Kontonummer/IBAN;BIC (SWIFT-Code);Betrag;Waehrung;Info
+GB00ACME00000001;01.08.26;01.08.26;GUTSCHRIFT;Gehalt August;;;;;;;Globex Corporation;;;3200,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.08.26;02.08.26;LASTSCHRIFT;Stromabschlag;;;;;;;Acme Power;;;-96,40;EUR;Umsatz gebucht
+GB00ACME00000001;03.08.26;03.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-64,12;EUR;Umsatz gebucht
+GB00ACME00000001;05.08.26;05.08.26;LASTSCHRIFT;Monatskarte;;;;;;;Metro Transit;;;-59,00;EUR;Umsatz gebucht
+GB00ACME00000001;09.08.26;09.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-81,55;EUR;Umsatz gebucht
+GB00ACME00000001;11.08.26;11.08.26;LASTSCHRIFT;Hausratversicherung;;;;;;;Umbrella Insurance;;;-142,00;EUR;Umsatz gebucht
+GB00ACME00000001;16.08.26;16.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-72,30;EUR;Umsatz gebucht
+GB00ACME00000001;20.08.26;20.08.26;LASTSCHRIFT;Telefon/Internet;;;;;;;Cyberdyne Telecom;;;-44,99;EUR;Umsatz gebucht
+GB00ACME00000001;24.08.26;24.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-91,05;EUR;Umsatz gebucht
+GB00ACME00000001;28.08.26;28.08.26;LASTSCHRIFT;Miete;;;;;;;Gringotts Rent;;;-1150,00;EUR;Umsatz gebucht

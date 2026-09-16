@@ -69,10 +69,19 @@ function skipped(name: string, reason: string): void {
   console.log(`  – ${name} — übersprungen: ${reason}`);
 }
 
-/** Momentaufnahme einer Konto-Notiz: genau die Teile, die der Import NICHT anfassen darf. */
+/**
+ * Momentaufnahme einer Konto-Notiz: genau die Teile, die der Import NICHT anfassen darf.
+ *
+ * `saldo_eur` gehört bewusst NICHT hierher: es ist das eine importer-verwaltete Feld
+ * (`kontoNotes.ts` schreibt es bei jedem Lauf aus den Buchungen neu), kein
+ * Nutzer-Besitz. Vorher/Nachher dieses EINEN Laufs zu vergleichen hätte bei
+ * funktionierenden CSVs immer rot gemeldet — ein Fixture, das den CSV-Import
+ * überhaupt erst prüfbar machte, deckte genau das auf (2026-09-16). Seine
+ * Stabilität über zwei IDENTISCHE Läufe prüft stattdessen der Byte-Vergleich im
+ * Idempotenz-Abschnitt unten mit.
+ */
 interface NoteSnapshot {
   path: string;
-  saldo: string | null;
   anfangssaldo: string | null;
   created: string | null;
   /** Alles ab „## 📌 Notizen" — der Bereich, der dem Nutzer gehört. */
@@ -121,7 +130,6 @@ async function snapshot(cdp: Cdp, path: string): Promise<NoteSnapshot | null> {
   if (full === null) return null;
   return {
     path,
-    saldo: FM_FIELD(full, "saldo_eur"),
     anfangssaldo: FM_FIELD(full, "anfangssaldo_eur"),
     created: FM_FIELD(full, "created"),
     userSection: userSectionOf(full),
@@ -367,18 +375,15 @@ async function main(): Promise<void> {
           return `${name}: ${zeige(vorWert)} → ${zeige(nachWert)}`;
         });
 
-    const saldoAbw = abw("saldo");
-    record(
-      "saldo_eur unverändert (dieselben CSVs, dasselbe Ergebnis)",
-      saldoAbw.length === 0,
-      saldoAbw.length === 0 ? `${vorher.size} Konten geprüft` : saldoAbw.join(" · "),
-    );
-
     const anfangAbw = abw("anfangssaldo");
     record(
       "anfangssaldo_eur unverändert — samt Komma-Schreibweise",
-      anfangAbw.length === 0,
-      anfangAbw.length === 0 ? `${mitKomma} mit Komma` : anfangAbw.join(" · "),
+      anfangAbw.length === 0 && mitKomma > 0,
+      anfangAbw.length === 0
+        ? mitKomma > 0
+          ? `${mitKomma} mit Komma`
+          : "0 Konten mit Komma-Anfangssaldo — Komma-Pfad ungeprüft"
+        : anfangAbw.join(" · "),
     );
 
     const createdAbw = abw("created");
@@ -398,8 +403,12 @@ async function main(): Promise<void> {
     const fremdAnzahl = [...vorher.values()].reduce((n, s) => n + Object.keys(s.fremdeFelder).length, 0);
     record(
       "Fremde Frontmatter-Felder überleben",
-      fremdAbw.length === 0,
-      fremdAbw.length === 0 ? `${fremdAnzahl} Felder geprüft` : fremdAbw.join(" · "),
+      fremdAbw.length === 0 && fremdAnzahl > 0,
+      fremdAbw.length === 0
+        ? fremdAnzahl > 0
+          ? `${fremdAnzahl} Felder geprüft`
+          : "0 fremde Felder im Fixture — Erhaltungspfad ungeprüft"
+        : fremdAbw.join(" · "),
     );
 
     const marker = [...nachher.values()].filter((s) => s.full.includes("<!-- BEGIN: AUTO-GENERATED -->")).length;
