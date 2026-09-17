@@ -223,6 +223,40 @@ async function main(): Promise<void> {
   let markierteNotiz: string | null = null;
   let markierungVorher: string | null = null;
 
+  // Dieselbe Aufraeumarbeit wie im `finally` unten — als eigene Funktion, damit der
+  // SIGINT/SIGTERM-Handler sie aufrufen kann, ohne Code zu duplizieren. Ein Ctrl-C mitten
+  // im Lauf ueberspringt das `finally` NICHT (try/catch-Semantik), sondern beendet den
+  // Node-Prozess sofort — ohne eigenen Handler bliebe die Pruef-Spur in der Konto-Notiz
+  // stehen (s. neuer Pruefpunkt oben). Die Rettungskopie wird bewusst NICHT geloescht: ein
+  // abgebrochener Lauf ist kein bestaetigt gruener, und die Kopie ist genau fuer den
+  // unklaren Fall da (derselbe Grundsatz wie beim regulaeren roten Lauf weiter unten).
+  const cleanupState = async (): Promise<void> => {
+    if (markierteNotiz !== null && markierungVorher !== null) {
+      await cdp
+        .evaluate(`
+          const file = app.vault.getAbstractFileByPath(${JSON.stringify(markierteNotiz)});
+          if (file) await app.vault.modify(file, ${JSON.stringify(markierungVorher)});
+          return true;
+        `)
+        .catch(() => undefined);
+    }
+    if (rettung) console.log(`\nRettungskopie steht (Abbruch, nicht geloescht): ${rettung}`);
+  };
+
+  let signalCleanupRunning = false;
+  const onAbortSignal = (signal: NodeJS.Signals) => {
+    if (signalCleanupRunning) return;
+    signalCleanupRunning = true;
+    void (async () => {
+      console.log(`\n\nAbbruch durch ${signal} — raeume Smoke-Zustand auf...`);
+      await cleanupState();
+      cdp.close();
+      process.exit(130);
+    })();
+  };
+  process.on("SIGINT", onAbortSignal);
+  process.on("SIGTERM", onAbortSignal);
+
   try {
     await cdp.mitschnitt((zeile: string) => console.log(`    [renderer] ${zeile}`));
 
@@ -274,6 +308,41 @@ async function main(): Promise<void> {
       `${kontoPfade.length} unter ${kontenOrdner}`,
     );
     if (kontoPfade.length === 0) throw new Error("Ohne Konto-Notizen ist die Grenze nicht prüfbar.");
+
+    // Die Spur ist ein fester Text (SPUR) — ein Rest aus einem per SIGINT/SIGTERM
+    // abgebrochenen frueheren Lauf ist daran erkennbar, BEVOR dieser Lauf selbst eine Spur
+    // setzt. Ohne diesen Punkt vergleicht "Prüf-Spur im eigenen Abschnitt gesetzt" gleiches
+    // mit gleichem (die Spur war schon vorher drin) und bleibt still gruen, egal was das
+    // Plugin tut — genau der Fehler, den die Spur laut Kommentar oben verhindern soll.
+    const spurRest = await cdp.evaluate<string[]>(`
+      const gesucht = ${JSON.stringify(SPUR)};
+      const treffer = [];
+      for (const p of ${JSON.stringify(kontoPfade)}) {
+        const f = app.vault.getAbstractFileByPath(p);
+        if (f && (await app.vault.read(f)).includes(gesucht)) treffer.push(p);
+      }
+      return treffer;
+    `);
+    record(
+      "Keine liegen gebliebene Pruef-Spur aus einem abgebrochenen frueheren Lauf",
+      spurRest.length === 0,
+      spurRest.length === 0
+        ? "kein Rest in den Konto-Notizen"
+        : `Spur in ${spurRest.length} Notiz(en) gefunden und entfernt: ${spurRest.join(", ")} — vermutlich Ctrl-C/Crash im vorigen Lauf vor dessen Aufraeumen; dieser Lauf faehrt normal weiter`,
+    );
+    if (spurRest.length > 0) {
+      await cdp.evaluate(`
+        const gesucht = ${JSON.stringify(SPUR)};
+        for (const p of ${JSON.stringify(spurRest)}) {
+          const f = app.vault.getAbstractFileByPath(p);
+          if (f) {
+            const text = await app.vault.read(f);
+            await app.vault.modify(f, text.split(gesucht + "\\n").join("").split(gesucht).join(""));
+          }
+        }
+        return true;
+      `);
+    }
 
     rettung = backup(vaultBase, root);
     console.log(`    Rettungskopie: ${rettung}`);
@@ -490,7 +559,12 @@ async function main(): Promise<void> {
       openingNach === openingVor ? "byte-gleich" : "ABWEICHUNG",
     );
   } finally {
-    // Die Spur geht immer wieder heraus — auch nach einem Abbruch mitten im Lauf.
+    // Die Spur geht immer wieder heraus — auch nach einem Abbruch mitten im Lauf. Dieselbe
+    // Funktion wie der SIGINT/SIGTERM-Handler oben (Notiz-Rueckname), kein Doppelcode; das
+    // Byte-gleich-Protokoll bleibt hier, weil es einen erfolgreich DURCHGELAUFENEN Vorher-
+    // Wert braucht, den der Signalpfad nicht sinnvoll verifizieren kann.
+    process.off("SIGINT", onAbortSignal);
+    process.off("SIGTERM", onAbortSignal);
     if (markierteNotiz !== null && markierungVorher !== null) {
       await cdp
         .evaluate(`
