@@ -6,6 +6,8 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-26
+
 ### Added
 
 - **Hilfe-Zeile oben in den Einstellungen** mit Links auf die Dokumentation und den Issue-Tracker (Kit `help-setting`, `obsidian-kit` 0.43.0).
