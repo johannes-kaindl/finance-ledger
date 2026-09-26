@@ -1,17 +1,17 @@
 # Finance Ledger
 
-> 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
+> 🇬🇧 English · [🇩🇪 Deutsch](https://github.com/johannes-kaindl/finance-ledger/blob/main/README.de.md)
 
 An Obsidian plugin that renders hledger journals as filterable tables with balance and
 category dashboards, transaction triage and categorizer-rule management — fed by a
 companion Python importer.
 
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-DOCS)
-[![Release](https://img.shields.io/gitea/v/release/jkaindl/finance-ledger?gitea_url=https%3A%2F%2Fgit.jkaindl.de&label=release)](https://git.jkaindl.de/jkaindl/finance-ledger/releases)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](https://github.com/johannes-kaindl/finance-ledger/blob/main/LICENSE)
+[![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-lightgrey.svg)](https://github.com/johannes-kaindl/finance-ledger/blob/main/LICENSE-DOCS)
+[![Release](https://img.shields.io/github/v/release/johannes-kaindl/finance-ledger?label=release)](https://github.com/johannes-kaindl/finance-ledger/releases)
 ![Platform](https://img.shields.io/badge/platform-Obsidian%20%7C%20Desktop%2BMobile-lightgrey)
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/hero.png" width="640" alt="Obsidian with an account note open on the left and the Finance hub on the right: a filterable transaction table with date, payee, account chips, amounts and tags.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/hero.png" width="640" alt="Obsidian with an account note open on the left and the Finance hub on the right: a filterable transaction table with date, payee, account chips, amounts and tags.">
 
 > Plugin ID: `finance-ledger` (until 2026-06-10: `finance`).
 
@@ -38,7 +38,7 @@ design system merged. Mobile readiness (`Platform.isMobile` guards) and the desi
 classes (transaction types + mandates) and a life-area layer into the vault. Plugin code
 unchanged (tolerant of extended note schemas).
 
-**Tests:** 682 green. **Bundle size:** ~165 kB (`main.js`).
+**Tests:** 684 green. **Bundle size:** ~165 kB (`main.js`).
 
 ## Features
 
@@ -72,13 +72,13 @@ unchanged (tolerant of extended note schemas).
 
 ### What it looks like
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/dashboard.png" width="640" alt="Dashboard tab with cards for account balances, recent activity, quick navigation, quick actions and the largest spending categories of the current month.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/dashboard.png" width="640" alt="Dashboard tab with cards for account balances, recent activity, quick navigation, quick actions and the largest spending categories of the current month.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/balances.png" width="640" alt="Balances tab: per account the opening balance with its as-of date, the movement since that date and the current balance.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/balances.png" width="640" alt="Balances tab: per account the opening balance with its as-of date, the movement since that date and the current balance.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/categories.png" width="640" alt="Categories tab: spending categories as a hierarchy with amount and percentage share.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/categories.png" width="640" alt="Categories tab: spending categories as a hierarchy with amount and percentage share.">
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/triage.png" width="640" alt="To-classify tab: four unassigned transactions with amount and a Classify button each, with the total row below.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/triage.png" width="640" alt="To-classify tab: four unassigned transactions with amount and a Classify button each, with the total row below.">
 
 ## How it works
 
@@ -128,7 +128,7 @@ no manual copying, and every download is checksum-verified.
 **By hand**, if you would rather not add another plugin:
 
 1. Download `main.js`, `manifest.json` and `styles.css` from the
-   [latest release](https://git.jkaindl.de/jkaindl/finance-ledger/releases).
+   [latest release](https://github.com/johannes-kaindl/finance-ledger/releases).
 2. Copy them into `<vault>/.obsidian/plugins/finance-ledger/`.
 3. Obsidian → Settings → Community plugins → enable **Finance Ledger**.
 
@@ -150,7 +150,7 @@ palette:
 | `Open category overview` | hierarchical category aggregate |
 | `Open TBC triage` | the open `:tbc:` transactions with one-click assignment |
 | `Rebuild journal from CSVs (built-in)` | rebuilds `journal.ledger` and `accounts.ledger` — no external process |
-| `Import CSV` | multi-file upload with deduplication (desktop only) |
+| `Finance: import CSV` | multi-file upload with deduplication (desktop only) |
 
 The usual loop: rebuild or import the journal → work through **TBC triage** (each assignment
 also writes a categorizer rule, so the same transaction lands by itself next time) → read
@@ -163,7 +163,7 @@ From outside, the plugin can be driven through
 
 Settings → Community plugins → **Finance Ledger**:
 
-<img src="https://git.jkaindl.de/jkaindl/finance-ledger/raw/branch/main/docs/images/settings.png" width="820" alt="The plugin settings: an Amount display section with a live preview showing income in green and expenses in red, a sign-convention dropdown, and three colour-scheme tiles (Classic selected, Monochrome, Inverted), followed by the vault path setting for the finance project folder.">
+<img src="https://raw.githubusercontent.com/johannes-kaindl/finance-ledger/main/docs/images/settings.png" width="820" alt="The plugin settings: an Amount display section with a live preview showing income in green and expenses in red, a sign-convention dropdown, and three colour-scheme tiles (Classic selected, Monochrome, Inverted), followed by the vault path setting for the finance project folder.">
 
 - **Amount display**: sign mode (*intuitive*: income +, expenses − · *accounting*: raw, as in
   hledger) plus a colour scheme (classic / monochrome / inverted) shown as swatch tiles with a
@@ -172,6 +172,14 @@ Settings → Community plugins → **Finance Ledger**:
 - Vault-relative paths to ledger, accounts, contracts and categorizer rules
 - `uv` binary path, with auto-detect fallback
 - Filter presets (create, edit, delete — stored locally)
+
+## Documentation
+
+The full documentation lives in [`docs/`](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/README.md):
+
+- **[Getting started](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/getting-started.md)** — from the install to your first balance overview.
+- **[Troubleshooting](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/troubleshooting.md)** — the exact message you see, what it means, what to do.
+- **[Design system](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/design.md)** — tokens and where they are wired.
 
 ## Design system
 
@@ -188,8 +196,8 @@ category overview. Money values carry `.fl-money` plus a sign colour, account ch
 `data-type` outline, cards a `data-card` top border, status dots `.fl-txn-state`. The
 light-mode bridge dims the signal colours to keep AA contrast.
 
-Detailed documentation: [`docs/design.md`](docs/design.md) (high level plus wiring state)
-and [`docs/design/README.md`](docs/design/README.md) (canonical token files).
+Detailed documentation: [`docs/design.md`](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/design.md) (high level plus wiring state)
+and [`docs/design/README.md`](https://github.com/johannes-kaindl/finance-ledger/blob/main/docs/design/README.md) (canonical token files).
 
 ## Mobile status
 
@@ -203,9 +211,9 @@ and [`docs/design/README.md`](docs/design/README.md) (canonical token files).
 
 The Python CLI importer that produces the journal is a separate project and is **not
 published yet**. Its output in the vault lives under `<vault>/<financeRoot>/Ledger/` plus
-the note folders `10-accounts`, `20-contracts`, `30-savings-goals`, `40-monthly-reports`,
-`45-categories`, `55-categorizer-rules`, `60-payees`, `70-quarterly-reports`,
-`80-annual-reports` and `05-bases`.
+the note folders (German names, as the code expects them) `10-Konten`, `20-Verträge`,
+`30-Sparziele`, `40-Monatsberichte`, `45-Kategorien`, `55-Categorizer-Rules`, `60-Empfänger`,
+`70-Quartalsberichte`, `80-Jahresberichte` and `05-Bases`.
 
 Everything the plugin needs beyond that journal — the built-in rebuild from CSVs — it does
 on its own.
@@ -242,7 +250,7 @@ Monthly reports carry a budget section: target (12-month average) / actual / for
 
 ```bash
 npm install                # once
-npm test                   # vitest run (682 green)
+npm test                   # vitest run (684 green)
 npm run build              # esbuild → main.js (repo root)
 npm run dev                # esbuild --watch (inline sourcemap, no minify)
 npm run deploy             # build + copy manifest.json, main.js, styles.css into a vault
@@ -266,7 +274,7 @@ on, or `Cmd+R`).
 | `src/` | TypeScript sources (views, ui, parser, resolver, state, types, utils, aggregator, categorizer rules) |
 | `src/aggregator/openingBalances.ts` | as-of-aware parser for `opening_balances.ledger` |
 | `src/aggregator/saldo.ts` | as-of-aware `computeSaldo` |
-| `tests/` | vitest specs (682 tests green) |
+| `tests/` | vitest specs (684 tests green) |
 | `docs/design/` | canonical design-system source of truth |
 | `docs/design.md` | high-level design-system explanation |
 | `styles.css` | plugin styles with tokens and utilities |
@@ -281,7 +289,7 @@ on, or `Cmd+R`).
 
 ## License
 
-- **Code:** AGPL-3.0-or-later ([`LICENSE`](LICENSE))
-- **Documentation and prose:** CC BY-SA 4.0 ([`LICENSE-DOCS`](LICENSE-DOCS))
+- **Code:** AGPL-3.0-or-later ([`LICENSE`](https://github.com/johannes-kaindl/finance-ledger/blob/main/LICENSE))
+- **Documentation and prose:** CC BY-SA 4.0 ([`LICENSE-DOCS`](https://github.com/johannes-kaindl/finance-ledger/blob/main/LICENSE-DOCS))
 
 Copyright © 2026 Johannes Kaindl.
