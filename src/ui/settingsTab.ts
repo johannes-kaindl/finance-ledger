@@ -12,6 +12,7 @@ import type { PluginData } from '../types/plugin-data';
 import type { FinancePathSettings } from '../state/financePaths';
 import { formatMoneyAmount, type ColorScheme } from '../views/helpers';
 import { t } from '../i18n/strings';
+import { githubHelpUrls, helpSettingDefinition } from '../vendor/kit-obsidian/help-setting';
 import {
   renderSettingDefinitions,
   settingBodyHost,
@@ -89,6 +90,17 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
   // ein Tippfehler bricht den Build, statt zur Laufzeit stumm ins Leere zu greifen.
   getSettingDefinitions(): SettingDefinitionItem<keyof PluginData>[] {
     return [
+      // §8 Hilfe-Zeile: erstes Element, vor jeder Überschrift; der Walker-Fallback zeichnet sie
+      // auch für Obsidian < 1.13 (kein zweiter Aufruf in display()).
+      helpSettingDefinition({
+        ...githubHelpUrls('finance-ledger'),
+        texts: {
+          name: t('settings.help.name'),
+          desc: t('settings.help.desc'),
+          openDocs: t('settings.help.openDocs'),
+          reportIssue: t('settings.help.reportIssue'),
+        },
+      }),
       {
         type: 'group',
         heading: t('settings.heading.amountDisplay'),

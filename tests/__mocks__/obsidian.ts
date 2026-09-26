@@ -118,7 +118,18 @@ class ButtonComponent {
   onClick(cb: () => void): this { this.buttonEl.onclick = cb; return this; }
 }
 
+class ExtraButtonComponent {
+  iconName = '';
+  tooltip = '';
+  clickCB: (() => void) | null = null;
+  setIcon(i: string): this { this.iconName = i; return this; }
+  setTooltip(t: string): this { this.tooltip = t; return this; }
+  onClick(cb: () => void): this { this.clickCB = cb; return this; }
+}
+
 export class Setting {
+  /** Aufgezeichnet, damit Tests belegen koennen, WAS an den Knoepfen einer Zeile haengt. */
+  components: Array<ButtonComponent | ExtraButtonComponent> = [];
   settingEl: FakeEl;
   infoEl: FakeEl;
   nameEl: FakeEl;
@@ -138,7 +149,8 @@ export class Setting {
   setDesc(d: string): this { this.descEl.setText(d); return this; }
   addText(cb: (t: TextComponent) => void): this { cb(new TextComponent(this.controlEl)); return this; }
   addDropdown(cb: (d: DropdownComponent) => void): this { cb(new DropdownComponent(this.controlEl)); return this; }
-  addButton(cb: (b: ButtonComponent) => void): this { cb(new ButtonComponent(this.controlEl)); return this; }
+  addButton(cb: (b: ButtonComponent) => void): this { const b = new ButtonComponent(this.controlEl); this.components.push(b); cb(b); return this; }
+  addExtraButton(cb: (b: ExtraButtonComponent) => void): this { const b = new ExtraButtonComponent(); this.components.push(b); cb(b); return this; }
 }
 
 type FakeElOpts = {

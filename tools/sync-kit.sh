@@ -37,6 +37,15 @@ SW_REF=${2:-0.37.1}
 SW_VER=$(echo "$SW_REF" | sed 's/^v//')
 SW_SHA=$(git -C "$KIT" rev-parse --short "$SW_REF^{commit}")
 
+# Dritter Pin, ebenfalls Absicht: help-setting.ts (Hilfe-Zeile, UI-STANDARD 8) kam mit Kit 0.43.0 und
+# haengt an keinem anderen Modul — die uebrigen Module behalten ihren Pin.
+# Vorlage: epub-exporter/tools/sync-kit.sh (877eb2c).
+HELP_REF=${KIT_HELP_REF:-0.43.0}
+HELP_VER=$(echo "$HELP_REF" | sed 's/^v//')
+HELP_SHA=$(git -C "$KIT" rev-parse --short "$HELP_REF^{commit}")
+git -C "$KIT" cat-file -e "$HELP_REF:src/obsidian/help-setting.ts" 2>/dev/null \
+	|| { echo "FEHLER: src/obsidian/help-setting.ts fehlt in $KIT@$HELP_REF." >&2; exit 1; }
+
 mkdir -p src/vendor/kit src/vendor/kit-obsidian
 
 vendor() { # $1 = Kit-Ref, $2 = Quellpfad unter src/, $3 = Zielpfad, $4 = Version fuer den Kopf
@@ -53,6 +62,7 @@ vendor "$REF"    obsidian/hub.ts             src/vendor/kit-obsidian/hub.ts     
 vendor "$REF"    obsidian/confirm.ts         src/vendor/kit-obsidian/confirm.ts      "$VER"
 vendor "$SW_REF" obsidian/settings_walker.ts src/vendor/kit-obsidian/settings_walker.ts "$SW_VER"
 vendor "$SW_REF" obsidian/folder-suggest.ts  src/vendor/kit-obsidian/folder-suggest.ts  "$SW_VER"
+vendor "$HELP_REF" obsidian/help-setting.ts  src/vendor/kit-obsidian/help-setting.ts  "$HELP_VER"
 
 # VENDOR.json in der reicheren files-Array-Form (ein Eintrag je Datei, nicht eine
 # gemeinsame version). Sie kann einen Rueckstand einzelner Dateien ausdruecken —
@@ -75,8 +85,10 @@ entry() { printf '    { "vendored": "%s", "as": "%s", "version": "%s", "sha": "%
 	entry obsidian/confirm.ts confirm.ts "$VER" "$SHA";                             printf ',\n'
 	entry obsidian/hub.ts hub.ts "$VER" "$SHA";                                     printf ',\n'
 	entry obsidian/settings_walker.ts settings_walker.ts "$SW_VER" "$SW_SHA";       printf ',\n'
-	entry obsidian/folder-suggest.ts folder-suggest.ts "$SW_VER" "$SW_SHA";         printf '\n  ]\n}\n'
+	entry obsidian/folder-suggest.ts folder-suggest.ts "$SW_VER" "$SW_SHA";         printf ',\n'
+	entry obsidian/help-setting.ts help-setting.ts "$HELP_VER" "$HELP_SHA";         printf '\n  ]\n}\n'
 } > src/vendor/kit-obsidian/VENDOR.json
 
 echo "vendored aus obsidian-kit@$VER ($SHA): callout clipboard frontmatter i18n sha256 | confirm hub"
 echo "vendored aus obsidian-kit@$SW_VER ($SW_SHA): settings_walker folder-suggest"
+echo "vendored aus obsidian-kit@$HELP_VER ($HELP_SHA): help-setting"

@@ -177,6 +177,10 @@ export const EN: Record<string, string> = {
   'settings.uvBinaryPath.desc':
     'Absolute path to the uv binary, e.g. /usr/local/bin/uv. Leave empty for automatic detection (PATH → /usr/local/bin/uv → /opt/homebrew/bin/uv → ~/.local/bin/uv → ~/.cargo/bin/uv).',
   'notice.uvBinaryNotFound': 'Could not find uv binary: {0}',
+  'settings.help.name': 'Help',
+  'settings.help.desc': 'Getting started, how-tos and troubleshooting',
+  'settings.help.openDocs': 'Open documentation',
+  'settings.help.reportIssue': 'Report an issue',
   'settings.heading.amountDisplay': 'Amount display',
   'settings.amountDisplay.desc': 'Choose how amounts and signs appear across your reports and dashboards.',
   'settings.signMode.name': 'Sign convention',
@@ -422,6 +426,10 @@ export const DE: Record<string, string> = {
   'settings.uvBinaryPath.desc':
     'Absoluter Pfad zur uv-Binary, z.B. /usr/local/bin/uv. Leer lassen für automatische Erkennung (PATH → /usr/local/bin/uv → /opt/homebrew/bin/uv → ~/.local/bin/uv → ~/.cargo/bin/uv).',
   'notice.uvBinaryNotFound': 'uv-Binary nicht gefunden: {0}',
+  'settings.help.name': 'Hilfe',
+  'settings.help.desc': 'Erste Schritte, Anleitungen und Fehlersuche',
+  'settings.help.openDocs': 'Dokumentation öffnen',
+  'settings.help.reportIssue': 'Problem melden',
   'settings.heading.amountDisplay': 'Geldbetrag-Darstellung',
   'settings.amountDisplay.desc': 'Wähle, wie Beträge und Vorzeichen in Berichten und Dashboards dargestellt werden.',
   'settings.signMode.name': 'Vorzeichen-Konvention',

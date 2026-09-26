@@ -5,6 +5,7 @@
     { "vendored": "obsidian/confirm.ts", "as": "confirm.ts", "version": "0.27.0", "sha": "548041b" },
     { "vendored": "obsidian/hub.ts", "as": "hub.ts", "version": "0.27.0", "sha": "548041b" },
     { "vendored": "obsidian/settings_walker.ts", "as": "settings_walker.ts", "version": "0.37.1", "sha": "4cfa746" },
-    { "vendored": "obsidian/folder-suggest.ts", "as": "folder-suggest.ts", "version": "0.37.1", "sha": "4cfa746" }
+    { "vendored": "obsidian/folder-suggest.ts", "as": "folder-suggest.ts", "version": "0.37.1", "sha": "4cfa746" },
+    { "vendored": "obsidian/help-setting.ts", "as": "help-setting.ts", "version": "0.43.0", "sha": "bcd1805" }
   ]
 }

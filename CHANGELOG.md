@@ -6,6 +6,10 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Added
+
+- **Hilfe-Zeile oben in den Einstellungen** mit Links auf die Dokumentation und den Issue-Tracker (Kit `help-setting`, `obsidian-kit` 0.43.0).
+
 ### Changed
 
 - **Einstellungen-Tab auf `getSettingDefinitions()` umgestellt** (`kit-obsidian/settings_walker.ts`,
