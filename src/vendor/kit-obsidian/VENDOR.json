@@ -1,11 +1,12 @@
 {
   "source": "obsidian-kit",
-  "note": "Verbatim snapshots. Never hand-edit. Re-vendor via tools/sync-kit.sh.",
-  "files": [
-    { "vendored": "obsidian/confirm.ts", "as": "confirm.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "obsidian/hub.ts", "as": "hub.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "obsidian/settings_walker.ts", "as": "settings_walker.ts", "version": "0.37.1", "sha": "4cfa746" },
-    { "vendored": "obsidian/folder-suggest.ts", "as": "folder-suggest.ts", "version": "0.37.1", "sha": "4cfa746" },
-    { "vendored": "obsidian/help-setting.ts", "as": "help-setting.ts", "version": "0.43.0", "sha": "bcd1805" }
+  "version": "0.27.0",
+  "sha": "548041b",
+  "vendored": "confirm.ts, hub.ts, settings_walker.ts (obsidian-kit@0.37.1, 4cfa746), folder-suggest.ts (obsidian-kit@0.37.1, 4cfa746), help-setting.ts (obsidian-kit@0.43.0, bcd1805)",
+  "note": "Verbatim snapshot. Never hand-edit. Pins in tools/kit-sync.json, re-vendor via tools/sync-kit.sh (zentrales kit-sync im Dach). version/sha gelten nur fuer confirm.ts/hub.ts; abweichende Pins stehen unter vendored_mixed_version. Bis Welle 12 stand hier ein files-Array mit einem Eintrag je Datei — kit-sync kennt nur die flache VENDOR.json-Form, deshalb ersetzt.",
+  "vendored_mixed_version": [
+    { "file": "settings_walker.ts", "version": "0.37.1", "sha": "4cfa746" },
+    { "file": "folder-suggest.ts", "version": "0.37.1", "sha": "4cfa746" },
+    { "file": "help-setting.ts", "version": "0.43.0", "sha": "bcd1805" }
   ]
 }

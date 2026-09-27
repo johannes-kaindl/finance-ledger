@@ -1,11 +1,7 @@
 {
   "source": "obsidian-kit",
-  "note": "Verbatim snapshots. Never hand-edit. Re-vendor via tools/sync-kit.sh.",
-  "files": [
-    { "vendored": "pure/callout.ts", "as": "callout.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "pure/clipboard.ts", "as": "clipboard.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "pure/frontmatter.ts", "as": "frontmatter.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "pure/i18n.ts", "as": "i18n.ts", "version": "0.27.0", "sha": "548041b" },
-    { "vendored": "pure/sha256.ts", "as": "sha256.ts", "version": "0.27.0", "sha": "548041b" }
-  ]
+  "version": "0.27.0",
+  "sha": "548041b",
+  "vendored": "callout.ts, clipboard.ts, frontmatter.ts, i18n.ts, sha256.ts",
+  "note": "Verbatim snapshot. Never hand-edit. Pins in tools/kit-sync.json, re-vendor via tools/sync-kit.sh (zentrales kit-sync im Dach). Bis Welle 12 stand hier ein files-Array mit einem Eintrag je Datei — kit-sync kennt nur die flache VENDOR.json-Form (source/version/sha/vendored [+ vendored_mixed_version bei Einzelpins]), deshalb ersetzt."
 }
