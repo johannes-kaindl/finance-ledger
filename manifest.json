@@ -1,7 +1,7 @@
 {
   "id": "finance-ledger",
   "name": "Finance Ledger",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "minAppVersion": "1.8.7",
   "description": "View and triage hledger journals: filterable transaction table, balance and category dashboards, and categorizer-rule management synced with an external importer.",
   "author": "Johannes Kaindl",

@@ -6,6 +6,8 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-10-02
+
 ### Fixed
 
 - Store review of 0.2.1: `styles.css` carried a stray `` `.trim(); `` line after the hub styles (CSS lint error). Removed.
