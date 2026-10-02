@@ -37,6 +37,12 @@ const IMPORT_TIMEOUT_MS = 120_000;
  * sie nicht landen, sonst zöge eine bloß *angesehene* CSV beim nächsten Import mit ein.
  */
 async function withTempCopy<T>(file: File, fn: (absPath: string) => Promise<T>): Promise<T> {
+  // Desktop-only (Node-Dateisystem). Der Guard ist zugleich Mobile-Safety und das, woran der
+  // Store-Scanner (obsidianmd/no-nodejs-modules) den dynamischen Import als erlaubt erkennt —
+  // ohne ihn meldete der Review von 0.2.1 die drei Importe als Warnung (2026-10-02).
+  if (!Platform.isDesktop) {
+    throw new Error('CSV preview is available on desktop only.');
+  }
   const { mkdtemp, writeFile, rm } = await import('fs/promises');
   const os = (await import('os')).default;
   const path = (await import('path')).default;

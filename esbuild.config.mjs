@@ -1,5 +1,11 @@
 import esbuild from 'esbuild';
-import builtins from 'builtin-modules';
+import { builtinModules } from 'node:module';
+
+// Node-Builtins ohne Zusatzpaket: `builtin-modules` wird vom Store-Review beanstandet
+// („should be replaced with an alternative package“, Review 0.2.1, 2026-10-02). Nodes eigene
+// Liste führt einige Module nur mit `node:`-Präfix (sea, sqlite, test); die blanke Liste unten
+// bekommt das Präfix in der nächsten Zeile ohnehin dazu.
+const builtins = builtinModules.filter(m => !m.startsWith('node:'));
 
 const watch = process.argv.includes('--watch');
 

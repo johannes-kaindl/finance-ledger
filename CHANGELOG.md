@@ -6,6 +6,12 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Fixed
+
+- Store review of 0.2.1: `styles.css` carried a stray `` `.trim(); `` line after the hub styles (CSS lint error). Removed.
+- Store review of 0.2.1: the CSV preview's temporary-copy helper loaded `fs/promises`, `os` and `path` without a `Platform.isDesktop` guard; the scanner reported the three dynamic imports as warnings. The helper now exits early on mobile like the importer and the git backup already do.
+- Store review of 0.2.1: the build no longer depends on the `builtin-modules` package; the list of Node built-ins comes from `node:module`. The bundle is unchanged.
+
 ## [0.2.1] — 2026-10-02
 
 ### Added
