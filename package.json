@@ -1,6 +1,6 @@
 {
   "name": "finance-ledger",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Obsidian plugin that renders hledger journals as filterable ledger tables with balance and category dashboards, transaction triage, and categorizer-rule management.",
   "main": "main.js",
   "author": {
