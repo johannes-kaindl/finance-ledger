@@ -17,4 +17,4 @@ The [README](https://github.com/johannes-kaindl/finance-ledger/blob/main/README.
 
 ---
 
-`SMOKE.md`, `superpowers/` and the previews under `design/` hold maintainer material and are not user documentation.
+`SMOKE.md` and the previews under `design/` hold maintainer material and are not user documentation.

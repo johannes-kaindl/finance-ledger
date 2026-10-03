@@ -230,3 +230,5 @@ Beide Fassungen sind inhaltsgleich zu halten; wer eine ändert, ändert die ande
 | `docs/design.md` + `docs/design/` | Design-System (Tokens, Previews) |
 | `docs/UI-Cookbook.md` | Chart-Strategie + Code-Snippets für künftige Features |
 | `docs/SMOKE.md` | GUI-Smoke-Checkliste (maintainer-lokal automatisiert) |
+
+Specs und Pläne liegen im Vault-Cockpit unter `_SDD/` (CORE-META-14), nicht im Repo.
