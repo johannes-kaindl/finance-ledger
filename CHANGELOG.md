@@ -1,8 +1,8 @@
 # Changelog
 
-Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
-[Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
-[Semantic Versioning](https://semver.org/lang/de/).
+All notable changes to the Finance Ledger plugin. Format after
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning after
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -10,28 +10,28 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ### Fixed
 
-- **Store-CSS-Lint, zweiter Anlauf: die gepunktete Unterstreichung läuft jetzt über `border-bottom` statt über die Textdekoration.** Der Rescan von 0.3.0 meldete dasselbe Feature erneut — und zwar an **vier** Zeilen statt zwei, nämlich an den beiden Langformen, in die 0.3.0 den Shorthand zerlegt hatte. Gemessen (`web-features` + `@mdn/browser-compat-data`): Der Lint bewertet ein web-feature als Ganzes und meldet jede Verwendung, sobald **ein** Teilfeature als unvollständig geführt wird — hier die Linienstärke, die im Stylesheet nie gesetzt war. Das Zerlegen konnte deshalb nicht helfen, es hat die Meldung verdoppelt. Der Ersatz nutzt das Feature „borders", das kein unvollständiges Teilfeature trägt, plus `display: inline-block`, damit die Linie am Text endet statt über die volle Kartenbreite zu laufen. Die gepunktete Optik ist damit zurück, die 0.3.0 zugunsten einer durchgezogenen Linie aufgegeben hatte.
+- **Store CSS lint, second attempt: the dotted underline now runs through `border-bottom` instead of the text decoration.** The rescan of 0.3.0 reported the same feature again — and on **four** lines instead of two, namely the two longhands into which 0.3.0 had split the shorthand. Measured (`web-features` + `@mdn/browser-compat-data`): the lint rates a web feature as a whole and reports every use as soon as **one** sub-feature is listed as incomplete — here the line thickness, which was never set in the stylesheet. Splitting it up could therefore not help; it doubled the report. The replacement uses the "borders" feature, which carries no incomplete sub-feature, plus `display: inline-block`, so the line ends at the text instead of running across the full card width. The dotted look is back, which 0.3.0 had given up in favour of a solid line.
 
 ## [0.3.0] — 2026-10-03
 
 ### Changed
 
-- **Der Importer-Subprozess ist weg — das Plugin lädt kein Node-Modul mehr.** Import-Dialog, Anti-Duplikat-Vorschau und Re-Import starten nicht mehr den Python-Importer; sie laufen im Plugin. Damit entfallen im Obsidian-Store-Review beide Behavior-Warnungen (`Shell Execution` über `child_process`, `Direct Filesystem Access` über Node-`fs`). Gemessen an den öffentlichen Scorecards: `medium`-Befunde drücken die Review-Note, Recommendations (`info`) kosten nichts — alle vier geprüften Store-Plugins mit `child_process` liegen auf `Caution` oder `Risks`.
-- **Die Vorschau parst die gewählte Datei selbst** (`core/import/preview`), statt eine Temp-Kopie außerhalb des Vaults anzulegen. Die Kopie gab es nur, weil ein Python-Prozess einen Dateipfad braucht; der Inhalt liegt im `File`-Objekt des Dialogs ohnehin vor. Die gleichnamige Datei bleibt aus dem Duplikat-Vergleich: wer eine schon abgelegte CSV erneut wählt, soll ihren Inhalt sehen und nicht „alles Doppelungen".
-- **Die Konto-Liste kommt aus `konten.yaml` im Vault** statt aus `list-konten` im Subprozess. Der Dialog braucht damit keinen Checkout des Importer-Repos mehr.
-- **Keine Plattform-Sperren mehr:** Ribbon-Icon, Kommando, Dialog, Vorschau, Re-Import und die Dashboard-Schnellaktionen sind auf jeder Plattform verfügbar. Die Sperren hingen am Subprozess. ⚠️ Auf einem physischen Mobilgerät noch nicht nachgemessen.
-- **CSS-Lint des Store-Reviews:** `ui-monospace` aus der Schrift-Fallback-Kette entfernt (von Obsidian 1.7.4 nicht unterstützt) und `text-decoration: underline dotted` in die Langformen `text-decoration-line`/`-style` zerlegt (Shorthand nur teilweise unterstützt).
+- **The importer subprocess is gone — the plugin no longer loads any Node module.** The import dialog, the duplicate-check preview and re-import no longer start the Python importer; they run inside the plugin. This removes both behavior warnings from the Obsidian store review (`Shell Execution` via `child_process`, `Direct Filesystem Access` via Node `fs`). Measured against the public scorecards: `medium` findings pull down the review grade, recommendations (`info`) cost nothing — all four store plugins with `child_process` that were checked sit at `Caution` or `Risks`.
+- **The preview parses the chosen file itself** (`core/import/preview`) instead of creating a temporary copy outside the vault. The copy only existed because a Python process needs a file path; the content is already available in the dialog's `File` object. A file of the same name stays out of the duplicate comparison: anyone who picks an already stored CSV again should see its content and not "everything is a duplicate".
+- **The account list comes from `konten.yaml` in the vault** instead of from `list-konten` in the subprocess. The dialog therefore no longer needs a checkout of the importer repo.
+- **No more platform locks:** ribbon icon, command, dialog, preview, re-import and the dashboard quick actions are available on every platform. The locks hung on the subprocess. ⚠️ Not yet measured on a physical mobile device.
+- **Store review CSS lint:** `ui-monospace` removed from the font fallback chain (not supported by Obsidian 1.7.4) and `text-decoration: underline dotted` split into the longhands `text-decoration-line`/`-style` (shorthand only partially supported).
 
 ### Added
 
-- **Schnappschuss vor jedem Regel-Schreibvorgang**, aufbewahrt nach Großvater-Vater-Sohn: die sechs neuesten von heute, dazu je der älteste der letzten sieben Tage, vier Wochen und sechs Monate. Der Stand liegt als JSON unter `<Finanzordner>/.fl-snapshots/`; Dateien ohne Zeitstempel im Namen werden nie gelöscht. Die Auswahl ist eine pure Funktion (`core/snapshot/gfs-retention.ts`), ihre Golden-Tabelle gegen eine unabhängige Referenzrechnung geprüft.
-- **Der kopierbare Importer-Befehl trägt jetzt die Umgebung und die Berichts-Flags.** Ohne `FINANCE_VAULT` schreibt der Importer in seinen eigenen Fallback-Ordner — mit Exit-Code 0. Da die Berichte und Dimensions-Notizen bis zum Abschluss der Port-Etappen E4–E7 nur im CLI entstehen, ist dieser Befehl der Weg dorthin.
-- **Wächter gegen Node-Module im Bundle:** `tests/bundle.test.ts` prüft das gebaute `main.js` gegen die vollständige `builtinModules`-Liste, in beiden Ladeformen und mit Gegenprobe, dass das Suchmuster trifft.
+- **Snapshot before every rule write**, kept by grandfather-father-son: the six newest of today, plus the oldest of each of the last seven days, four weeks and six months. The state is stored as JSON under `<finance folder>/.fl-snapshots/`; files without a timestamp in their name are never deleted. The selection is a pure function (`core/snapshot/gfs-retention.ts`), its golden table checked against an independent reference calculation.
+- **The copyable importer command now carries the environment and the report flags.** Without `FINANCE_VAULT` the importer writes into its own fallback folder — with exit code 0. Since the reports and dimension notes are only produced in the CLI until the port stages E4–E7 are finished, this command is the way there.
+- **Guard against Node modules in the bundle:** `tests/bundle.test.ts` checks the built `main.js` against the complete `builtinModules` list, in both loading forms and with a control check that the search pattern matches.
 
 ### Removed
 
-- **Das git-Auto-Backup vor dem Regel-Schreiben.** Es lief nie: der einzige Weg dorthin war ein `options.vaultPath`, das kein Produktiv-Aufrufer setzte — 111 Zeilen Code und neun grüne Tests für eine Sicherung, die im Produkt nicht stattfand. Ersatz ist der Schnappschuss über die Vault-API, der tatsächlich läuft.
-- Die Einstellungen **Importer-Timeout** und **Pfad zur uv-Binary**. Beide gehörten zum Subprozess. **Importer-Repo-Pfad** bleibt — er speist den kopierbaren Befehl; eine Existenzprüfung des Pfades findet nicht mehr statt (sie wäre Node-Zugriff für eine Anzeige).
+- **The git auto-backup before rule writes.** It never ran: the only way to it was an `options.vaultPath` that no production caller set — 111 lines of code and nine green tests for a backup that did not take place in the product. The replacement is the snapshot through the vault API, which actually runs.
+- The settings **Importer timeout** and **Path to the uv binary**. Both belonged to the subprocess. **Importer repo path** stays — it feeds the copyable command; an existence check of the path no longer takes place (it would be Node access for a display).
 
 ## [0.2.2] — 2026-10-02
 
@@ -51,113 +51,113 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ### Added
 
-- **Hilfe-Zeile oben in den Einstellungen** mit Links auf die Dokumentation und den Issue-Tracker (Kit `help-setting`, `obsidian-kit` 0.43.0).
+- **Help row at the top of the settings** with links to the documentation and the issue tracker (kit `help-setting`, `obsidian-kit` 0.43.0).
 
 ### Changed
 
-- **Einstellungen-Tab auf `getSettingDefinitions()` umgestellt** (`kit-obsidian/settings_walker.ts`,
-  obsidian-kit@0.37.1 vendoriert). Ab Obsidian 1.13 erscheinen alle Felder jetzt in der
-  Settings-Suche — vorher fand `eslint-plugin-obsidianmd` das als echten Fähigkeitsmangel, nicht
-  nur als Konventionsbefund. Live-Vorschau und Farbschema-Kacheln bleiben als native
-  `render`-Hatches erhalten (Teil der deklarativen API seit 1.13.0, keine Abweichung). Sichtbare
-  Folge: die Abschnitte zeigen jetzt native Trennlinien zwischen den Zeilen (`docs/images/settings.png`
-  neu aufgenommen).
-- `SettingsAccessor`/`Accessor` (`main.ts`) bekommen ein synchrones `getData()` — Obsidian ruft
-  `getSettingDefinitions()` ohne await auf, ein Reload von `data.json` je Tab-Öffnen war ohnehin
-  nur historisch (die Einstellungen liegen seit `onload()` bereits im Speicher).
+- **Settings tab switched to `getSettingDefinitions()`** (`kit-obsidian/settings_walker.ts`,
+  obsidian-kit@0.37.1 vendored). From Obsidian 1.13 on, all fields now appear in the
+  settings search — before, `eslint-plugin-obsidianmd` flagged this as a real capability gap, not
+  just a convention finding. Live preview and color-scheme tiles stay as native
+  `render` hatches (part of the declarative API since 1.13.0, not a deviation). Visible
+  consequence: the sections now show native separator lines between the rows (`docs/images/settings.png`
+  re-recorded).
+- `SettingsAccessor`/`Accessor` (`main.ts`) gain a synchronous `getData()` — Obsidian calls
+  `getSettingDefinitions()` without await; reloading `data.json` on every tab open was only
+  historical anyway (the settings have been in memory since `onload()`).
 
 ## [0.1.1] — 2026-09-03
 
 ### Fixed
 
-- **Einstellungen-Tab rendert beim zweiten Öffnen alles doppelt.** `display()` leerte den
-  Container synchron, rendert aber asynchron nach dem Laden der Einstellungen — ruft Obsidian
-  `display()` beim Öffnen mehrfach, schrieben beide Durchgänge hinein (8 Abschnitte statt 4).
-  Beim allerersten Öffnen war der Fehler unsichtbar. Behoben über einen Render-Zähler; gegen ein
-  laufendes Obsidian gegengeprüft.
-- **Mehrzeilige Hinweistexte in generierten Vertrags-Notizen brachen aus ihrem Callout aus.**
-  `note_extra_warning` und `rolle_beschreibung` wurden mit nur einem `> ` ins Template gesetzt,
-  wodurch alles ab der zweiten Zeile als nackter Text neben dem Callout stand. Behoben mit dem
-  Wechsel auf die Kit-Fassung von `wrapCallout` (obsidian-kit 0.27.0), zwei Regressionstests.
+- **Settings tab renders everything twice on the second open.** `display()` emptied the
+  container synchronously but renders asynchronously after loading the settings — if Obsidian
+  calls `display()` several times on open, both passes wrote into it (8 sections instead of 4).
+  On the very first open the bug was invisible. Fixed with a render counter; checked against a
+  running Obsidian.
+- **Multi-line hint texts in generated contract notes broke out of their callout.**
+  `note_extra_warning` and `rolle_beschreibung` were put into the template with only one `> `,
+  so everything from the second line on stood as bare text next to the callout. Fixed by
+  switching to the kit version of `wrapCallout` (obsidian-kit 0.27.0), two regression tests.
 
 ### Changed
 
-- **README ist jetzt englisch-kanonisch**, die deutsche Fassung liegt als `README.de.md`
-  daneben (beide mit Sprachumschalter). Dazu ein sechstes Bild, das den Einstellungen-Tab zeigt.
-- **Vier Module aus `obsidian-kit` 0.27.0 vendoriert** (`callout`, `sha256`, `clipboard`, `hub`)
-  statt lokaler Nachbauten; drei ältere Pins nachgezogen. Kein Verhaltensunterschied außer den
-  oben genannten Fixes.
+- **The README is now English-canonical**, the German version sits next to it as `README.de.md`
+  (both with a language switcher). Plus a sixth image showing the settings tab.
+- **Four modules from `obsidian-kit` 0.27.0 vendored** (`callout`, `sha256`, `clipboard`, `hub`)
+  instead of local re-implementations; three older pins updated. No behavior difference apart from the
+  fixes above.
 
 
 ## [0.1.0] — 2026-08-20
 
-Erstes veröffentlichtes Release. Bündelt die gesamte Vor-Release-Entwicklung
-(Slices 1–10, F15 Design-Wiring, F1/F2, Hub-Migration und den eingebauten
-CSV-Import) zu einer konsolidierten Erstversion.
+First published release. Bundles the entire pre-release development
+(slices 1–10, F15 design wiring, F1/F2, hub migration and the built-in
+CSV import) into one consolidated first version.
 
 ### Added
 
-- **Finance-Hub** (`FinanceHubView`) — EINE View mit Tab-Leiste statt fünf
-  Einzel-Views; mount-once-Panels (Filter/Scroll überleben Tab-Wechsel),
-  Panel-Navigation über late-bound Callback.
-- **Eingebauter CSV-Import** — vollständiger TypeScript-Port des Importer-Kerns
-  (CSV-Parser CAMT52/Visa, Kategorisierung, Journal-/Accounts-/Opening-Balances-
-  Schreiber), mobile-fähig ohne Node-APIs; Geld-Arithmetik über decimal.js mit
-  kaufmännischer Rundung; per Parity-Check byte-gleich zur Python-Referenz gehalten.
-- **Stammdaten-Schreiben** — Konto- und Vertrags-Notizen mit Marker-Idempotenz
-  und chirurgischem Zeilen-Patch: User-Felder (`anfangssaldo_eur`, `created`,
-  eigene Abschnitte) überleben jeden Import-Lauf.
-- **i18n DE/EN** — folgt automatisch Obsidians Spracheinstellung
-  (`getLanguage()`); EN kanonisch, DE vollständig.
-- **Vorzeichen- und Farbdarstellung** (F1) — `formatMoneyAmount` mit
-  konfigurierbaren Farbschemata über Theme-Variablen, Settings-Tab mit
-  Dropdowns und Farb-Swatches.
-- **Konto-Auto-Detect im Import-Modal** — Zuordnung CSV-Datei → Konto über
-  Ziffernvergleich (führende Nullen, maskierte Kartennummern), Format-Diagnose
-  mit verständlichen Hinweisen statt Traceback.
-- **Ledger Viewer** (`LedgerView`) — filter- und sortierbare Buchungstabelle mit
-  Klick-Navigation und Summen-Footer; hledger-Subset-Parser + Account-Resolver
-  (Frontmatter-Crawl auf `ledger_account`).
-- **Saldo-Übersicht** (`SaldoOverviewView`) mit `aggregateAccountSaldos` und
-  Stand-Am-aware Saldo-Berechnung (`opening_balances.ledger`): „Stand-Am"-Spalte
-  und TBC-Marker für Konten ohne erfassten Anfangssaldo.
-- **Kategorie-Übersicht** (`CategoryOverviewView`) mit hierarchischem
-  `aggregateCategoryTotals` (Modi Ausgaben/Einnahmen/Alle, Anteil-%).
-- **TBC-Triage** (`TBCTriageView`) + Categorizer-Rule-Modal mit Live-Conflict-Check
-  und Match-Counter; Rule-Loader/Writer (Vault-Notes als Source-of-Truth);
-  Account-Suggestions via Datalist-Type-Ahead; Git-Auto-Commit-Backup vor jedem
-  Schreibzugriff (Lock-Retry + Detached-Head-Erkennung).
-- **Re-Import** — Importer-CLI-Subprocess-Spawn mit UI-Lock, Counter-Reset und
-  konfigurierbarem `uv`-Pfad (Auto-Detect-Fallback).
-- **CSV-Import-Modal** (`ImportCSVModal`) — Multi-File-Picker, Anti-Dup-Preview,
-  Konto-Mapping per IBAN-Suffix.
-- **Finance-Dashboard** (`FinanceDashboardView`) — fünf Cards (Saldo, Last
-  Activity, Quick-Navigation, Quick-Actions, Top-Kategorien) + Ribbon-Icon.
-- **Filter-Presets** — Filter-State-Persistenz und Preset-CRUD; Deep-Link
-  `obsidian://finance?mode=…&filter=…` (`applyStoredState`) zur externen Steuerung.
-- **Mobile-Readiness** — `Platform.isMobile`-Guards, Graceful-Degrade für
-  Desktop-only-Features, `manifest.json` mit `isDesktopOnly: false`.
-- **Design-System** — KSP-Signal-Palette + Finance-Tokens + Light-Mode-Bridge in
-  `styles.css` (`--fl-*`), Utility- und Komponenten-Klassen (`.fl-money`,
-  `.fl-acct-chip`, `.fl-txn-state`, `.fl-card` sowie View-Struktur-Klassen);
-  `docs/design/` als Token-Source-of-Truth, `docs/design.md` als Architektur-Doku.
-- **Tolerantes Output-Lesen** — Plugin liest erweiterte Importer-Output-Schemas
-  (Tx-Typ-/Mandate-/Lebensbereich-Notes, Detail-Page-Wikilinks) ohne Code-Änderung.
+- **Finance hub** (`FinanceHubView`) — ONE view with a tab bar instead of five
+  single views; mount-once panels (filter/scroll survive tab switches),
+  panel navigation via a late-bound callback.
+- **Built-in CSV import** — complete TypeScript port of the importer core
+  (CSV parser CAMT52/Visa, categorization, journal/accounts/opening-balances
+  writers), mobile-capable without Node APIs; money arithmetic via decimal.js with
+  commercial rounding; kept byte-identical to the Python reference by a parity check.
+- **Master-data writing** — account and contract notes with marker idempotency
+  and surgical line patching: user fields (`anfangssaldo_eur`, `created`,
+  own sections) survive every import run.
+- **i18n DE/EN** — automatically follows Obsidian's language setting
+  (`getLanguage()`); EN canonical, DE complete.
+- **Sign and color display** (F1) — `formatMoneyAmount` with
+  configurable color schemes via theme variables, settings tab with
+  dropdowns and color swatches.
+- **Account auto-detect in the import modal** — mapping CSV file → account via
+  digit comparison (leading zeros, masked card numbers), format diagnosis
+  with understandable hints instead of a traceback.
+- **Ledger viewer** (`LedgerView`) — filterable and sortable transaction table with
+  click navigation and totals footer; hledger subset parser + account resolver
+  (frontmatter crawl on `ledger_account`).
+- **Balance overview** (`SaldoOverviewView`) with `aggregateAccountSaldos` and
+  as-of-aware balance calculation (`opening_balances.ledger`): "as-of" column
+  and TBC marker for accounts without a recorded opening balance.
+- **Category overview** (`CategoryOverviewView`) with hierarchical
+  `aggregateCategoryTotals` (modes expenses/income/all, share %).
+- **TBC triage** (`TBCTriageView`) + categorizer rule modal with live conflict check
+  and match counter; rule loader/writer (vault notes as source of truth);
+  account suggestions via datalist type-ahead; git auto-commit backup before every
+  write access (lock retry + detached-HEAD detection).
+- **Re-import** — importer CLI subprocess spawn with UI lock, counter reset and
+  configurable `uv` path (auto-detect fallback).
+- **CSV import modal** (`ImportCSVModal`) — multi-file picker, anti-dup preview,
+  account mapping by IBAN suffix.
+- **Finance dashboard** (`FinanceDashboardView`) — five cards (balance, last
+  activity, quick navigation, quick actions, top categories) + ribbon icon.
+- **Filter presets** — filter-state persistence and preset CRUD; deep link
+  `obsidian://finance?mode=…&filter=…` (`applyStoredState`) for external control.
+- **Mobile readiness** — `Platform.isMobile` guards, graceful degrade for
+  desktop-only features, `manifest.json` with `isDesktopOnly: false`.
+- **Design system** — KSP signal palette + finance tokens + light-mode bridge in
+  `styles.css` (`--fl-*`), utility and component classes (`.fl-money`,
+  `.fl-acct-chip`, `.fl-txn-state`, `.fl-card` as well as view structure classes);
+  `docs/design/` as token source of truth, `docs/design.md` as architecture doc.
+- **Tolerant output reading** — the plugin reads extended importer output schemas
+  (tx-type/mandate/life-area notes, detail-page wikilinks) without code changes.
 
 ### Changed
 
-- Plugin-ID schrittweise auf `finance-ledger` umbenannt (zuvor `26-011-finanzplan`
-  → `finance`); manifest + Deploy-Ziel. Die ID ist nach Community-Submission permanent.
-- URI-Query-Param `action` → `mode` (`action` ist von der Obsidian-API reserviert).
-- Styling vollständig klassenbasiert in `styles.css` ausgelagert (keine Inline-Styles
-  mehr) — konform zur Obsidian-Plugin-Guideline.
+- Plugin ID gradually renamed to `finance-ledger` (formerly `26-011-finanzplan`
+  → `finance`); manifest + deploy target. The ID is permanent after community submission.
+- URI query param `action` → `mode` (`action` is reserved by the Obsidian API).
+- Styling fully moved into class-based `styles.css` (no inline styles
+  anymore) — conforms to the Obsidian plugin guideline.
 
 ### Fixed
 
-- Mobile-Load: Top-Level-`node:`-Imports in dynamische, Desktop-geguardete Imports
-  umgewandelt (verhinderte Plugin-Load-Failure auf Mobile).
-- Modal-Slug-Pre-Check vor Submit (vermeidet späten `file already exists`-Fehler).
-- TBC-Filter differenziert nach `existing-rule-match` (keine Pseudo-TBC-Gegenparteien).
-- `uv`-Binary-Pfad-Setting + Auto-Detect-Fallback (behebt `ENOENT` im macOS-Renderer-PATH).
-- Mobile-SVG-Icon-Härtung (`fill: currentColor` + explizites `display`) gegen
-  Icon-Platzhalter auf iOS.
+- Mobile load: top-level `node:` imports converted to dynamic, desktop-guarded imports
+  (prevented plugin load failure on mobile).
+- Modal slug pre-check before submit (avoids a late `file already exists` error).
+- TBC filter differentiates by `existing-rule-match` (no pseudo-TBC counterparties).
+- `uv` binary path setting + auto-detect fallback (fixes `ENOENT` in the macOS renderer PATH).
+- Mobile SVG icon hardening (`fill: currentColor` + explicit `display`) against
+  icon placeholders on iOS.
