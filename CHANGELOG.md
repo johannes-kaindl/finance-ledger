@@ -6,6 +6,10 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Fixed
+
+- **Store-CSS-Lint, zweiter Anlauf: die gepunktete Unterstreichung läuft jetzt über `border-bottom` statt über die Textdekoration.** Der Rescan von 0.3.0 meldete dasselbe Feature erneut — und zwar an **vier** Zeilen statt zwei, nämlich an den beiden Langformen, in die 0.3.0 den Shorthand zerlegt hatte. Gemessen (`web-features` + `@mdn/browser-compat-data`): Der Lint bewertet ein web-feature als Ganzes und meldet jede Verwendung, sobald **ein** Teilfeature als unvollständig geführt wird — hier die Linienstärke, die im Stylesheet nie gesetzt war. Das Zerlegen konnte deshalb nicht helfen, es hat die Meldung verdoppelt. Der Ersatz nutzt das Feature „borders", das kein unvollständiges Teilfeature trägt, plus `display: inline-block`, damit die Linie am Text endet statt über die volle Kartenbreite zu laufen. Die gepunktete Optik ist damit zurück, die 0.3.0 zugunsten einer durchgezogenen Linie aufgegeben hatte.
+
 ## [0.3.0] — 2026-10-03
 
 ### Changed
