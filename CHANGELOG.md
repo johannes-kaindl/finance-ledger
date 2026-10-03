@@ -6,6 +6,11 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Changed
+
+- The changelog is now written entirely in English.
+- Internal design notes moved out of the repository; the user documentation is unchanged.
+
 ## [0.3.1] — 2026-10-03
 
 ### Fixed
