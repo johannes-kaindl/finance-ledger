@@ -1,4 +1,34 @@
 /* ============================================================================
+   Store-CSS-Lint: welche Eigenschaften hier bewusst NICHT vorkommen
+   ============================================================================
+   Der Review des Community Stores prüft die Stylesheet-Eigenschaften gegen eine
+   Feature-Liste (web-features/Baseline) und bewertet ein Feature als Ganzes: er
+   meldet JEDE Verwendung, sobald ein einzelnes Teilfeature als unvollständig
+   geführt wird — auch wenn genau dieses Teilfeature im Stylesheet nicht
+   vorkommt.
+
+   Zweimal gemessen am 2026-10-03, an zwei Reviews hintereinander:
+
+   1. Die Schrift-Fallback-Kette trug die systemeigene Monospace-Kennung aus dem
+      Feature „extended-system-fonts". Entfernt; die Monospace-Variable des
+      Themes greift ohnehin zuerst.
+   2. Textdekoration mit zwei Werten wurde gemeldet (2 Zeilen). Das Zerlegen in
+      die beiden Langformen half NICHT, es verdoppelte die Meldung auf 4 Zeilen:
+      beide Langformen gehören zum selben Feature, dessen unvollständiger Teil
+      die Linienstärke ist — die hier nie gesetzt wurde. Seither läuft die
+      gepunktete Unterstreichung über `border-bottom` (Feature „borders", kein
+      unvollständiges Teilfeature) plus `display: inline-block`, damit die Linie
+      am Text endet und nicht über die volle Kartenbreite läuft.
+
+   Praktische Folge für künftige Arbeit: Bei einer Lint-Meldung über ein
+   „partially supported" Feature nicht die Schreibweise variieren, sondern die
+   Eigenschaft durch eine aus einem anderen Feature ersetzen. Die Teilfeatures
+   eines Features lassen sich lokal nachsehen (`web-features` plus
+   `@mdn/browser-compat-data`); die Zuordnung Zeile → Feature nimmt der Store
+   vor, nicht wir.
+   ============================================================================ */
+
+/* ============================================================================
    Finance Plugin — styles.css
    ----------------------------------------------------------------------------
    Foundation : Kuro Signal Protocol (KSP)  signal palette + light-mode bridge
@@ -369,12 +399,12 @@ body {
   color: var(--text-muted);
 }
 .fl-card-link {
-  display: block;
   margin-top: 6px;
   font-size: var(--fl-fs-sm);
   cursor: pointer;
-  text-decoration-line: underline;
-  text-decoration-style: dotted;
+  /* Unterstreichung über den Rahmen — siehe Dateikopf, Abschnitt Store-CSS-Lint. */
+  display: inline-block;
+  border-bottom: 1px dotted currentColor;
 }
 .fl-stat-line {
   font-size: var(--fl-fs-sm);
@@ -565,8 +595,9 @@ body {
 .fl-clickable { cursor: pointer; }
 .fl-link-affordance {
   cursor: pointer;
-  text-decoration-line: underline;
-  text-decoration-style: dotted;
+  /* Unterstreichung über den Rahmen — siehe Dateikopf, Abschnitt Store-CSS-Lint. */
+  display: inline-block;
+  border-bottom: 1px dotted currentColor;
 }
 .fl-ellipsis {
   overflow: hidden;
