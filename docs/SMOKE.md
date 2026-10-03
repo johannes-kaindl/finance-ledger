@@ -51,7 +51,15 @@ gepflegte.
 
 - Ob die Zahlen *fachlich* richtig sind — das kann nur der Abgleich mit dem Online-Banking.
 - Ob das Mermaid-Diagramm hübsch aussieht. Geprüft wird, dass es da ist.
-- Den Python-Weg (Import-Knopf mit Subprozess). Der ist nicht Gegenstand des Ports.
+- **Die drei Pfade, die seit 2026-10-03 node-frei laufen:** das CSV-Import-Modal, seine
+  Anti-Duplikat-Vorschau und den Schnappschuss vor dem Regel-Schreiben. Der Treiber prüft
+  den Rebuild-Befehl, nicht sie. Alle drei wurden beim Umbau von Hand per CDP gegen die
+  laufende App gemessen (Konten aus `konten.yaml`, Vorschau „10 neu / 0 Duplikate",
+  Schnappschuss mit dem Stand vor dem Schreibvorgang) — das ist **einmal** belegt, aber
+  nicht reproduzierbar. Offen als TaskNote „GUI-Smoke deckt die drei node-freien Pfade
+  nicht ab".
+- Den Importer-CLI selbst. Er erzeugt die Berichte und Dimensions-Notizen (Port-Etappen
+  E4–E7) und läuft im Terminal, nicht im Plugin.
 
 ## Warum dieser Smoke in den produktiven Vault schreiben darf
 
