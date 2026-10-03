@@ -6,8 +6,6 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
-## [0.3.0] — 2026-10-03
-
 ### Changed
 
 - **Der Importer-Subprozess ist weg — das Plugin lädt kein Node-Modul mehr.** Import-Dialog, Anti-Duplikat-Vorschau und Re-Import starten nicht mehr den Python-Importer; sie laufen im Plugin. Damit entfallen im Obsidian-Store-Review beide Behavior-Warnungen (`Shell Execution` über `child_process`, `Direct Filesystem Access` über Node-`fs`). Gemessen an den öffentlichen Scorecards: `medium`-Befunde drücken die Review-Note, Recommendations (`info`) kosten nichts — alle vier geprüften Store-Plugins mit `child_process` liegen auf `Caution` oder `Risks`.
