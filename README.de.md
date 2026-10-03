@@ -23,7 +23,12 @@ Vertrags-Notizen — ohne Python. Dabei fasst er nur an, was er selbst erzeugt h
 `anfangssaldo_eur`, `created`, fremde Frontmatter-Felder und alles unterhalb des
 `AUTO-GENERATED`-Markers überleben jeden Lauf. Belegt durch `npm run smoke:gui` gegen ein
 laufendes Obsidian (21/21; Gegenprobe mit ausgebautem Patch-Pfad 15/20). Berichte und
-Dimensions-Notizen (E4–E7) laufen weiterhin über den Importer-Subprozess.
+Dimensions-Notizen (E4–E7) kommen weiterhin aus dem Python-Importer, gefahren im Terminal.
+
+**Stand 2026-10-03 — der Subprozess ist vollständig weg:** Import-Dialog,
+Anti-Duplikat-Vorschau und Re-Import starten den Python-Importer nicht mehr. Das Plugin lädt
+überhaupt kein Node-Modul mehr (`tests/bundle.test.ts` bewacht das gebaute `main.js`) — genau
+das führt der Obsidian-Store-Review als *Shell Execution* und *Direct Filesystem Access*.
 
 **Davor, Stand 2026-08-04 — Etappen E0+E1:** Der CSV-Import läuft **im Plugin selbst**
 (TypeScript, ohne Python-Subprozess). Belegt per Byte-Vergleich gegen den Python-Importer
@@ -62,10 +67,13 @@ Plugin-Code unverändert (tolerant gegen erweiterte Notizschemas).
   `accounts.ledger` direkt im Plugin erzeugt: kein Python, kein `uv`, kein Subprozess. Läuft
   auch mobil. Die Konten-Konfiguration kommt aus einer `konten.yaml` im Vault (Einstellung
   „Konten-Datei").
-- **CSV-Import-Modal** (nur Desktop) — mehrere CSVs hochladen, gegen vorhandene Importe
-  dedupen, anschließend den Importer-Subprozess auslösen
-- **Re-Import** — startet den Python-Importer als Subprozess, mit UI-Sperre und Counter-Reset
-- **Git-Auto-Backup** — Commit vor dem Schreiben, mit Lock-Retry und Detached-Head-Erkennung
+- **CSV-Import-Modal** — mehrere CSVs hinzufügen, je Datei eine Anti-Duplikat-Vorschau
+  ansehen, dann importieren. Alles im Plugin: kein Python, kein Subprozess und keine
+  temporäre Datei außerhalb des Vaults — läuft deshalb auch mobil.
+- **Re-Import** — fährt den eingebauten Import erneut, mit UI-Sperre und Counter-Reset
+- **Schnappschuss vor dem Regel-Schreiben** — datierte Kopie des Regel-Ordners, aufbewahrt
+  nach Großvater-Vater-Sohn (die 6 neuesten von heute, dazu je der älteste der letzten
+  7 Tage, 4 Wochen und 6 Monate)
 - **Categorizer-Rule-Modal** — neue Pattern-Regel definieren, mit Live-Trefferzähler und
   Konflikt-Prüfung; schreibt nach `categorizer-rules/`
 - **Konto-Vorschläge** — Type-Ahead aus `accounts.ledger` plus Frontmatter-Crawl, dedupliziert
@@ -203,10 +211,15 @@ Ausführliche Doku: [`docs/design.md`](https://github.com/johannes-kaindl/financ
 
 ## Mobile-Status
 
-- **Nur-Desktop-Pfade:** CSV-Import-Modal und Re-Import-Subprozess. Mobil erscheint ein
-  entsprechender Hinweis.
-- **Mobil ist Read-Only:** Ansichten rendern, aber es gibt keine Subprozess- oder
-  Git-Aktionen.
+- **Keine Nur-Desktop-Pfade mehr (Stand 2026-10-03):** CSV-Import-Modal, Vorschau und
+  Re-Import laufen im Plugin. Der Python-Subprozess und der Node-Dateisystemzugriff sind weg,
+  und damit auch die Plattform-Sperren, die an ihnen hingen.
+  ⚠️ Auf einem echten Telefon oder Tablet noch **nicht** nachgemessen — der Codeweg ist
+  node-frei und durch Tests gedeckt, die Dateiauswahl auf Mobilgeräten ist ungeprüft.
+- **Weiter desktop-gebunden:** Berichte und Dimensions-Notizen (Monats-, Quartals- und
+  Jahresberichte, Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen). Die kommen aus dem
+  Python-Importer, gefahren im Terminal — das Plugin gibt den vollständigen Befehl als
+  Kopier-Knopf heraus.
 - **Mobile Icons:** Auf iPhone und iPad sind nach dem letzten Icon-Fix teils noch Platzhalter
   sichtbar — die Diagnose steht am Desktop mit Mobile-DevTools aus.
 

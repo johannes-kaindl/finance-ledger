@@ -1,6 +1,7 @@
 import type { App, TFile } from 'obsidian';
 import type { CategorizerRule, CategorizerRulesResult, ConflictWarning } from './loader';
-import { runGitBackup } from './gitBackup';
+import type { VaultPort } from '../core/ports';
+import { snapshotRules } from '../core/snapshot/ruleSnapshot';
 
 export interface CreateRuleParams {
   pattern: string;
@@ -10,6 +11,23 @@ export interface CreateRuleParams {
   aliases?: string[];
   notes?: string;
   priorityHint?: number;
+}
+
+export interface CreateRuleSnapshotDeps {
+  vault: VaultPort;
+  /** Ablageort der Schnappschüsse — aus `resolveFinancePaths`, nie ein Literal. */
+  snapshotsFolder: string;
+}
+
+export interface CreateRuleOptions {
+  /**
+   * Schnappschuss des Regel-Ordners vor dem Schreiben.
+   *
+   * Optional, weil die Einheitstests den Schreibvorgang ohne Vault prüfen; im
+   * Produktivpfad setzt ihn das Regel-Modal. Fehlt er, entsteht kein
+   * Schnappschuss — und das ist dann eine Aussage des Aufrufers, kein Zufall.
+   */
+  snapshot?: CreateRuleSnapshotDeps;
 }
 
 export interface CreateRuleResult {
@@ -101,7 +119,7 @@ export async function createCategorizerRule(
   rulesFolder: string,
   params: CreateRuleParams,
   existingRules: CategorizerRulesResult,
-  options?: { vaultPath?: string },
+  options?: CreateRuleOptions,
 ): Promise<CreateRuleResult> {
   const baseSlug = slugifyPattern(params.pattern);
 
@@ -144,16 +162,18 @@ export async function createCategorizerRule(
     }
   }
 
-  // Git backup pre-write (only when vaultPath provided — skipped in unit tests)
-  if (options?.vaultPath) {
-    const backup = await runGitBackup(
-      options.vaultPath,
+  // Schnappschuss VOR dem Schreiben. Scheitert er, wird nicht geschrieben: eine
+  // Sicherung, die man im Fehlerfall überspringt, ist keine.
+  //
+  // Vorgänger war ein `git commit` im Vault, der nie lief — der einzige Weg dorthin
+  // war ein `options.vaultPath`, das kein Aufrufer setzte (gemessen 2026-10-03).
+  if (options?.snapshot) {
+    await snapshotRules({
+      vault: options.snapshot.vault,
       rulesFolder,
-      `[plugin] backup before rule write: ${slug}`,
-    );
-    if (backup.error) {
-      throw new Error(`Git-Backup fehlgeschlagen: ${backup.error}`);
-    }
+      snapshotsFolder: options.snapshot.snapshotsFolder,
+      reason: `vor Regel-Schreibvorgang: ${slug}`,
+    });
   }
 
   const content = buildFrontmatter(params, slug, priority, new Date());

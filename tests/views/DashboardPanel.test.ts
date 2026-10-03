@@ -291,33 +291,39 @@ describe('DashboardPanel — Mobile-Readiness', () => {
     Platform.isDesktop = true;
   });
 
-  it('Quick-Actions-Card filtert Import-CSV + Re-Import auf Mobile (0 Buttons, beide desktop-only)', async () => {
+  /**
+   * Umgekehrte Erwartung seit 2026-10-03: hier stand, dass die Karte auf Mobile
+   * NULL Knöpfe zeigt und stattdessen „für CSV-Import zum Desktop wechseln".
+   * Beides hing am Importer-Subprozess. Import und Re-Import laufen jetzt im
+   * Plugin (node-frei), also gibt es nichts mehr auszudünnen — und der Hinweis
+   * wäre eine falsche Auskunft.
+   */
+  it('zeigt auf Mobile dieselben Knöpfe wie auf dem Desktop', async () => {
     Platform.isMobile = true;
     Platform.isDesktop = false;
     try {
       const { el } = await render(makeFakeApp(), makeFakeAccessor());
       const qaCard = findCards(el).find(c => (c.cls as string).includes('card-quickactions'))!;
       const buttons = walkAll(qaCard).filter(e => e.tag === 'button');
-      expect(buttons.length).toBe(0);
+      expect(buttons.length).toBe(2);
     } finally {
       Platform.isMobile = false;
       Platform.isDesktop = true;
     }
   });
 
-  it('Quick-Actions-Card zeigt Mobile-Info-Hinweis statt Import-Buttons', async () => {
+  it('zeigt auf Mobile keinen „zum Desktop wechseln"-Hinweis mehr', async () => {
     Platform.isMobile = true;
     Platform.isDesktop = false;
     try {
       const { el } = await render(makeFakeApp(), makeFakeAccessor());
       const qaCard = findCards(el).find(c => (c.cls as string).includes('card-quickactions'))!;
       const nodes = walkAll(qaCard);
-      const allTexts = nodes.map(e => e.text as string).join('|');
       const hasSmartphoneIcon = nodes.some(
         e => (e.attrs as Record<string, string> | undefined)?.['data-icon'] === 'smartphone',
       );
-      expect(hasSmartphoneIcon).toBe(true);
-      expect(allTexts).toContain('desktop');
+      expect(hasSmartphoneIcon).toBe(false);
+      expect(nodes.map(e => e.text as string).join('|')).not.toContain('desktop');
     } finally {
       Platform.isMobile = false;
       Platform.isDesktop = true;

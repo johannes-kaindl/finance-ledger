@@ -1,12 +1,11 @@
 import { App, Modal, Notice, normalizePath } from 'obsidian';
 import { parseLedgerWithDiagnostics } from '../parser/ledger';
 import { renderDiagnosticsBanner } from './diagnosticsBanner';
-import { filterTbcCounterpartiesWithoutRule, groupTbcByCounterparty, groupTbcAmount, formatMoneyAmount, flowCtxFromSign, buildImporterCommand, summarizeStderr, type MoneyDisplay } from './helpers';
+import { filterTbcCounterpartiesWithoutRule, groupTbcByCounterparty, groupTbcAmount, formatMoneyAmount, flowCtxFromSign, buildImporterCommand, type MoneyDisplay } from './helpers';
 import { loadCategorizerRules } from '../categorizer-rules/loader';
 import { CategorizerRuleModal } from '../ui/categorizerRuleModal';
 import { resolveCounterpartyNote } from '../resolver/account';
-import { runImporter, FULL_IMPORT_ARGS } from '../categorizer-rules/spawnImporter';
-import { isMobile } from '../utils/platform';
+import { runNativeImport } from '../obsidian/nativeImport';
 import type { PluginData } from '../types/plugin-data';
 import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
@@ -24,6 +23,7 @@ class ImportErrorModal extends Modal {
     private readonly stderr: string,
     private readonly onRetry: () => void,
     private readonly importerCwd: string,
+    private readonly env: Record<string, string> = {},
   ) {
     super(app);
   }
@@ -33,7 +33,7 @@ class ImportErrorModal extends Modal {
     contentEl.createEl('h3', { text: t('tbc.importError.title') });
     contentEl.createEl('pre', { text: this.stderr || t('tbc.importError.noStderr'), cls: 'fl-pre' });
 
-    const cmd = buildImporterCommand(this.importerCwd);
+    const cmd = buildImporterCommand(this.importerCwd, this.env);
     const btnRow = contentEl.createDiv({ cls: 'fl-row-actions' });
 
     const btnRetry = btnRow.createEl('button', { text: t('tbc.importError.retry') });
@@ -117,12 +117,8 @@ export class TBCPanel implements FinancePanel {
 
     header.createDiv({ cls: 'fl-spacer' });
 
-    // Re-import is a desktop-only feature (importer subprocess). On mobile the
-    // core renderer stays read-only — show a hint instead of a dead button.
-    if (isMobile()) {
-      header.createSpan({ text: t('tbc.header.desktopOnly'), cls: 'fl-muted fl-fs-sm' });
-      return;
-    }
+    // Kein Desktop-Guard mehr: der Re-Import ist der Lauf im Plugin
+    // (`runNativeImport`), nicht der Importer-Subprozess.
     this.reimportBtn = header.createEl('button', { text: t('tbc.header.reimportNow'), cls: 'fl-fs-sm' });
     this.reimportBtn.onclick = () => this.triggerReimport();
   }
@@ -160,33 +156,39 @@ export class TBCPanel implements FinancePanel {
   private async triggerReimport(): Promise<void> {
     const data = await this.accessor.loadData();
     const importerCwd = data.importerCwd;
-    const timeoutMs = data.importerTimeoutMs;
-    const uvBinaryPath = data.uvBinaryPath || null;
 
     if (this.reimportBtn) {
       this.reimportBtn.disabled = true;
       this.reimportBtn.setText(t('dashboard.action.reimportRunning'));
     }
     this.showBanner(t('tbc.banner.running'));
+    const startedAt = Date.now();
 
     try {
-      const result = await runImporter(importerCwd, uvBinaryPath, timeoutMs, (line) => {
-        this.showBanner(line);
-      }, [...FULL_IMPORT_ARGS], importerEnvFor(this.app, this.getPaths()));
-
-      if (result.exitCode === 0) {
-        await this.onReimportSuccess();
-        new Notice(t('notice.reimportSuccess', Math.round(result.durationMs / 1000)));
-      } else {
-        new ImportErrorModal(
-          this.app,
-          summarizeStderr(result.stderr),
-          () => { void this.triggerReimport(); },
-          importerCwd,
-        ).open();
-      }
+      // Fortschritt kommt jetzt aus dem Log-Port des Laufs statt aus den
+      // stdout-Zeilen eines Subprozesses — dieselbe Banner-Anzeige, ein Kanal weniger.
+      await runNativeImport({
+        app: this.app,
+        paths: this.getPaths(),
+        log: {
+          info: (message) => { this.showBanner(message); },
+          warn: (message) => { this.showBanner(message); },
+        },
+      });
+      await this.onReimportSuccess();
+      new Notice(t('notice.reimportSuccess', Math.round((Date.now() - startedAt) / 1000)));
     } catch (err) {
-      new Notice(t('notice.reimportError', err instanceof Error ? err.message : String(err)));
+      // Der Fehler trägt jetzt die Meldung des Laufs statt eines Python-Tracebacks.
+      // Das Modal bleibt: es hält den Wiederholen-Knopf und den kopierbaren
+      // CLI-Befehl — und den braucht es nach dem Umbau mehr als vorher, weil die
+      // Berichte nur noch dort entstehen.
+      new ImportErrorModal(
+        this.app,
+        err instanceof Error ? err.message : String(err),
+        () => { void this.triggerReimport(); },
+        importerCwd,
+        importerEnvFor(this.app, this.getPaths()),
+      ).open();
     } finally {
       if (this.reimportBtn) {
         this.reimportBtn.disabled = false;

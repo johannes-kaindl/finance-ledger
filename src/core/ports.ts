@@ -30,6 +30,13 @@ export interface VaultPort {
 	/** Dateien direkt in einem Verzeichnis, sortiert. Kein Rekursionsabstieg. */
 	list(folder: string): Promise<string[]>;
 	/**
+	 * Datei löschen. Wirft, wenn es sie nicht gibt.
+	 *
+	 * Gebraucht von der Schnappschuss-Aufbewahrung — der einzige Ort, an dem der
+	 * Kern etwas entfernt. Der Import selbst löscht nie: er schreibt neu.
+	 */
+	remove(path: string): Promise<void>;
+	/**
 	 * Änderungszeitpunkt in Millisekunden, oder `null`, wenn es die Datei nicht
 	 * gibt. Der Cross-CSV-Dedupe entscheidet damit, welche von zwei gleichen
 	 * Buchungen gewinnt: die aus der zuletzt abgelegten Datei.

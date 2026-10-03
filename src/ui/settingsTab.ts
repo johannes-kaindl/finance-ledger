@@ -3,8 +3,6 @@ import {
   Plugin,
   PluginSettingTab,
   Setting,
-  Notice,
-  Platform,
   type SettingDefinitionItem,
   type SettingGroupItem,
 } from 'obsidian';
@@ -164,16 +162,6 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
               placeholder: '/absolute/path/to/finance-ledger-importer',
             },
           },
-          {
-            name: t('settings.importerTimeout.name'),
-            desc: t('settings.importerTimeout.desc'),
-            control: { type: 'text', key: 'importerTimeoutMs' },
-          },
-          {
-            name: t('settings.uvBinaryPath.name'),
-            desc: t('settings.uvBinaryPath.desc'),
-            control: { type: 'text', key: 'uvBinaryPath', placeholder: '/usr/local/bin/uv' },
-          },
         ],
       },
     ];
@@ -194,37 +182,10 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
 
     switch (key) {
       case 'importerCwd': {
-        const trimmed = String(value).trim();
-        if (Platform.isDesktop) {
-          const { existsSync } = await import('fs');
-          const path = (await import('path')).default;
-          if (!existsSync(path.join(trimmed, 'pyproject.toml'))) {
-            new Notice(t('notice.importerPathNotFound', trimmed));
-            return;
-          }
-        }
-        data.importerCwd = trimmed;
-        break;
-      }
-      case 'importerTimeoutMs': {
-        const parsed = parseInt(String(value), 10);
-        if (isNaN(parsed) || parsed < 10_000) {
-          new Notice(t('notice.importerTimeoutTooLow'));
-          return;
-        }
-        data.importerTimeoutMs = parsed;
-        break;
-      }
-      case 'uvBinaryPath': {
-        const trimmed = String(value).trim();
-        if (Platform.isDesktop && trimmed) {
-          const { existsSync } = await import('fs');
-          if (!existsSync(trimmed)) {
-            new Notice(t('notice.uvBinaryNotFound', trimmed));
-            return;
-          }
-        }
-        data.uvBinaryPath = trimmed;
+        // Keine Existenzprüfung mehr: der Pfad wird nicht mehr ausgeführt, sondern
+        // nur in den kopierbaren CLI-Befehl eingesetzt (Berichte, Port-Etappen E4–E7).
+        // Ein `existsSync` dafür wäre Node-Zugriff für eine Anzeige.
+        data.importerCwd = String(value).trim();
         break;
       }
       case 'financeRoot':

@@ -9,6 +9,11 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // Zeitzone festnageln: `gfs-retention` rechnet Kalendergrenzen bewusst in der
+    // Ortszeit der Laufzeit (ein Schnappschuss „von gestern" ist der, den der Nutzer
+    // gestern gesehen hat). Ohne diese Zeile liefe der Golden-Test lokal gegen
+    // Europe/Berlin und in CI gegen UTC — und kippte dort an jeder Tagesgrenze.
+    env: { TZ: 'Europe/Berlin' },
     setupFiles: ['./tests/setup.ts'],
     // Claude-Worktrees nie mit einscannen — Testkopien dort erzeugen ein
     // Mock-Split-Brain mit dem obsidian-Alias des Hauptrepos

@@ -1,15 +1,14 @@
-import { App, Notice, normalizePath, setIcon, TFolder } from 'obsidian';
+import { App, Notice, normalizePath, TFolder } from 'obsidian';
 import { parseLedgerWithDiagnostics, type Transaction } from '../parser/ledger';
 import { renderDiagnosticsBanner } from './diagnosticsBanner';
 import { aggregateAccountSaldos } from '../aggregator/saldo';
 import { parseOpeningBalances, type OpeningBalance } from '../aggregator/openingBalances';
 import { aggregateCategoryTotals } from '../aggregator/category';
 import { saveState } from '../state/filterState';
-import { runImporter, FULL_IMPORT_ARGS } from '../categorizer-rules/spawnImporter';
-import { isMobile } from '../utils/platform';
+import { runNativeImport } from '../obsidian/nativeImport';
 import { buildAccountFilter, formatMoneyAmount, moneyCtx, type MoneyDisplay } from './helpers';
 import type { DataAccessor } from './TBCPanel';
-import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from '../state/financePaths';
+import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
 import { t } from '../i18n/strings';
 
@@ -230,23 +229,13 @@ export class DashboardPanel implements FinancePanel {
   private buildQuickActionsCard(grid: HTMLElement): void {
     const card = this.makeCard(grid, t('dashboard.card.quickactions.title'), 'card-quickactions');
 
-    const mobile = isMobile();
-
-    if (mobile) {
-      const info = card.createDiv({ cls: 'finance-mobile-info fl-info-banner' });
-      setIcon(info.createSpan({ cls: 'fl-inline-icon' }), 'smartphone');
-      info.createSpan({ text: t('dashboard.card.quickactions.mobileHint') });
-    }
-
     const wrap = card.createDiv({ cls: 'fl-vstack' });
 
-    // Import + re-import are desktop-only (importer subprocess).
-    const desktopOnlyIds = new Set(['import-csv', 'reimport']);
-    const actions = mobile
-      ? DASHBOARD_QUICK_ACTIONS.filter(a => !desktopOnlyIds.has(a.id))
-      : DASHBOARD_QUICK_ACTIONS;
-
-    for (const action of actions) {
+    // Vollständig auf jeder Plattform: Import und Re-Import laufen seit 2026-10-03
+    // im Plugin (node-frei), nicht mehr über den Importer-Subprozess. Die Auswahl
+    // hier auszudünnen hätte danach keinen Grund mehr — und ein Hinweis
+    // „nur lesbar auf Mobile" wäre schlicht falsch.
+    for (const action of DASHBOARD_QUICK_ACTIONS) {
       const btn = wrap.createEl('button', { text: t(action.labelKey), cls: 'fl-btn-compact fl-text-left' });
       btn.dataset.actionId = action.id;
       btn.onclick = () => this.handleQuickAction(action.id, btn);
@@ -280,24 +269,17 @@ export class DashboardPanel implements FinancePanel {
     btn.disabled = true;
     const originalLabel = btn.textContent ?? t('dashboard.action.reimport');
     btn.textContent = t('dashboard.action.reimportRunning');
+    const startedAt = Date.now();
     try {
-      const result = await runImporter(
-        data.importerCwd,
-        data.uvBinaryPath || null,
-        data.importerTimeoutMs,
-        () => { /* progress no-op */ },
-        [...FULL_IMPORT_ARGS],
-        importerEnvFor(this.app, this.getPaths()),
-      );
-      if (result.exitCode === 0) {
-        data.lastReimportTimestamp = new Date().toISOString();
-        data.rulesAddedSinceReimport = 0;
-        await this.accessor.saveData(data);
-        new Notice(t('notice.reimportSuccess', Math.round(result.durationMs / 1000)));
-        await this.onShow();
-      } else {
-        new Notice(t('notice.reimportFailedSeeTbc'));
-      }
+      // Der Lauf im Plugin, nicht mehr der Python-Subprozess: er schreibt Journal,
+      // Kontenplan, Eröffnungsbilanz und die Stammdaten-Notizen. Berichte und
+      // Dimensions-Notizen entstehen weiterhin im Importer-CLI (Port-Etappen E4–E7).
+      await runNativeImport({ app: this.app, paths: this.getPaths() });
+      data.lastReimportTimestamp = new Date().toISOString();
+      data.rulesAddedSinceReimport = 0;
+      await this.accessor.saveData(data);
+      new Notice(t('notice.reimportSuccess', Math.round((Date.now() - startedAt) / 1000)));
+      await this.onShow();
     } catch (err) {
       new Notice(t('notice.reimportError', err instanceof Error ? err.message : String(err)));
     } finally {

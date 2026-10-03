@@ -6,6 +6,25 @@ Alle nennenswerten Änderungen am Finance-Ledger-Plugin. Format nach
 
 ## [Unreleased]
 
+### Changed
+
+- **Der Importer-Subprozess ist weg — das Plugin lädt kein Node-Modul mehr.** Import-Dialog, Anti-Duplikat-Vorschau und Re-Import starten nicht mehr den Python-Importer; sie laufen im Plugin. Damit entfallen im Obsidian-Store-Review beide Behavior-Warnungen (`Shell Execution` über `child_process`, `Direct Filesystem Access` über Node-`fs`). Gemessen an den öffentlichen Scorecards: `medium`-Befunde drücken die Review-Note, Recommendations (`info`) kosten nichts — alle vier geprüften Store-Plugins mit `child_process` liegen auf `Caution` oder `Risks`.
+- **Die Vorschau parst die gewählte Datei selbst** (`core/import/preview`), statt eine Temp-Kopie außerhalb des Vaults anzulegen. Die Kopie gab es nur, weil ein Python-Prozess einen Dateipfad braucht; der Inhalt liegt im `File`-Objekt des Dialogs ohnehin vor. Die gleichnamige Datei bleibt aus dem Duplikat-Vergleich: wer eine schon abgelegte CSV erneut wählt, soll ihren Inhalt sehen und nicht „alles Doppelungen".
+- **Die Konto-Liste kommt aus `konten.yaml` im Vault** statt aus `list-konten` im Subprozess. Der Dialog braucht damit keinen Checkout des Importer-Repos mehr.
+- **Keine Plattform-Sperren mehr:** Ribbon-Icon, Kommando, Dialog, Vorschau, Re-Import und die Dashboard-Schnellaktionen sind auf jeder Plattform verfügbar. Die Sperren hingen am Subprozess. ⚠️ Auf einem physischen Mobilgerät noch nicht nachgemessen.
+- **CSS-Lint des Store-Reviews:** `ui-monospace` aus der Schrift-Fallback-Kette entfernt (von Obsidian 1.7.4 nicht unterstützt) und `text-decoration: underline dotted` in die Langformen `text-decoration-line`/`-style` zerlegt (Shorthand nur teilweise unterstützt).
+
+### Added
+
+- **Schnappschuss vor jedem Regel-Schreibvorgang**, aufbewahrt nach Großvater-Vater-Sohn: die sechs neuesten von heute, dazu je der älteste der letzten sieben Tage, vier Wochen und sechs Monate. Der Stand liegt als JSON unter `<Finanzordner>/.fl-snapshots/`; Dateien ohne Zeitstempel im Namen werden nie gelöscht. Die Auswahl ist eine pure Funktion (`core/snapshot/gfs-retention.ts`), ihre Golden-Tabelle gegen eine unabhängige Referenzrechnung geprüft.
+- **Der kopierbare Importer-Befehl trägt jetzt die Umgebung und die Berichts-Flags.** Ohne `FINANCE_VAULT` schreibt der Importer in seinen eigenen Fallback-Ordner — mit Exit-Code 0. Da die Berichte und Dimensions-Notizen bis zum Abschluss der Port-Etappen E4–E7 nur im CLI entstehen, ist dieser Befehl der Weg dorthin.
+- **Wächter gegen Node-Module im Bundle:** `tests/bundle.test.ts` prüft das gebaute `main.js` gegen die vollständige `builtinModules`-Liste, in beiden Ladeformen und mit Gegenprobe, dass das Suchmuster trifft.
+
+### Removed
+
+- **Das git-Auto-Backup vor dem Regel-Schreiben.** Es lief nie: der einzige Weg dorthin war ein `options.vaultPath`, das kein Produktiv-Aufrufer setzte — 111 Zeilen Code und neun grüne Tests für eine Sicherung, die im Produkt nicht stattfand. Ersatz ist der Schnappschuss über die Vault-API, der tatsächlich läuft.
+- Die Einstellungen **Importer-Timeout** und **Pfad zur uv-Binary**. Beide gehörten zum Subprozess. **Importer-Repo-Pfad** bleibt — er speist den kopierbaren Befehl; eine Existenzprüfung des Pfades findet nicht mehr statt (sie wäre Node-Zugriff für eine Anzeige).
+
 ## [0.2.2] — 2026-10-02
 
 ### Fixed

@@ -173,24 +173,47 @@ describe('buildImporterCommand', () => {
   // Regression: der Copy-Befehl im Import-Fehler-Modal hatte den Importer-Pfad des
   // Maintainers hartcodiert (SSOT-Verletzung + Publikations-Blocker). Er muss aus
   // der Einstellung kommen.
-  it('baut den Befehl aus dem konfigurierten Pfad', () => {
-    expect(buildImporterCommand('/srv/finance-ledger-importer'))
-      .toBe('cd /srv/finance-ledger-importer && uv run python -m importer.cli');
+  it('baut den Befehl aus dem konfigurierten Pfad, mit den Berichts-Flags', () => {
+    const cmd = buildImporterCommand('/srv/finance-ledger-importer');
+
+    expect(cmd).toContain('cd /srv/finance-ledger-importer && uv run python -m importer.cli');
+    // Die Flags sind der Grund, warum der Befehl noch existiert: diese Notizen
+    // erzeugt das Plugin nicht (Port-Etappen E4–E7).
+    expect(cmd).toContain('--all-aggregates');
+    expect(cmd).toContain('--all-empfaenger-notes');
   });
 
   it('quotet Pfade mit Leerzeichen shell-sicher', () => {
-    expect(buildImporterCommand('/Users/x/My Repos/importer'))
+    expect(buildImporterCommand('/Users/x/My Repos/importer', {}, []))
       .toBe("cd '/Users/x/My Repos/importer' && uv run python -m importer.cli");
   });
 
+  it('nimmt die Umgebung mit — ohne FINANCE_VAULT schreibt der Importer woandershin', () => {
+    const cmd = buildImporterCommand(
+      '/srv/importer',
+      { FINANCE_VAULT: '/Users/x/My Vault/R', FINANCE_VAULT_PREFIX: 'R' },
+      [],
+    );
+
+    expect(cmd).toBe(
+      "cd /srv/importer && FINANCE_VAULT='/Users/x/My Vault/R' FINANCE_VAULT_PREFIX=R uv run python -m importer.cli",
+    );
+  });
+
+  it('lässt leere Umgebungswerte weg statt FINANCE_VAULT= zu schreiben', () => {
+    const cmd = buildImporterCommand('/srv/importer', { FINANCE_VAULT: '' }, []);
+
+    expect(cmd).not.toContain('FINANCE_VAULT');
+  });
+
   it('fällt bei leerem Pfad auf einen sichtbaren Platzhalter zurück, nie auf einen echten Pfad', () => {
-    const cmd = buildImporterCommand('');
+    const cmd = buildImporterCommand('', {}, []);
     expect(cmd).toContain('<');
     expect(cmd).not.toContain('/Users/');
   });
 
   it('enthält keinen maintainer-lokalen Pfad', () => {
-    expect(buildImporterCommand('/srv/importer')).not.toContain('20_Claude');
+    expect(buildImporterCommand('/srv/importer', {}, [])).not.toContain('20_Claude');
   });
 });
 

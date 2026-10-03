@@ -21,7 +21,7 @@
  */
 
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, writeFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { createImporterContext } from "../src/core/config/context";
 import { parseKontenConfig } from "../src/core/config/konten";
@@ -57,6 +57,9 @@ const fsVault: VaultPort = {
 	exists: async (path) => existsSync(path),
 	mkdir: async (path) => {
 		await mkdir(path, { recursive: true });
+	},
+	remove: async (path) => {
+		await rm(path, { force: true });
 	},
 	list: async (folder) => {
 		if (!existsSync(folder)) return [];

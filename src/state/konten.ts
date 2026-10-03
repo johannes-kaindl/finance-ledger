@@ -1,52 +1,39 @@
-import { runImporter } from '../categorizer-rules/spawnImporter';
-import { isMobile } from '../utils/platform';
-import { summarizeStderr } from '../views/helpers';
+/**
+ * Die aktiven Konten, einmal gelesen und gemerkt.
+ *
+ * Die Quelle wird injiziert (`loadConfig`), damit dieses Modul obsidian-frei
+ * bleibt — die Vault-Berührung liegt in `src/obsidian/kontenSource.ts`.
+ * Vorher lief der Weg über `list-konten` im Python-Importer; das kostete einen
+ * Subprozess, die Store-Bestnote und die Mobile-Fähigkeit.
+ */
 
-export interface KontoSpec {
-  id: string;
-  iban: string;
-  ledger_account: string;
-  bank: string;
-  konto_rolle: string;
-  csv_schema: string;
-  aliases: string[];
-  aktiv: boolean;
-}
+import { activeKonten, type KontenConfig, type KontoSpec } from '../core/config/konten';
+
+export type { KontoSpec };
 
 export interface KontenLoadDeps {
-  importerCwd: string;
-  uvBinaryPath: string | null;
+  /** Liest und prüft `konten.yaml`. Fehler werden unverändert durchgereicht. */
+  loadConfig: () => Promise<KontenConfig>;
 }
 
-const LIST_KONTEN_TIMEOUT_MS = 5_000;
+let cached: KontenConfig | null = null;
 
-let cached: KontoSpec[] | null = null;
-
-export async function loadKonten(deps: KontenLoadDeps): Promise<KontoSpec[]> {
+/**
+ * Die geprüfte Konfiguration — auch die stillgelegten Konten.
+ *
+ * Die Vorschau im Import-Dialog braucht sie vollständig: `detectSchema` ordnet
+ * eine Datei über die IBAN-Enden ALLER Konten zu, und ein stillgelegtes Konto
+ * erklärt eine alte CSV besser als keines.
+ */
+export async function loadKontenConfig(deps: KontenLoadDeps): Promise<KontenConfig> {
   if (cached) return cached;
-  if (isMobile()) {
-    throw new Error(
-      'loadKonten ist nur auf Desktop verfügbar (benötigt Importer-Subprozess). Bitte auf Desktop wechseln.',
-    );
-  }
-  const result = await runImporter(
-    deps.importerCwd,
-    deps.uvBinaryPath,
-    LIST_KONTEN_TIMEOUT_MS,
-    undefined,
-    ['list-konten', '--aktiv-only'],
-  );
-  if (result.exitCode !== 0) {
-    throw new Error(`list-konten failed (exit ${result.exitCode}): ${summarizeStderr(result.stderr)}`);
-  }
-  let parsed: KontoSpec[];
-  try {
-    parsed = JSON.parse(result.stdout) as KontoSpec[];
-  } catch (err) {
-    throw new Error(`list-konten returned invalid JSON: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  cached = parsed;
-  return parsed;
+  cached = await deps.loadConfig();
+  return cached;
+}
+
+/** Nur die aktiven Konten — die Auswahl im Dialog. */
+export async function loadKonten(deps: KontenLoadDeps): Promise<KontoSpec[]> {
+  return activeKonten(await loadKontenConfig(deps));
 }
 
 export function invalidateKonten(): void {

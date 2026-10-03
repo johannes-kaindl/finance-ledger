@@ -13,7 +13,6 @@
 import { parseYaml, type App } from "obsidian";
 import { loadCategorizerRules } from "../categorizer-rules/loader";
 import { createImporterContext } from "../core/config/context";
-import { parseKontenConfig } from "../core/config/konten";
 import { parseVertraegeConfig, type VertragSpec } from "../core/config/vertraege";
 import { ConfigError } from "../core/errors";
 import { deriveOwnerNames } from "../core/import/categorize";
@@ -22,6 +21,7 @@ export type { ImportResult };
 import { buildRules, type RuleNote } from "../core/import/rules";
 import type { LogPort } from "../core/ports";
 import type { ResolvedFinancePaths } from "../state/financePaths";
+import { loadKontenFromVault } from "./kontenSource";
 import { ObsidianVaultPort } from "./vault-port";
 
 export interface NativeImportOptions {
@@ -73,35 +73,6 @@ export async function runNativeImport(
 export interface NativeImportResult extends ImportResult {
 	/** Regel-Notizen mit fehlendem Pflichtfeld — verworfen, aber gemeldet. */
 	incompleteRules: string[];
-}
-
-/**
- * Liest `konten.yaml` aus dem Vault.
- *
- * Die Datei bleibt bewusst YAML im Vault statt in den Plugin-Einstellungen:
- * so ist sie editierbar und per git nachvollziehbar — genau das machte die
- * Anfangssaldo-Korrekturen vom 2026-08-01 reversibel.
- */
-async function loadKontenFromVault(
-	vault: ObsidianVaultPort,
-	kontenFile: string,
-) {
-	if (!(await vault.exists(kontenFile))) {
-		throw new ConfigError(
-			`Konten-Konfiguration nicht gefunden: ${kontenFile}\n` +
-				"Lege die Datei im Vault an (oder kopiere deine bestehende konten.yaml dorthin).",
-		);
-	}
-	const text = await vault.read(kontenFile);
-	let data: unknown;
-	try {
-		data = parseYaml(text);
-	} catch (e) {
-		throw new ConfigError(
-			`${kontenFile} ist kein gültiges YAML: ${(e as Error).message}`,
-		);
-	}
-	return parseKontenConfig(data);
 }
 
 /**

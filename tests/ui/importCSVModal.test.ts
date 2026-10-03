@@ -2,71 +2,80 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('../../src/state/konten', () => ({
   loadKonten: vi.fn(),
+  loadKontenConfig: vi.fn(),
 }));
 
-// Nur runImporter ersetzen, den Rest des Moduls echt lassen — sonst ist jede neu
-// hinzukommende Export-Konstante im Test still `undefined` (genau so brach
-// FULL_IMPORT_ARGS: `[...undefined]` wirft, und der Aufruf fand nie statt).
-vi.mock('../../src/categorizer-rules/spawnImporter', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../src/categorizer-rules/spawnImporter')>()),
-  runImporter: vi.fn(),
+// Die Konten-Quelle: früher ein `list-konten`-Subprozess, jetzt `konten.yaml`
+// über die Vault-API. Gemockt wird die Quelle, nicht der Leseweg — der hat
+// seine eigenen Tests (tests/state/konten.test.ts).
+vi.mock('../../src/obsidian/kontenSource', () => ({
+  kontenSourceFor: vi.fn(() => vi.fn()),
 }));
 
-// Die Vorschau braucht einen echten Pfad für den Python-Importer und legt dafür eine
-// Temp-Kopie an — `File.path` gibt es seit Electron 32 nicht mehr (s.u.).
-vi.mock('fs/promises', () => ({
-  mkdtemp: vi.fn(async (prefix: string) => `${prefix}XXXX`),
-  writeFile: vi.fn(async () => undefined),
-  rm: vi.fn(async () => undefined),
+// Vorschau und Importlauf sind beide node-frei und einzeln getestet
+// (tests/core/import/preview.test.ts, tests/obsidian/nativeImport.test.ts).
+// Hier wird geprüft, dass das Modal sie richtig AUFRUFT.
+vi.mock('../../src/core/import/preview', () => ({
+  previewCsv: vi.fn(),
 }));
 
-vi.mock('os', () => ({ default: { tmpdir: () => '/tmp' } }));
+vi.mock('../../src/obsidian/nativeImport', () => ({
+  runNativeImport: vi.fn(),
+}));
 
 import { ImportCSVModal, autoDetectKonto, type CheckCsvResult } from '../../src/ui/importCSVModal';
-import type { KontoSpec } from '../../src/state/konten';
-import { loadKonten } from '../../src/state/konten';
-import { runImporter } from '../../src/categorizer-rules/spawnImporter';
-import { mkdtemp, writeFile, rm } from 'fs/promises';
+import type { KontoSpec } from '../../src/core/config/konten';
+import { loadKonten, loadKontenConfig } from '../../src/state/konten';
+import { previewCsv } from '../../src/core/import/preview';
+import { runNativeImport } from '../../src/obsidian/nativeImport';
 import { Notice } from 'obsidian';
 
 const loadKontenMock = loadKonten as ReturnType<typeof vi.fn>;
-const runImporterMock = runImporter as ReturnType<typeof vi.fn>;
-const mkdtempMock = mkdtemp as ReturnType<typeof vi.fn>;
-const writeFileMock = writeFile as ReturnType<typeof vi.fn>;
-const rmMock = rm as ReturnType<typeof vi.fn>;
+const loadKontenConfigMock = loadKontenConfig as ReturnType<typeof vi.fn>;
+const previewCsvMock = previewCsv as ReturnType<typeof vi.fn>;
+const runNativeImportMock = runNativeImport as ReturnType<typeof vi.fn>;
 const NoticeMock = Notice as unknown as ReturnType<typeof vi.fn>;
 
+/** Vollständiger Kern-`KontoSpec` mit den Feldern, die der Test setzt. */
+function konto(partial: Partial<KontoSpec> & Pick<KontoSpec, 'id' | 'iban'>): KontoSpec {
+  return {
+    ledgerAccount: 'Aktiva:Bank:Sparkasse:Hauptkonto',
+    bank: 'Sparkasse Musterstadt',
+    bic: '',
+    kontoTyp: 'giro',
+    kontoRolle: 'hauptkonto_privat',
+    csvSchema: 'sparkasse_camt52',
+    inhaber: 'Max Mustermann',
+    aliases: [],
+    sticker: '',
+    rolleBeschreibung: '',
+    filename: null,
+    aktiv: true,
+    ...partial,
+  };
+}
+
 const KONTEN: KontoSpec[] = [
-  {
+  konto({
     id: 'hauptkonto',
     iban: 'DE89370400440532013000',
-    ledger_account: 'Aktiva:Bank:Sparkasse:Hauptkonto',
-    bank: 'Sparkasse Musterstadt',
-    konto_rolle: 'hauptkonto_privat',
-    csv_schema: 'sparkasse_camt52',
     aliases: ['Hauptkonto'],
-    aktiv: true,
-  },
-  {
+  }),
+  konto({
     id: 'vermietung',
     iban: 'DE02120300000000202051',
-    ledger_account: 'Aktiva:Bank:Sparkasse:Vermietung',
-    bank: 'Sparkasse Musterstadt',
-    konto_rolle: 'vermietung',
-    csv_schema: 'sparkasse_camt52',
+    ledgerAccount: 'Aktiva:Bank:Sparkasse:Vermietung',
+    kontoRolle: 'vermietung',
     aliases: ['Vermietung'],
-    aktiv: true,
-  },
-  {
+  }),
+  konto({
     id: 'visa_daily',
     iban: '4000 **** **** 0729',
-    ledger_account: 'Aktiva:Bank:Sparkasse:Visa',
-    bank: 'Sparkasse Musterstadt',
-    konto_rolle: 'kreditkarte',
-    csv_schema: 'sparkasse_visa',
+    ledgerAccount: 'Aktiva:Bank:Sparkasse:Visa',
+    kontoRolle: 'kreditkarte',
+    csvSchema: 'sparkasse_visa',
     aliases: ['Visa Daily'],
-    aktiv: true,
-  },
+  }),
 ];
 
 /**
@@ -98,8 +107,6 @@ function makeFakeAccessor() {
     lastReimportTimestamp: null as string | null,
     rulesAddedSinceReimport: 0,
     importerCwd: '/path/to/importer',
-    importerTimeoutMs: 120_000,
-    uvBinaryPath: '/usr/local/bin/uv',
   };
   return {
     loadData: vi.fn().mockResolvedValue(data),
@@ -116,6 +123,8 @@ function makeModal(opts?: { onImportSuccess?: () => Promise<void> }) {
     journal: 'R/Ledger/journal.ledger', openingBalances: 'R/Ledger/opening_balances.ledger', accounts: 'R/Ledger/accounts.ledger',
     rulesFolder: 'R/55-Categorizer-Rules', basesFolder: 'R/05-Bases', kategorienFolder: 'R/45-Kategorien', empfaengerFolder: 'R/60-Empfänger',
     umsatzDir: '20_Projekte/02-Aktiv/26-011 Finanzplan erstellen/Umsätze',
+    kontenFile: 'R/konten.yaml', vertraegeFile: 'R/vertraege.yaml',
+    snapshotsFolder: 'R/.fl-snapshots',
   };
   const modal = new ImportCSVModal(
     app as unknown as Parameters<typeof ImportCSVModal>[0],
@@ -131,7 +140,18 @@ function makeModal(opts?: { onImportSuccess?: () => Promise<void> }) {
 beforeEach(() => {
   vi.clearAllMocks();
   loadKontenMock.mockResolvedValue(KONTEN);
-  mkdtempMock.mockImplementation(async (prefix: string) => `${prefix}XXXX`);
+  loadKontenConfigMock.mockResolvedValue({ konten: KONTEN });
+  runNativeImportMock.mockResolvedValue({
+    transactionCount: 12,
+    files: ['a.CSV'],
+    duplicatesSkipped: 3,
+    vorgemerktSkipped: 0,
+    unkategorisiert: 1,
+    writtenFiles: ['R/Ledger/journal.ledger'],
+    notesWritten: 0,
+    dateRange: { first: '2026-08-01', last: '2026-08-31' },
+    incompleteRules: [],
+  });
 });
 
 describe('autoDetectKonto', () => {
@@ -155,22 +175,26 @@ describe('autoDetectKonto', () => {
 });
 
 describe('ImportCSVModal — onOpen', () => {
-  it('calls loadKonten with importerCwd + uvBinaryPath from accessor', async () => {
+  it('lädt die Konten über die Vault-Quelle, nicht über einen Subprozess', async () => {
     const { modal } = makeModal();
     await modal.onOpen();
-    expect(loadKontenMock).toHaveBeenCalledWith({
-      importerCwd: '/path/to/importer',
-      uvBinaryPath: '/usr/local/bin/uv',
-    });
+    expect(loadKontenConfigMock).toHaveBeenCalledOnce();
+    expect(loadKontenMock).toHaveBeenCalledOnce();
+    // Die Deps tragen eine Lese-Funktion — keinen Repo-Pfad und keine uv-Binary.
+    const deps = loadKontenMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(Object.keys(deps)).toEqual(['loadConfig']);
+    expect(typeof deps.loadConfig).toBe('function');
   });
 
   it('renders error when loadKonten throws', async () => {
-    loadKontenMock.mockRejectedValueOnce(new Error('list-konten failed: yaml not found'));
+    loadKontenConfigMock.mockRejectedValueOnce(
+      new Error('konten.yaml ist kein gültiges YAML: bad indent'),
+    );
     const { modal } = makeModal();
     await modal.onOpen();
     const texts = collectTexts((modal as unknown as { contentEl: { children: unknown[] } }).contentEl);
     expect(texts.some(t => t.includes('Could not load accounts'))).toBe(true);
-    expect(texts.some(t => t.includes('list-konten failed'))).toBe(true);
+    expect(texts.some(t => t.includes('kein gültiges YAML'))).toBe(true);
   });
 
   it('adds finance-import-csv-modal class to contentEl', async () => {
@@ -202,83 +226,80 @@ describe('ImportCSVModal — auto-detect on file selection', () => {
 });
 
 describe('ImportCSVModal — runPreview', () => {
-  it('calls runImporter with check-csv per file when triggered', async () => {
+  const PREVIEW: CheckCsvResult = {
+    neu: 100,
+    duplikate: 0,
+    dateRange: { first: '2025-08-01', last: '2026-05-10' },
+    kontoMatch: 'hauptkonto',
+    warnings: [],
+  };
+
+  it('ruft die Vorschau je Datei mit INHALT auf — kein Pfad, keine Temp-Datei', async () => {
     const { modal } = makeModal();
     await modal.onOpen();
-    const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV');
+    const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV', 'Datum;Betrag\n');
     invokeFileSelection(modal, [file]);
-
-    const previewResult: CheckCsvResult = {
-      new: 100,
-      duplicate: 0,
-      first_date: '2025-08-01',
-      last_date: '2026-05-10',
-      konto_match: 'DE89370400440532013000',
-      warnings: [],
-    };
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify(previewResult),
-      stderr: '',
-      durationMs: 200,
-    });
+    previewCsvMock.mockResolvedValue(PREVIEW);
 
     await (modal as unknown as { runPreview: () => Promise<void> }).runPreview();
 
-    // Der Importer bekommt den Pfad der Temp-Kopie — NICHT `file.path` (das gibt es nicht mehr).
-    const args = runImporterMock.mock.calls[0][4] as string[];
-    expect(args[0]).toBe('check-csv');
-    expect(args[1]).toBe('--file');
-    expect(args[2]).toContain('20260506-0532013000-umsatz-camt52v8.CSV');
-    expect(args[2]).toMatch(/^\/tmp\//);
-    expect(args.slice(3)).toEqual(['--konto', 'DE89370400440532013000']);
-
-    // Inhalt der ausgewählten Datei landet in der Temp-Kopie …
-    expect(writeFileMock).toHaveBeenCalledOnce();
-    // … und die Temp-Kopie wird wieder aufgeräumt.
-    expect(rmMock).toHaveBeenCalledOnce();
+    expect(previewCsvMock).toHaveBeenCalledOnce();
+    const arg = previewCsvMock.mock.calls[0][0] as {
+      umsatzDir: string;
+      incoming: { name: string; bytes: ArrayBuffer };
+      konto: KontoSpec;
+      konten: { konten: KontoSpec[] };
+    };
+    expect(arg.umsatzDir).toBe('20_Projekte/02-Aktiv/26-011 Finanzplan erstellen/Umsätze');
+    expect(arg.incoming.name).toBe('20260506-0532013000-umsatz-camt52v8.CSV');
+    // Der Inhalt reist als Bytes mit — genau das machte die Temp-Kopie überflüssig.
+    expect(arg.incoming.bytes.byteLength).toBeGreaterThan(0);
+    expect(arg.konto.id).toBe('hauptkonto');
+    expect(arg.konten.konten).toHaveLength(3);
 
     const previews = (modal as unknown as { previewData: Map<File, CheckCsvResult> }).previewData;
-    expect(previews.get(file)).toEqual(previewResult);
+    expect(previews.get(file)).toEqual(PREVIEW);
   });
 
-  it('räumt die Temp-Kopie auch auf, wenn der Importer fehlschlägt', async () => {
+  it('meldet eine gescheiterte Vorschau und macht mit der nächsten Datei weiter', async () => {
     const { modal } = makeModal();
     await modal.onOpen();
-    invokeFileSelection(modal, [makeFile('20260506-0532013000-umsatz-camt52v8.CSV')]);
-    runImporterMock.mockRejectedValue(new Error('boom'));
-
-    await (modal as unknown as { runPreview: () => Promise<void> }).runPreview().catch(() => { /* egal */ });
-
-    expect(rmMock).toHaveBeenCalledOnce();
-  });
-
-  it('does not call runImporter when no konto is mapped', async () => {
-    const { modal } = makeModal();
-    await modal.onOpen();
-    const file = makeFile('random.CSV');
-    invokeFileSelection(modal, [file]);
-    runImporterMock.mockClear();
+    const kaputt = makeFile('20260506-0532013000-umsatz-camt52v8.CSV');
+    const gut = makeFile('20260506-0000202051-umsatz-camt52v8.CSV');
+    invokeFileSelection(modal, [kaputt, gut]);
+    previewCsvMock
+      .mockRejectedValueOnce(new Error('Kopfzeile unbekannt'))
+      .mockResolvedValueOnce(PREVIEW);
+    NoticeMock.mockClear();
 
     await (modal as unknown as { runPreview: () => Promise<void> }).runPreview();
 
-    expect(runImporterMock).not.toHaveBeenCalled();
+    expect(previewCsvMock).toHaveBeenCalledTimes(2);
+    expect(
+      NoticeMock.mock.calls.some((c) => String(c[0]).includes('Kopfzeile unbekannt')),
+    ).toBe(true);
+    const previews = (modal as unknown as { previewData: Map<File, CheckCsvResult> }).previewData;
+    expect(previews.get(gut)).toEqual(PREVIEW);
+  });
+
+  it('lässt Dateien ohne Konto-Zuordnung aus', async () => {
+    const { modal } = makeModal();
+    await modal.onOpen();
+    invokeFileSelection(modal, [makeFile('random.CSV')]);
+    previewCsvMock.mockClear();
+
+    await (modal as unknown as { runPreview: () => Promise<void> }).runPreview();
+
+    expect(previewCsvMock).not.toHaveBeenCalled();
   });
 });
 
 describe('ImportCSVModal — runImport', () => {
-  it('schreibt CSVs über die Vault-API nach Umsätze + runs importer + saves timestamp', async () => {
+  it('schreibt CSVs über die Vault-API, fährt den Lauf im Plugin und merkt den Zeitpunkt', async () => {
     const { modal, app, accessor } = makeModal();
     await modal.onOpen();
     const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV', 'Datum;Betrag\n2026-08-01;1,23\n');
     invokeFileSelection(modal, [file]);
-
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: 'Importer Done\n',
-      stderr: '',
-      durationMs: 1500,
-    });
 
     await (modal as unknown as { runImport: () => Promise<void> }).runImport();
 
@@ -287,20 +308,11 @@ describe('ImportCSVModal — runImport', () => {
       '20_Projekte/02-Aktiv/26-011 Finanzplan erstellen/Umsätze/20260506-0532013000-umsatz-camt52v8.CSV',
       expect.any(ArrayBuffer),
     );
-    // Der Importer MUSS FINANCE_VAULT mitbekommen — sonst schreibt er in seinen
-    // eigenen Fallback-Ordner statt in den Vault, und zwar mit Exit-Code 0.
-    expect(runImporterMock).toHaveBeenCalledWith(
-      '/path/to/importer',
-      '/usr/local/bin/uv',
-      120_000,
-      undefined,
-      // Voller Lauf — ohne diese Flags entstehen die Berichts- und Dimensions-Notizen nicht.
-      expect.arrayContaining(['--all-aggregates', '--all-empfaenger-notes']),
-      expect.objectContaining({
-        FINANCE_VAULT: '/Users/x/ExampleVault/R',
-        FINANCE_VAULT_PREFIX: 'R',
-      }),
-    );
+    // Kein Subprozess, keine Umgebungsvariablen, kein Timeout: der Lauf bekommt
+    // App und Pfade und liest die CSVs dort, wo sie eben gelandet sind.
+    expect(runNativeImportMock).toHaveBeenCalledOnce();
+    const arg = runNativeImportMock.mock.calls[0][0] as { paths: { umsatzDir: string } };
+    expect(arg.paths.umsatzDir).toBe('20_Projekte/02-Aktiv/26-011 Finanzplan erstellen/Umsätze');
     expect(accessor.saveData).toHaveBeenCalledWith(
       expect.objectContaining({
         lastReimportTimestamp: expect.any(String),
@@ -309,19 +321,25 @@ describe('ImportCSVModal — runImport', () => {
     );
   });
 
+  it('zeigt die Zahlen des LAUFS, nicht die der Vorschau', async () => {
+    const { modal } = makeModal();
+    await modal.onOpen();
+    invokeFileSelection(modal, [makeFile('20260506-0532013000-umsatz-camt52v8.CSV')]);
+    NoticeMock.mockClear();
+
+    await (modal as unknown as { runImport: () => Promise<void> }).runImport();
+
+    // 12 neu / 3 Doppelungen stehen im Mock-Ergebnis von runNativeImport.
+    const texte = NoticeMock.mock.calls.map((c) => String(c[0])).join(' | ');
+    expect(texte).toContain('12');
+    expect(texte).toContain('3');
+  });
+
   it('creates Umsätze dir when missing', async () => {
     const { modal, app } = makeModal();
     app.vault.adapter.exists.mockResolvedValue(false);
     await modal.onOpen();
-    const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV');
-    invokeFileSelection(modal, [file]);
-
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: 'Done\n',
-      stderr: '',
-      durationMs: 1000,
-    });
+    invokeFileSelection(modal, [makeFile('20260506-0532013000-umsatz-camt52v8.CSV')]);
 
     await (modal as unknown as { runImport: () => Promise<void> }).runImport();
 
@@ -334,37 +352,22 @@ describe('ImportCSVModal — runImport', () => {
     const onImportSuccess = vi.fn().mockResolvedValue(undefined);
     const { modal } = makeModal({ onImportSuccess });
     await modal.onOpen();
-    const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV');
-    invokeFileSelection(modal, [file]);
-
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: 'Done\n',
-      stderr: '',
-      durationMs: 1000,
-    });
+    invokeFileSelection(modal, [makeFile('20260506-0532013000-umsatz-camt52v8.CSV')]);
 
     await (modal as unknown as { runImport: () => Promise<void> }).runImport();
+
     expect(onImportSuccess).toHaveBeenCalledOnce();
   });
 
-  it('shows Notice with stderr when importer exits non-zero', async () => {
+  it('meldet den Fehler des Laufs und speichert nichts', async () => {
     const { modal, accessor } = makeModal();
     await modal.onOpen();
-    const file = makeFile('20260506-0532013000-umsatz-camt52v8.CSV');
-    invokeFileSelection(modal, [file]);
-
-    runImporterMock.mockResolvedValue({
-      exitCode: 1,
-      stdout: '',
-      stderr: 'ParserError: invalid header',
-      durationMs: 500,
-    });
-
+    invokeFileSelection(modal, [makeFile('20260506-0532013000-umsatz-camt52v8.CSV')]);
+    runNativeImportMock.mockRejectedValueOnce(new Error('ParserError: invalid header'));
     NoticeMock.mockClear();
+
     await (modal as unknown as { runImport: () => Promise<void> }).runImport();
 
-    expect(NoticeMock).toHaveBeenCalled();
     const lastCall = NoticeMock.mock.calls[NoticeMock.mock.calls.length - 1];
     expect(String(lastCall[0])).toContain('ParserError');
     expect(accessor.saveData).not.toHaveBeenCalled();
@@ -399,9 +402,9 @@ describe('autoDetectKonto — reale Sparkasse-Namensformen (2026-08-01)', () => 
   // Sparkasse tragen sie ohne. Die alte Regel verglich die letzten 10 IBAN-ZEICHEN
   // mit dem Dateinamen und traf deshalb KEINE einzige reale Datei.
   const REAL: KontoSpec[] = [
-    { ...KONTEN[0], id: 'hauptkonto', iban: 'DE89370400440473829165' },
-    { ...KONTEN[0], id: 'vermietung', iban: 'DE89370400440000481907' },
-    { ...KONTEN[2], id: 'visa_daily', iban: '4000 **** **** 0729' },
+    konto({ id: 'hauptkonto', iban: 'DE89370400440473829165' }),
+    konto({ id: 'vermietung', iban: 'DE89370400440000481907' }),
+    konto({ id: 'visa_daily', iban: '4000 **** **** 0729', csvSchema: 'sparkasse_visa' }),
   ];
 
   it('trifft trotz führender Null in der IBAN-Kontonummer', () => {
@@ -423,29 +426,29 @@ describe('autoDetectKonto — reale Sparkasse-Namensformen (2026-08-01)', () => 
   // ── Gegenproben ──────────────────────────────────────────────────────
 
   it('hält ein Datum nicht für eine Kontonummer', () => {
-    const nurDatum: KontoSpec[] = [{ ...KONTEN[0], id: 'x', iban: 'DE89370400442026080100' }];
+    const nurDatum: KontoSpec[] = [konto({ id: 'x', iban: 'DE89370400442026080100' })];
     expect(autoDetectKonto('20260801-999999999-umsatz-camt52v8.CSV', nurDatum)).toBeNull();
   });
 
   it('wählt bei Mehrdeutigkeit lieber nichts aus als das Falsche', () => {
     const doppelt: KontoSpec[] = [
-      { ...KONTEN[0], id: 'a', iban: 'DE89370400440000123456' },
-      { ...KONTEN[0], id: 'b', iban: 'DE89370400440000123456' },
+      konto({ id: 'a', iban: 'DE89370400440000123456' }),
+      konto({ id: 'b', iban: 'DE89370400440000123456' }),
     ];
     expect(autoDetectKonto('20260801-123456-umsatz-camt52v8.CSV', doppelt)).toBeNull();
   });
 
   it('bevorzugt bei Teil-Überlappung den längeren Treffer', () => {
     const konten: KontoSpec[] = [
-      { ...KONTEN[0], id: 'kurz', iban: 'DE89370400440000829165' },
-      { ...KONTEN[0], id: 'lang', iban: 'DE89370400440473829165' },
+      konto({ id: 'kurz', iban: 'DE89370400440000829165' }),
+      konto({ id: 'lang', iban: 'DE89370400440473829165' }),
     ];
     expect(autoDetectKonto('20260801-473829165-umsatz-camt52v8.CSV', konten)?.id).toBe('lang');
   });
 
   it('ignoriert zu kurze Ziffernfolgen (< 4 Stellen)', () => {
     // Kontonummer 0000000729 → nach dem Strippen nur noch "729" (3 Stellen).
-    const kurz: KontoSpec[] = [{ ...KONTEN[0], id: 'kurz', iban: 'DE89370400440000000729' }];
+    const kurz: KontoSpec[] = [konto({ id: 'kurz', iban: 'DE89370400440000000729' })];
     expect(autoDetectKonto('20260801-729-umsatz-camt52v8.CSV', kurz)).toBeNull();
   });
 

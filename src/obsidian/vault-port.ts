@@ -66,6 +66,13 @@ export class ObsidianVaultPort implements VaultPort {
 		return [...listing.files].sort();
 	}
 
+	async remove(path: string): Promise<void> {
+		// `adapter.remove` statt `vault.delete`: der Schnappschuss-Ordner trägt einen
+		// Punkt-Präfix, seine Dateien sind damit keine `TFile`s und über
+		// `getAbstractFileByPath` nicht erreichbar.
+		await this.app.vault.adapter.remove(normalizePath(path));
+	}
+
 	async stat(path: string): Promise<{ mtime: number } | null> {
 		const stat = await this.app.vault.adapter.stat(normalizePath(path));
 		return stat ? { mtime: stat.mtime } : null;

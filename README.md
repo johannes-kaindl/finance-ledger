@@ -23,7 +23,12 @@ contract notes — without Python. It only touches what it produced itself: `anf
 `created`, foreign frontmatter fields and everything below the `AUTO-GENERATED` marker
 survive every run. Verified by `npm run smoke:gui` against a running Obsidian (21/21;
 control run with the patch path removed: 15/20). Reports and dimension notes (E4–E7) still
-go through the importer subprocess.
+come from the Python importer, run from a terminal.
+
+**As of 2026-10-03 — the subprocess is gone entirely:** the import dialog, its
+anti-duplicate preview and the re-import button no longer start the Python importer. The
+plugin loads no Node module at all (`tests/bundle.test.ts` guards the built `main.js`), which
+is what the Obsidian store review flags as *Shell Execution* and *Direct Filesystem Access*.
 
 **Before that, as of 2026-08-04 — stages E0+E1:** CSV import runs **inside the plugin
 itself** (TypeScript, no Python subprocess). Verified byte-for-byte against the Python
@@ -60,10 +65,13 @@ unchanged (tolerant of extended note schemas).
 - **Rebuild journal from CSVs (built-in)** — a command that produces `journal.ledger` and
   `accounts.ledger` inside the plugin: no Python, no `uv`, no subprocess. Works on mobile too.
   Account configuration comes from a `konten.yaml` in the vault (setting: *accounts file*).
-- **CSV import modal** (desktop only) — upload several CSVs, deduplicate against previous
-  imports, then trigger the importer subprocess
-- **Re-import** — runs the Python importer via subprocess, with a UI lock and counter reset
-- **Git auto-backup** — pre-write commit with lock retry and detached-head detection
+- **CSV import modal** — add several CSVs, see an anti-duplicate preview per file, then run
+  the import. All of it inside the plugin: no Python, no subprocess, no temporary files
+  outside the vault — so it works on mobile too.
+- **Re-import** — re-runs the built-in import with a UI lock and counter reset
+- **Snapshot before writing rules** — a dated copy of the rule folder, kept under
+  grandfather-father-son rotation (the 6 newest of today, plus the oldest of each of the
+  last 7 days, 4 weeks and 6 months)
 - **Categorizer rule modal** — define a new pattern rule with a live match counter and
   conflict check; writes to `categorizer-rules/`
 - **Account suggestions** — type-ahead built from `accounts.ledger` plus a frontmatter crawl,
@@ -201,9 +209,14 @@ and [`docs/design/README.md`](https://github.com/johannes-kaindl/finance-ledger/
 
 ## Mobile status
 
-- **Desktop-only paths:** the CSV import modal and the re-import subprocess. On mobile they
-  show a notice saying so.
-- **Mobile is read-only:** views render, but there are no subprocess or git actions.
+- **No desktop-only paths left (as of 2026-10-03):** the CSV import modal, the preview and
+  the re-import all run inside the plugin. The Python subprocess and the Node filesystem
+  access are gone, so the platform guards that went with them are gone too.
+  ⚠️ Not yet verified on a physical phone or tablet — the code path is free of Node APIs and
+  covered by tests, but the file picker on mobile has not been exercised.
+- **Still desktop-bound:** reports and dimension notes (monthly/quarterly/yearly reports,
+  category, payee, transaction-type and mandate notes). Those come from the Python importer,
+  run from a terminal — the plugin offers the full command as a copy button.
 - **Mobile icons:** on iPhone and iPad some placeholder icons are still visible after the
   last icon fix — diagnosis is pending on a desktop with mobile dev tools.
 

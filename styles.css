@@ -82,7 +82,7 @@ body {
 
 /* --- Money display: monospaced, tabular, signed coloring --- */
 .fl-money {
-  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-family: var(--font-monospace, monospace);
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: var(--fl-num-feat);
   font-weight: 500;
@@ -373,7 +373,8 @@ body {
   margin-top: 6px;
   font-size: var(--fl-fs-sm);
   cursor: pointer;
-  text-decoration: underline dotted;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
 }
 .fl-stat-line {
   font-size: var(--fl-fs-sm);
@@ -564,7 +565,8 @@ body {
 .fl-clickable { cursor: pointer; }
 .fl-link-affordance {
   cursor: pointer;
-  text-decoration: underline dotted;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
 }
 .fl-ellipsis {
   overflow: hidden;

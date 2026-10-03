@@ -49,19 +49,57 @@ Kategorisierung. Der eingebaute Import (`src/core/import/`) ist ein 1:1-Port und
 per Parity-Check (`npm run parity`) gegen die Python-Referenz gehalten, solange beide
 existieren.
 
-### Node-APIs nur dynamisch + geguarded
+### Keine Node-APIs — gar keine (seit 2026-10-03)
 
-`child_process`/`fs`/`fs/promises`/`path` ausschließlich als **dynamische** Imports hinter
-**`Platform.isDesktop`-Guards**. Für genau die Desktop-Integrations-Dateien lockert
-`eslint.config.mjs` die generische `import/no-nodejs-modules`-Regel per `allow`-Liste;
-restlicher Code bleibt voll geschützt. Der Kern (Parser/Aggregator/Views/eingebauter
-Import) ist node-frei und mobile-fähig; `isDesktopOnly: false`.
+Das Plugin lädt **kein** Node-Modul, auch nicht dynamisch und auch nicht hinter einem
+`Platform.isDesktop`-Guard. Vorher taten das drei Stellen: der Importer-Subprozess
+(`child_process`), die Temp-Kopie der CSV-Vorschau (`fs/promises`, weil der Python-Prozess
+einen Pfad brauchte) und das git-Backup (`execFile git`). Alle drei sind abgelöst:
+`runNativeImport` fährt den Import im Plugin, `core/import/preview` parst den Inhalt der
+gewählten Datei, `core/snapshot/ruleSnapshot` sichert über die Vault-API.
+
+**Grund ist der Store-Review:** `child_process` erzeugt dort `[medium] Shell Execution`,
+Node-`fs` erzeugt `[medium] Direct Filesystem Access`, und `medium` drückt die Review-Note.
+Gemessen am 2026-10-03: 25 eigene Store-Plugins stehen auf `Passed` mit bis zu zehn
+Recommendations (`info` kostet nichts), während **alle vier** geprüften fremden Plugins mit
+`child_process` (`obsidian-git`, `obsidian-shellcommands`, `obsidian-pandoc`,
+`obsidian-enhancing-export`) auf `Caution` oder `Risks` liegen.
+
+Wer eine Node-API wieder einführt, nimmt der Einreichung die Bestnote — **und** bricht
+`tests/bundle.test.ts`, der das gebaute `main.js` gegen die vollständige
+`builtinModules`-Liste prüft (inklusive Gegenprobe, dass das Suchmuster trifft). Was ein
+Nachbarplugin in dieser Lage tut, steht in der Dach-`AGENTS.md` § Store-Einreichung.
+
+**Was dadurch wegfällt:** Berichte und Dimensions-Notizen (`--all-aggregates` und die
+übrigen Flags) entstehen nur noch im Importer-CLI. `buildImporterCommand` in
+`views/helpers.ts` baut den vollständigen Befehl samt `FINANCE_VAULT`-Umgebung als
+Kopier-Knopf — ohne die Variablen schreibt der Importer in seinen Fallback-Ordner, mit
+Exit-Code 0. Die Ablösung ist der Roadmap-Task „Importer-Port", Etappen E4–E7.
 
 ### Geld-Arithmetik
 
 **decimal.js mit ROUND_HALF_UP** — nie `Math.round`/Float-Arithmetik auf Beträgen
 (`Math.round(-0.5)` ergibt `-0`; kaufmännisch wird weg von der Null gerundet, und
 negative Beträge sind hier die Regel).
+
+### Schnappschüsse nach Großvater-Vater-Sohn
+
+Vor jedem Schreibvorgang an den Categorizer-Regeln entsteht ein Schnappschuss: eine
+JSON-Datei unter `<financeRoot>/.fl-snapshots/` mit dem Stand **vor** dem Schreiben.
+Aufbewahrt wird nach GFS (`core/snapshot/gfs-retention.ts`, Policy 6 heute / 7 Tage /
+4 Wochen / 6 Monate) — nicht „die letzten N". Die Auswahl ist eine pure Funktion über
+Zeitstempel, ohne Dateizugriff; den Zeitpunkt liest der Aufrufer aus dem Dateinamen
+(`core/snapshot/snapshotName.ts`), nicht aus der mtime: ein Sync oder ein Restore setzt
+mtimes neu und würde die Rotation verfälschen.
+
+Der Schnitt stammt aus der `settings-assistant`-Spec (Entscheidung Johannes 2026-10-03);
+eine Kit-Fassung in `code-kit/src/ts/pure/rotation.ts` entsteht parallel, der Tausch gegen
+den Vendor ist ein eigener Schritt nach dem Kit-Tag. **Unbekannt heißt erhalten:** Dateien,
+deren Namen keinen Zeitstempel tragen, werden nie gelöscht.
+
+Vorgänger war ein `git commit` im Vault, der **nie lief** — der einzige Weg dorthin war ein
+`options.vaultPath`, das kein Produktiv-Aufrufer setzte. Getestet war die Funktion mit neun
+Tests, aufgerufen wurde sie nicht.
 
 ### i18n
 

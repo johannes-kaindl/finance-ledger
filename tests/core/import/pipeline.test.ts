@@ -46,6 +46,10 @@ function fakeVault(
 			[...Object.keys(files), ...Object.keys(texts), ...written.keys()]
 				.filter((p) => p.startsWith(`${folder}/`))
 				.sort(),
+		remove: async (p) => {
+			delete files[p];
+			written.delete(p);
+		},
 		stat: async (p) => (files[p] ? { mtime: files[p].mtime } : null),
 	};
 	return { port, written };

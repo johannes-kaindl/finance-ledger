@@ -1,19 +1,22 @@
-import { App, Modal, Notice, Platform, Setting, normalizePath, setIcon } from 'obsidian';
-import { runImporter, FULL_IMPORT_ARGS } from '../categorizer-rules/spawnImporter';
-import { loadKonten, type KontoSpec } from '../state/konten';
+import { App, Modal, Notice, Setting, normalizePath, setIcon } from 'obsidian';
+import type { KontenConfig } from '../core/config/konten';
+import { previewCsv, type CsvPreviewResult } from '../core/import/preview';
+import { kontenSourceFor } from '../obsidian/kontenSource';
+import { runNativeImport } from '../obsidian/nativeImport';
+import { ObsidianVaultPort } from '../obsidian/vault-port';
+import { loadKonten, loadKontenConfig, type KontoSpec } from '../state/konten';
 import type { PluginData } from '../types/plugin-data';
-import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from '../state/financePaths';
-import { summarizeStderr } from '../views/helpers';
+import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import { t } from '../i18n/strings';
 
-export interface CheckCsvResult {
-  new: number;
-  duplicate: number;
-  first_date: string;
-  last_date: string;
-  konto_match: string;
-  warnings: string[];
-}
+/**
+ * Das Vorschau-Ergebnis je Datei.
+ *
+ * Trug bis 2026-10-03 die snake_case-Form der `check-csv`-JSON-Ausgabe des
+ * Python-Importers; seit die Vorschau im Plugin selbst läuft, ist es die Form
+ * des Kerns (`core/import/preview`).
+ */
+export type CheckCsvResult = CsvPreviewResult;
 
 export interface ImportCSVModalAccessor {
   loadData: () => Promise<PluginData>;
@@ -25,43 +28,13 @@ export interface ImportCSVModalDeps {
   onImportSuccess?: () => Promise<void>;
 }
 
-const PREVIEW_TIMEOUT_MS = 10_000;
-const IMPORT_TIMEOUT_MS = 120_000;
-
-/**
- * Der Importer ist ein Python-Prozess und braucht einen echten Dateipfad — ein `File` aus
- * dem Datei-Dialog hat aber keinen: Electron hat die `File.path`-Erweiterung in Version 32
- * entfernt (Obsidian 1.12.4 läuft auf Electron 39), und Workspace-Konvention ist ohnehin,
- * sie nie zu lesen (REGISTRY: "File.path nie lesen"). Also legen wir für die Vorschau eine
- * kurzlebige Kopie außerhalb des Vaults an und räumen sie danach wieder ab — im Vault darf
- * sie nicht landen, sonst zöge eine bloß *angesehene* CSV beim nächsten Import mit ein.
- */
-async function withTempCopy<T>(file: File, fn: (absPath: string) => Promise<T>): Promise<T> {
-  // Desktop-only (Node-Dateisystem). Der Guard ist zugleich Mobile-Safety und das, woran der
-  // Store-Scanner (obsidianmd/no-nodejs-modules) den dynamischen Import als erlaubt erkennt —
-  // ohne ihn meldete der Review von 0.2.1 die drei Importe als Warnung (2026-10-02).
-  if (!Platform.isDesktop) {
-    throw new Error('CSV preview is available on desktop only.');
-  }
-  const { mkdtemp, writeFile, rm } = await import('fs/promises');
-  const os = (await import('os')).default;
-  const path = (await import('path')).default;
-
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'finance-ledger-'));
-  try {
-    const target = path.join(dir, file.name);
-    await writeFile(target, new Uint8Array(await file.arrayBuffer()));
-    return await fn(target);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
-}
 
 export class ImportCSVModal extends Modal {
   private files: File[] = [];
   private kontoZuordnung: Map<File, KontoSpec> = new Map();
   private previewData: Map<File, CheckCsvResult> = new Map();
   private konten: KontoSpec[] = [];
+  private kontenConfig: KontenConfig | null = null;
   private fileListEl: HTMLElement | null = null;
   private previewEl: HTMLElement | null = null;
   private actionsEl: HTMLElement | null = null;
@@ -83,13 +56,10 @@ export class ImportCSVModal extends Modal {
     contentEl.addClass('finance-import-csv-modal');
     contentEl.createEl('h3', { text: t('modal.importCsv.title') });
 
-    const data = await this.accessor.loadData();
-
+    const kontenDeps = { loadConfig: kontenSourceFor(this.app, this.getPaths().kontenFile) };
     try {
-      this.konten = await loadKonten({
-        importerCwd: data.importerCwd,
-        uvBinaryPath: data.uvBinaryPath || null,
-      });
+      this.kontenConfig = await loadKontenConfig(kontenDeps);
+      this.konten = await loadKonten(kontenDeps);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       contentEl.createEl('p', { text: t('notice.accountsLoadFailed', msg), cls: 'fl-error fl-fs-md' });
@@ -195,19 +165,19 @@ export class ImportCSVModal extends Modal {
   // ── Preview ────────────────────────────────────────────────────────────
 
   private async runPreview(): Promise<void> {
-    // Desktop-only: die Vorschau startet den Importer als Subprozess und legt dafür eine
-    // Temp-Datei an — beides gibt es auf Mobile nicht.
-    if (!Platform.isDesktop) {
-      new Notice(t('notice.importCsvDesktopOnlyShort'));
-      return;
-    }
+    // Kein Platform-Guard mehr: die Vorschau parst den Inhalt der gewählten Datei
+    // im Plugin und vergleicht ihn gegen die CSVs im Umsatzordner — kein Subprozess,
+    // keine Temp-Datei, also auch kein Grund, Mobilgeräte auszuschließen.
     if (!this.previewBtn || !this.importBtn) return;
+    const konten = this.kontenConfig;
+    if (!konten) return;
     this.previewBtn.disabled = true;
     this.importBtn.disabled = true;
     const originalText = this.previewBtn.textContent ?? t('modal.importCsv.previewBtn');
     this.previewBtn.textContent = t('modal.importCsv.checking');
 
-    const data = await this.accessor.loadData();
+    const vault = new ObsidianVaultPort(this.app);
+    const umsatzDir = this.getPaths().umsatzDir;
 
     try {
       let skipped = 0;
@@ -219,22 +189,16 @@ export class ImportCSVModal extends Modal {
           skipped += 1;
           continue;
         }
-        const result = await withTempCopy(file, absPath => runImporter(
-          data.importerCwd,
-          data.uvBinaryPath || null,
-          PREVIEW_TIMEOUT_MS,
-          undefined,
-          ['check-csv', '--file', absPath, '--konto', konto.iban],
-          importerEnvFor(this.app, this.getPaths()),
-        ));
-        if (result.exitCode !== 0) {
-          new Notice(t('notice.previewFailed', file.name, summarizeStderr(result.stderr)));
-          continue;
-        }
         try {
-          this.previewData.set(file, JSON.parse(result.stdout) as CheckCsvResult);
+          this.previewData.set(file, await previewCsv({
+            vault,
+            umsatzDir,
+            incoming: { name: file.name, bytes: await file.arrayBuffer() },
+            konto,
+            konten,
+          }));
         } catch (err) {
-          new Notice(t('notice.previewParseError', file.name, err instanceof Error ? err.message : String(err)));
+          new Notice(t('notice.previewFailed', file.name, err instanceof Error ? err.message : String(err)));
         }
       }
       if (skipped > 0) new Notice(t('notice.previewSkippedUnmapped', skipped));
@@ -256,9 +220,15 @@ export class ImportCSVModal extends Modal {
     }
     for (const [file, result] of this.previewData) {
       const row = this.previewEl.createDiv({ cls: 'fl-py-1' });
+      const range = result.dateRange;
       const summary = t(
         'modal.importCsv.previewSummary',
-        file.name, result.new, result.duplicate, result.first_date, result.last_date, result.konto_match,
+        file.name,
+        result.neu,
+        result.duplikate,
+        range?.first ?? '—',
+        range?.last ?? '—',
+        result.kontoMatch,
       );
       row.createSpan({ text: summary });
       if (result.warnings.length > 0) {
@@ -272,12 +242,9 @@ export class ImportCSVModal extends Modal {
   // ── Import ─────────────────────────────────────────────────────────────
 
   private async runImport(): Promise<void> {
-    // Desktop-only (filesystem copy + subprocess). Guard = Mobile-Safety + macht
-    // die dynamischen Node-Imports unten für eslint (no-nodejs-modules) erlaubt.
-    if (!Platform.isDesktop) {
-      new Notice(t('notice.importCsvDesktopOnlyShort'));
-      return;
-    }
+    // Kein Platform-Guard mehr: die CSVs wandern über den Vault-Adapter in den
+    // Umsatzordner und der Importlauf selbst ist der node-freie Kern. Der Weg über
+    // den Python-Subprozess war der einzige Grund, warum der Import desktop-only war.
     if (!this.getPaths().isConfigured) {
       new Notice(notConfiguredMessage());
       return;
@@ -306,37 +273,35 @@ export class ImportCSVModal extends Modal {
         copied += 1;
       }
 
-      const result = await runImporter(
-        data.importerCwd,
-        data.uvBinaryPath || null,
-        IMPORT_TIMEOUT_MS,
-        undefined,
-        [...FULL_IMPORT_ARGS],
-        importerEnvFor(this.app, this.getPaths()),
-      );
+      // Die abgelegten CSVs sind jetzt Teil des Umsatzordners — der Lauf liest sie
+      // dort, zusammen mit dem Bestand, und entdoppelt über Dateigrenzen hinweg.
+      const result = await runNativeImport({ app: this.app, paths: this.getPaths() });
 
-      if (result.exitCode === 0) {
-        const updated: PluginData = {
-          ...data,
-          lastReimportTimestamp: new Date().toISOString(),
-          rulesAddedSinceReimport: 0,
-        };
-        await this.accessor.saveData(updated);
-        const newTotal = this.previewData.size > 0
-          ? Array.from(this.previewData.values()).reduce((s, r) => s + r.new, 0)
-          : null;
-        const dupTotal = this.previewData.size > 0
-          ? Array.from(this.previewData.values()).reduce((s, r) => s + r.duplicate, 0)
-          : null;
-        const summary = newTotal !== null && dupTotal !== null
-          ? t('modal.importCsv.summary.withCounts', copied, newTotal, dupTotal)
-          : t('modal.importCsv.summary.withoutCounts', copied, Math.round(result.durationMs / 1000));
-        new Notice(t('notice.importSuccess', summary));
-        this.close();
-        if (this.deps.onImportSuccess) await this.deps.onImportSuccess();
-      } else {
-        new Notice(t('notice.importerFailed', summarizeStderr(result.stderr)));
+      const updated: PluginData = {
+        ...data,
+        lastReimportTimestamp: new Date().toISOString(),
+        rulesAddedSinceReimport: 0,
+      };
+      await this.accessor.saveData(updated);
+
+      // Die Zahlen stammen jetzt aus dem Lauf selbst, nicht mehr aus der Vorschau:
+      // sie gelten für den gesamten Umsatzordner und sind damit die Wahrheit, an der
+      // sich die geschriebenen Dateien messen lassen.
+      new Notice(t('notice.importSuccess', t(
+        'modal.importCsv.summary.withCounts',
+        copied,
+        result.transactionCount,
+        result.duplicatesSkipped,
+      )));
+      if (result.incompleteRules.length > 0) {
+        new Notice(t(
+          'notice.rebuildIncompleteRules',
+          String(result.incompleteRules.length),
+          result.incompleteRules.join(', '),
+        ));
       }
+      this.close();
+      if (this.deps.onImportSuccess) await this.deps.onImportSuccess();
     } catch (err) {
       new Notice(t('notice.importError', err instanceof Error ? err.message : String(err)));
     } finally {

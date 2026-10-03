@@ -2,6 +2,7 @@ import { App, Modal, Notice, Setting, setIcon } from 'obsidian';
 import type { Transaction } from '../parser/ledger';
 import { loadCategorizerRules } from '../categorizer-rules/loader';
 import { createCategorizerRule, slugifyPattern } from '../categorizer-rules/writer';
+import { ObsidianVaultPort } from '../obsidian/vault-port';
 import { previewMatchCount } from '../views/helpers';
 import { loadAccountSuggestions } from '../categorizer-rules/accountSuggestions';
 import type { ResolvedFinancePaths } from '../state/financePaths';
@@ -186,11 +187,21 @@ export class CategorizerRuleModal extends Modal {
 
       try {
         const existingRules = loadCategorizerRules(this.app);
+        const paths = this.getPaths();
         const result = await createCategorizerRule(
           this.app,
-          this.getPaths().rulesFolder,
+          paths.rulesFolder,
           { pattern, patternType, ledgerAccount, tags, aliases, notes: notesInput.value.trim() || undefined },
           existingRules,
+          // Schnappschuss des Regel-Ordners vor dem Schreiben, GFS-rotiert. Der
+          // Vorgänger (git commit im Vault) stand hier nie — der Parameter dafür
+          // wurde von keinem Aufrufer gesetzt.
+          {
+            snapshot: {
+              vault: new ObsidianVaultPort(this.app),
+              snapshotsFolder: paths.snapshotsFolder,
+            },
+          },
         );
 
         if (result.conflicts.length > 0) {

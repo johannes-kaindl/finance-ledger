@@ -1,116 +1,84 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-vi.mock('../../src/categorizer-rules/spawnImporter', () => ({
-  runImporter: vi.fn(),
-}));
-
-import { loadKonten, invalidateKonten, type KontoSpec } from '../../src/state/konten';
-import { runImporter } from '../../src/categorizer-rules/spawnImporter';
+import { loadKonten, invalidateKonten } from '../../src/state/konten';
+import type { KontenConfig, KontoSpec } from '../../src/core/config/konten';
 import { Platform } from 'obsidian';
 
-const runImporterMock = runImporter as ReturnType<typeof vi.fn>;
-
-const SAMPLE_KONTEN: KontoSpec[] = [
-  {
-    id: 'hauptkonto',
-    iban: 'DE89370400440532013000',
-    ledger_account: 'Aktiva:Bank:Sparkasse:Hauptkonto',
+function konto(partial: Partial<KontoSpec> & Pick<KontoSpec, 'id' | 'iban'>): KontoSpec {
+  return {
+    ledgerAccount: 'Aktiva:Bank:Sparkasse:Hauptkonto',
     bank: 'Sparkasse Musterstadt',
-    konto_rolle: 'hauptkonto_privat',
-    csv_schema: 'sparkasse_camt52',
-    aliases: ['Hauptkonto', '0532013000'],
+    bic: '',
+    kontoTyp: 'giro',
+    kontoRolle: 'hauptkonto_privat',
+    csvSchema: 'sparkasse_camt52',
+    inhaber: 'Muster',
+    aliases: [],
+    sticker: '',
+    rolleBeschreibung: '',
+    filename: null,
     aktiv: true,
-  },
-  {
-    id: 'visa_daily',
-    iban: '4000 **** **** 0729',
-    ledger_account: 'Aktiva:Bank:Sparkasse:Visa',
-    bank: 'Sparkasse Musterstadt',
-    konto_rolle: 'kreditkarte',
-    csv_schema: 'sparkasse_visa',
-    aliases: ['Visa Daily'],
-    aktiv: true,
-  },
-];
+    ...partial,
+  };
+}
 
-const DEPS = {
-  importerCwd: '/path/to/importer',
-  uvBinaryPath: '/usr/local/bin/uv',
-};
+const HAUPTKONTO = konto({ id: 'hauptkonto', iban: 'DE89370400440532013000' });
+const VISA = konto({
+  id: 'visa_daily',
+  iban: '4000 **** **** 0729',
+  ledgerAccount: 'Aktiva:Bank:Sparkasse:Visa',
+  kontoRolle: 'kreditkarte',
+  csvSchema: 'sparkasse_visa',
+});
+const STILLGELEGT = konto({ id: 'alt', iban: 'DE02120300000000202051', aktiv: false });
+
+const CONFIG: KontenConfig = { konten: [HAUPTKONTO, VISA, STILLGELEGT] };
 
 describe('loadKonten', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     invalidateKonten();
   });
 
-  it('calls runImporter with list-konten --aktiv-only and returns parsed JSON', async () => {
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify(SAMPLE_KONTEN),
-      stderr: '',
-      durationMs: 200,
-    });
+  it('liest die Konten über die übergebene Quelle und liefert nur die aktiven', async () => {
+    const loadConfig = vi.fn().mockResolvedValue(CONFIG);
 
-    const result = await loadKonten(DEPS);
+    const result = await loadKonten({ loadConfig });
 
-    expect(result).toEqual(SAMPLE_KONTEN);
-    expect(runImporterMock).toHaveBeenCalledWith(
-      '/path/to/importer',
-      '/usr/local/bin/uv',
-      5_000,
-      undefined,
-      ['list-konten', '--aktiv-only'],
-    );
+    expect(result).toEqual([HAUPTKONTO, VISA]);
+    expect(loadConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('throws descriptive error on non-zero exit', async () => {
-    runImporterMock.mockResolvedValue({
-      exitCode: 1,
-      stdout: '',
-      stderr: 'ImportError: yaml not found\n',
-      durationMs: 50,
-    });
+  it('reicht den Fehler der Quelle unverändert durch', async () => {
+    const loadConfig = vi.fn().mockRejectedValue(new Error('konten.yaml ist kein gültiges YAML'));
 
-    await expect(loadKonten(DEPS)).rejects.toThrow(/list-konten failed.*ImportError/);
+    await expect(loadKonten({ loadConfig })).rejects.toThrow(/kein gültiges YAML/);
   });
 
-  it('caches result on second call (subprocess invoked once)', async () => {
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify(SAMPLE_KONTEN),
-      stderr: '',
-      durationMs: 200,
-    });
+  it('cached das Ergebnis (Quelle wird einmal gelesen)', async () => {
+    const loadConfig = vi.fn().mockResolvedValue(CONFIG);
 
-    await loadKonten(DEPS);
-    await loadKonten(DEPS);
+    await loadKonten({ loadConfig });
+    await loadKonten({ loadConfig });
 
-    expect(runImporterMock).toHaveBeenCalledTimes(1);
+    expect(loadConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('invalidateKonten() resets cache so next call re-fetches', async () => {
-    runImporterMock.mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify(SAMPLE_KONTEN),
-      stderr: '',
-      durationMs: 200,
-    });
+  it('invalidateKonten() setzt den Cache zurück, die Quelle wird neu gelesen', async () => {
+    const loadConfig = vi.fn().mockResolvedValue(CONFIG);
 
-    await loadKonten(DEPS);
+    await loadKonten({ loadConfig });
     invalidateKonten();
-    await loadKonten(DEPS);
+    await loadKonten({ loadConfig });
 
-    expect(runImporterMock).toHaveBeenCalledTimes(2);
+    expect(loadConfig).toHaveBeenCalledTimes(2);
   });
 
-  it('wirft Mobile-Guard-Error wenn Platform.isMobile = true', async () => {
-    invalidateKonten();
+  it('läuft auch auf Mobilgeräten — der Weg braucht keinen Subprozess mehr', async () => {
+    const loadConfig = vi.fn().mockResolvedValue(CONFIG);
     Platform.isMobile = true;
     Platform.isDesktop = false;
     try {
-      await expect(loadKonten(DEPS)).rejects.toThrow(/nur auf Desktop verfügbar/);
-      expect(runImporterMock).not.toHaveBeenCalled();
+      await expect(loadKonten({ loadConfig })).resolves.toEqual([HAUPTKONTO, VISA]);
     } finally {
       Platform.isMobile = false;
       Platform.isDesktop = true;

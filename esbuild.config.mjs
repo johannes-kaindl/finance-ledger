@@ -1,52 +1,29 @@
 import esbuild from 'esbuild';
 import { builtinModules } from 'node:module';
 
-// Node-Builtins ohne Zusatzpaket: `builtin-modules` wird vom Store-Review beanstandet
-// („should be replaced with an alternative package“, Review 0.2.1, 2026-10-02). Nodes eigene
-// Liste führt einige Module nur mit `node:`-Präfix (sea, sqlite, test); die blanke Liste unten
-// bekommt das Präfix in der nächsten Zeile ohnehin dazu.
+/**
+ * Node-Builtins bleiben `external` — als Sicherheitsnetz, nicht als Bedarf.
+ *
+ * Seit 2026-10-03 lädt der Plugin-Code **kein** Node-Modul mehr: der
+ * Importer-Subprozess ist weg, der Importlauf findet im Plugin statt
+ * (`runNativeImport`), Schnappschüsse laufen über die Vault-API. Das Bundle ist
+ * node-frei, und `tests/bundle.test.ts` wacht darüber.
+ *
+ * Das frühere Plugin `node-builtin-require` ist damit entfallen: es schrieb
+ * dynamische Builtin-Importe auf ein `require`-Shim um, weil esbuild sie bei
+ * `format: 'cjs'` untransformiert stehen ließ und Electron sie dann als
+ * Browser-ESM auflöste. Ohne solche Importe hat es keinen Gegenstand mehr.
+ * Diese Zeilen hier bleiben, damit ein versehentlich wieder eingeführter
+ * Builtin-Import als `external` sichtbar scheitert statt mitgebündelt zu werden.
+ *
+ * `builtin-modules` als Paket wird vom Store-Review beanstandet
+ * („should be replaced with an alternative package", Review 0.2.1) — deshalb
+ * Nodes eigene Liste.
+ */
 const builtins = builtinModules.filter(m => !m.startsWith('node:'));
+const allBuiltins = [...builtins, ...builtins.map(m => `node:${m}`)];
 
 const watch = process.argv.includes('--watch');
-
-// Node-builtins in beiden Formen abdecken (`fs` UND `node:fs`).
-const allBuiltins = [...builtins, ...builtins.map(m => `node:${m}`)];
-const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const builtinFilter = new RegExp(`^(node:)?(${builtins.map(escapeRe).join('|')})$`);
-
-/**
- * Die Desktop-Module (spawnImporter, gitBackup, importCSVModal, settingsTab) laden
- * child_process/fs/path über `Platform.isDesktop`-guarded `await import()`. Das ist die
- * einzige Source-Form, die beide Store-Scan-Regeln besteht (statischer Import bricht
- * obsidianmd/no-nodejs-modules, `require()` bricht @typescript-eslint/no-require-imports).
- *
- * Nur: esbuild lässt einen dynamischen `import("child_process")` bei format:'cjs'
- * UNtransformiert im Bundle stehen, und Electron löst ihn dann als Browser-ESM auf →
- * "Failed to resolve module specifier 'child_process'". Genau daran war der CSV-Import
- * seit der Mobile-Load-Umstellung (a13b60c, 2026-05-10) tot.
- *
- * Dieses Plugin schreibt den dynamischen Builtin-Import auf ein CJS-Shim um, das intern
- * `require()` nutzt (require ist in Electrons CJS-Runtime vorhanden, nur import() bricht).
- * Ergebnis: Source store-sauber (import), Bundle runtime-sicher (require).
- *
- * Übernommen aus `vault-rag/esbuild.config.mjs` (`node-builtin-require`, 2026-07-24) —
- * dort für `node:`-präfixierte Importe, hier zusätzlich für die blanke Form.
- */
-const nodeBuiltinRequire = {
-  name: 'node-builtin-require',
-  setup(build) {
-    build.onResolve({ filter: builtinFilter }, args => {
-      // Nur den dynamic import umleiten; das require IM Shim (kind "require-call") und
-      // statische Imports bleiben normal external — sonst Auflösungs-Endlosschleife.
-      if (args.kind === 'dynamic-import') return { path: args.path, namespace: 'node-builtin' };
-      return { path: args.path, external: true };
-    });
-    build.onLoad({ filter: /.*/, namespace: 'node-builtin' }, args => ({
-      contents: `module.exports = require(${JSON.stringify(args.path)});`,
-      loader: 'js',
-    }));
-  },
-};
 
 const buildOptions = {
   entryPoints: ['src/main.ts'],
@@ -59,7 +36,6 @@ const buildOptions = {
   treeShaking: true,
   outfile: 'main.js',
   minify: !watch,
-  plugins: [nodeBuiltinRequire],
 };
 
 if (watch) {

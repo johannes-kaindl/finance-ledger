@@ -64,25 +64,41 @@ describe('main.ts — Slice-7-C CSV-Import-Modal wiring', () => {
   });
 });
 
-describe('main.ts — Mobile-Readiness Guards', () => {
+describe('main.ts — CSV-Import ist plattformübergreifend', () => {
   const src = readFileSync(resolve(__dirname, '../src/main.ts'), 'utf8');
 
-  it('importiert isMobile() aus platform-utils', () => {
-    expect(src).toMatch(/from ['"]\.\/utils\/platform['"]/);
-    expect(src).toContain('isMobile');
+  /**
+   * Umgekehrte Erwartung seit 2026-10-03: hier stand, dass Ribbon-Icon, Kommando
+   * und Modal des CSV-Imports hinter `isMobile()`-Guards liegen MÜSSEN. Der Grund
+   * dafür war der Importer-Subprozess (`child_process`), und den gibt es nicht
+   * mehr — Dateiauswahl, Ablage über den Vault-Adapter und der Importlauf selbst
+   * sind node-frei. Ein Guard wäre jetzt eine grundlose Sperre, und drei grüne
+   * Tests hätten sie festgehalten.
+   */
+  it('registriert das Ribbon-Icon ohne Plattform-Guard', () => {
+    expect(src).toMatch(/addRibbonIcon\(\s*['"]file-up['"]/);
+    expect(src).not.toMatch(
+      /if\s*\(\s*!isMobile\(\)\s*\)\s*\{[\s\S]{0,300}addRibbonIcon\(\s*['"]file-up['"]/,
+    );
   });
 
-  it('umschließt addRibbonIcon("file-up", …) mit if (!isMobile())', () => {
-    // Match: if (!isMobile()) { … addRibbonIcon('file-up', … }
-    expect(src).toMatch(/if\s*\(\s*!isMobile\(\)\s*\)\s*\{[\s\S]{0,300}addRibbonIcon\(\s*['"]file-up['"]/);
+  it('registriert das Kommando ohne Plattform-Guard', () => {
+    expect(src).toContain("'finance-import-csv'");
+    expect(src).not.toMatch(
+      /if\s*\(\s*!isMobile\(\)\s*\)\s*\{[\s\S]{0,500}'finance-import-csv'/,
+    );
   });
 
-  it('umschließt addCommand "finance-import-csv" mit if (!isMobile())', () => {
-    expect(src).toMatch(/if\s*\(\s*!isMobile\(\)\s*\)\s*\{[\s\S]{0,500}'finance-import-csv'/);
+  it('öffnet das Modal ohne Mobile-Abweisung', () => {
+    expect(src).not.toMatch(
+      /openImportCSVModal[\s\S]{0,200}if\s*\(\s*isMobile\(\)\s*\)\s*\{[\s\S]{0,200}new Notice/,
+    );
   });
 
-  it('openImportCSVModal hat Mobile-Notice-Guard mit Early-Return', () => {
-    // Inside openImportCSVModal: if (isMobile()) { new Notice(...); return; }
-    expect(src).toMatch(/openImportCSVModal[\s\S]{0,200}if\s*\(\s*isMobile\(\)\s*\)\s*\{[\s\S]{0,200}new Notice/);
+  it('lädt kein Node-Modul mehr — auch nicht dynamisch und geguardet', () => {
+    // Die Quelle prüfen ist hier die richtige Ebene: `tests/bundle.test.ts` prüft
+    // das Ergebnis, dieser Test die Absicht. Beide braucht es (Dach-Befund
+    // 2026-10-03: die Quelle kann sauber aussehen, während das Bundle lädt).
+    expect(src).not.toMatch(/import\(\s*['"](node:)?(child_process|fs|path|os)['"]/);
   });
 });

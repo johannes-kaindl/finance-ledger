@@ -16,7 +16,6 @@ import type { PluginData } from './types/plugin-data';
 import { resolveFinancePaths, migrateFinanceRoot, type ResolvedFinancePaths } from './state/financePaths';
 import { setStorageApp, migrateRawLocalStorageToApp, migrateLegacyKeys, loadState, saveState } from './state/filterState';
 import type { FilterState, MoneyDisplay } from './views/helpers';
-import { isMobile } from './utils/platform';
 import { runNativeImport } from './obsidian/nativeImport';
 
 /** Anzeigedauer der Import-Meldung: lang genug, um vier Zahlen zu lesen. */
@@ -86,11 +85,12 @@ export default class FinancePlugin extends Plugin {
       void this.activateHub('dashboard');
     });
 
-    if (!isMobile()) {
-      this.addRibbonIcon('file-up', t('action.importCsv'), () => {
-        this.openImportCSVModal(accessor);
-      });
-    }
+    // Kein Mobile-Guard mehr: Dateiauswahl, Ablage über den Vault-Adapter und der
+    // Importlauf sind seit 2026-10-03 alle node-frei. Der Subprozess war der
+    // einzige Grund, warum der CSV-Import desktop-only war.
+    this.addRibbonIcon('file-up', t('action.importCsv'), () => {
+      this.openImportCSVModal(accessor);
+    });
 
     const refreshHub = (): void => {
       for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_HUB)) {
@@ -122,13 +122,11 @@ export default class FinancePlugin extends Plugin {
       });
     }
 
-    if (!isMobile()) {
-      this.addCommand({
-        id: 'finance-import-csv',
-        name: t('action.importCsv'),
-        callback: () => this.openImportCSVModal(accessor),
-      });
-    }
+    this.addCommand({
+      id: 'finance-import-csv',
+      name: t('action.importCsv'),
+      callback: () => this.openImportCSVModal(accessor),
+    });
 
     // Bewusst ohne isMobile-Guard: der eingebaute Import berührt kein
     // Node-Modul. Dass der CSV-Import bisher Desktop-only war, lag allein am
@@ -204,10 +202,6 @@ export default class FinancePlugin extends Plugin {
   }
 
   private openImportCSVModal(accessor: Accessor): void {
-    if (isMobile()) {
-      new Notice(t('notice.importCsvDesktopOnlyLong'));
-      return;
-    }
     const modal = new ImportCSVModal(this.app, accessor, () => this.resolvePaths(), {
       onImportSuccess: async () => {
         this.refreshFinanceHub();

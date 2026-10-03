@@ -31,6 +31,13 @@ export interface ResolvedFinancePaths {
   umsatzDir: string;
   kontenFile: string;
   vertraegeFile: string;
+  /**
+   * Schnappschüsse vor Schreibvorgängen (GFS-rotiert).
+   *
+   * Der Punkt-Präfix hält den Ordner aus der Dateiliste und aus der Suche —
+   * er ist Rückholbarkeit, kein Vault-Inhalt.
+   */
+  snapshotsFolder: string;
 }
 
 /** Vault-relative path of the author's original folder — used for auto-detect migration. */
@@ -59,7 +66,7 @@ export const DEFAULT_PATH_SETTINGS: FinancePathSettings = {
 const EMPTY: ResolvedFinancePaths = {
   isConfigured: false, root: '', journal: '', openingBalances: '', accounts: '',
   rulesFolder: '', basesFolder: '', kategorienFolder: '', empfaengerFolder: '', umsatzDir: '',
-  kontenFile: '', vertraegeFile: '',
+  kontenFile: '', vertraegeFile: '', snapshotsFolder: '',
 };
 
 export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePaths {
@@ -74,6 +81,7 @@ export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePath
     openingBalances: join(ledgerDir, s.openingBalancesFile),
     accounts: join(ledgerDir, s.accountsFile),
     rulesFolder: join(root, s.rulesSubdir),
+    snapshotsFolder: join(root, '.fl-snapshots'),
     basesFolder: join(root, s.basesSubdir),
     kategorienFolder: join(root, s.kategorienSubdir),
     empfaengerFolder: join(root, s.empfaengerSubdir),

@@ -256,15 +256,60 @@ export function formatMoneyAmount(
 // ── Importer command (obsidian-free, so views can surface a copyable hint) ──
 
 /**
- * Shell command that runs the importer manually — shown as a copy-button in the
- * import-error modal. Built from the configured path (Pfad-SSOT): hardcoding a
- * maintainer-local path here breaks every other install and leaks a private path
- * into a published plugin.
+ * Flags für einen vollständigen Importer-Lauf im Terminal.
+ *
+ * Ohne Flags schreibt der Importer nur Journal, Kontenplan, Eröffnungsbilanz,
+ * Konto- und Vertrags-Notizen — also genau das, was das Plugin seit 2026-10-03
+ * selbst erzeugt (`runNativeImport`). Die Auswertungen — Monats-, Quartals- und
+ * Jahresberichte, Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen —
+ * entstehen ausschließlich auf Anforderung, und sie sind der Grund, warum
+ * dieser Befehl noch existiert: das Plugin kann sie bis zum Abschluss der
+ * Port-Etappen E4–E7 nicht.
+ *
+ * Bewusst NICHT enthalten: `--all-sparziele-bodies` und `--all-vertraege-bodies`
+ * schreiben Notizen ohne Marker um — das ist eine einmalige Migration, kein
+ * Schritt, der bei jedem Lauf ungefragt läuft.
  */
-export function buildImporterCommand(importerCwd: string): string {
+export const IMPORTER_REPORT_ARGS: readonly string[] = [
+  '--all-aggregates',
+  '--all-kategorie-notes',
+  '--all-empfaenger-notes',
+  '--all-tx-typ-notes',
+  '--all-mandate-notes',
+  '--all-sparziele',
+  '--all-categorizer-rule-bodies',
+];
+
+function shellQuote(value: string): string {
+  return /[\s'"$`\\]/.test(value) ? `'${value.replace(/'/g, `'\\''`)}'` : value;
+}
+
+/**
+ * Shell-Befehl, der den Importer von Hand fährt — als Kopier-Knopf im
+ * Import-Fehler-Modal und im TBC-Panel.
+ *
+ * Gebaut aus dem konfigurierten Pfad (Pfad-SSOT): ein hartcodierter
+ * maintainer-lokaler Pfad bricht jede andere Installation und veröffentlicht
+ * einen privaten Pfad.
+ *
+ * Die Umgebungsvariablen gehören MIT in den Befehl: ohne `FINANCE_VAULT`
+ * schreibt der Importer in seinen eigenen Fallback-Ordner statt in den Vault —
+ * und zwar mit Exit-Code 0. Ein kopierter Befehl, der scheinbar durchläuft und
+ * am falschen Ort schreibt, ist schlimmer als keiner.
+ */
+export function buildImporterCommand(
+  importerCwd: string,
+  env: Record<string, string> = {},
+  args: readonly string[] = IMPORTER_REPORT_ARGS,
+): string {
   const target = importerCwd.trim() || '<importer-repo-path>';
-  const quoted = /\s/.test(target) ? `'${target}'` : target;
-  return `cd ${quoted} && uv run python -m importer.cli`;
+  const envPart = Object.entries(env)
+    .filter(([, value]) => value !== '')
+    .map(([key, value]) => `${key}=${shellQuote(value)}`)
+    .join(' ');
+  const prefix = envPart === '' ? '' : `${envPart} `;
+  const argPart = args.length === 0 ? '' : ` ${args.join(' ')}`;
+  return `cd ${shellQuote(target)} && ${prefix}uv run python -m importer.cli${argPart}`;
 }
 
 /**

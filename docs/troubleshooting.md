@@ -71,29 +71,39 @@ Each entry starts with what you see — the wording is the plugin's own English 
 
 **Fix:** open the conflicting rule note and narrow one of the patterns.
 
-## CSV import and re-import (desktop only)
+## CSV import and re-import
 
-> CSV import is available on desktop only.
+> Accounts could not be loaded: Account configuration not found: …
 
-**Cause:** the import dialog and the Python re-import need a subprocess, which mobile does not have. **Rebuild journal from CSVs (built-in)** works on mobile.
+**Cause:** the import dialog reads the account list from `konten.yaml` in your vault, and the file is not at the configured path.
 
-> Importer folder not found: … — check the "Importer repo path" setting.
+**Fix:** put a `konten.yaml` under your finance folder (setting: **Accounts file**) or point the setting at the file you already have. No Python and no importer checkout are needed for this — the dialog runs entirely inside the plugin.
 
-> Path not found or does not contain pyproject.toml: …
+> Preview failed for <file>: Header unknown / unexpected columns
 
-**Cause:** the optional re-import needs a checkout of the companion Python importer, and **Importer repo path** does not point to one.
+**Cause:** the file is not one of the two supported exports. The preview reads the file itself, so a wrong column layout shows up here rather than at import time.
 
-**Fix:** set the path to the folder that contains `pyproject.toml`. You do not need the importer for the built-in rebuild.
-
-> Could not find uv binary: …
-
-**Fix:** enter the absolute path under **Path to uv binary**, or leave it empty to search `PATH` and the usual install folders.
+**Fix:** export again as **Excel (CSV-CAMT V8)** for a checking account, or use the Visa transaction CSV. If you picked the right file but the wrong account in the dropdown, the preview says so as a warning — the account decides which parser runs.
 
 > Re-import failed
 
-**Cause:** the importer ended with an error. The **TBC triage** tab shows its output.
+**Cause:** the import ended with an error. The **TBC triage** tab shows the message.
 
-**Fix:** read the output, press **Try again**, or use **Copy terminal command** and run it in a terminal to see the full trace.
+**Fix:** read the message and press **Try again**. **Copy terminal command** gives you the full importer command, including the `FINANCE_VAULT` variables — useful for the reports (see below), not needed for the import itself.
+
+## Reports and dimension notes are missing
+
+**Cause:** monthly, quarterly and yearly reports plus the category, payee, transaction-type and mandate notes do not come from the plugin. It writes the journal, the chart of accounts, the opening balances and the account and contract notes; the rest is produced by the companion Python importer.
+
+**Fix:** press **Copy terminal command** in the import-error dialog or the TBC triage tab and run it in a terminal. The command already contains the report flags and the vault variables. Set **Importer repo path** first so the command points at your checkout.
+
+## Snapshots before a rule is written
+
+Each time you save a categorizer rule, the plugin first stores the previous state of the rule folder as a JSON file under `<finance folder>/.fl-snapshots/`.
+
+Retention follows grandfather-father-son: the six newest of today, plus the oldest snapshot of each of the last seven days, four weeks and six months — at most 23 files. Files whose names do not carry a timestamp are never deleted.
+
+To go back to an earlier state, open the snapshot file: it lists every rule note with its full text at the time of the snapshot.
 
 ## Getting help
 
