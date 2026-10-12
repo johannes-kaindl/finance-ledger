@@ -6,7 +6,7 @@ import {
 	RULES_SNAPSHOT_PREFIX,
 	type RuleSnapshot,
 } from "../../../src/core/snapshot/ruleSnapshot";
-import { snapshotFileName } from "../../../src/core/snapshot/snapshotName";
+import { stampedName } from "../../../src/vendor/kit/rotation";
 import type { VaultPort } from "../../../src/core/ports";
 
 const RULES = "Finanzplan/55-Categorizer-Rules";
@@ -43,6 +43,10 @@ function fakeVault(initial: Record<string, string> = {}) {
 }
 
 const NOW = new Date(2026, 9, 3, 15, 0, 0, 0).getTime();
+
+/** Dateiname eines Schnappschusses — dieselbe Form, die `snapshotRules` schreibt. */
+const snapshotFileName = (prefix: string, time: number): string =>
+	stampedName(time, { prefix: `${prefix}-`, suffix: ".json" });
 
 describe("snapshotRules", () => {
 	it("schreibt den Stand aller Regel-Notizen in eine Datei", async () => {
@@ -161,5 +165,31 @@ describe("rotateSnapshots", () => {
 		await expect(
 			rotateSnapshots({ vault: stur, snapshotsFolder: SNAPS, now: NOW }),
 		).resolves.toEqual([]);
+	});
+
+	// Der Kit-Lesevorgang findet einen Zeitstempel irgendwo im Namen. Die Aufbewahrung darf
+	// deshalb nur Namen anfassen, die `snapshotRules` selbst so schreibt (Rundlauf), sonst würde
+	// sie Fremddateien mit Stempel löschen. Die letzte Zeile ist die Gegenprobe: ein echter
+	// alter Schnappschuss fällt, der Test kann also rot werden.
+	it("fasst Dateien mit Stempel im Namen, aber fremder Form, nie an", async () => {
+		const alt = new Date(2026, 0, 5, 12).getTime();
+		const stempel = snapshotFileName(RULES_SNAPSHOT_PREFIX, alt).replace(/^rules-|\.json$/g, "");
+		const echt = `${SNAPS}/${snapshotFileName(RULES_SNAPSHOT_PREFIX, alt)}`;
+		const fremd = [
+			`${SNAPS}/rules-${stempel}.txt`,
+			`${SNAPS}/rules-${stempel}.json.bak`,
+			`${SNAPS}/rules-${stempel} (1).json`,
+			`${SNAPS}/andere-${stempel}.json`,
+			`${SNAPS}/rules-2026-13-05T12-00-00-000Z.json`,
+		];
+		const { port, files } = fakeVault({
+			[echt]: "{}",
+			...Object.fromEntries(fremd.map((p) => [p, "{}"])),
+		});
+
+		const removed = await rotateSnapshots({ vault: port, snapshotsFolder: SNAPS, now: NOW });
+
+		for (const f of fremd) expect(files.has(f), f).toBe(true);
+		expect(removed).toEqual([echt]);
 	});
 });

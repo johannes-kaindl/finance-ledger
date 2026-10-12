@@ -2,8 +2,10 @@
 // window.setTimeout / window.clearTimeout (Obsidian-Guideline prefer-window-timers,
 // Popout-Window-Kompatibilität). In Node existiert `window` nicht — hier auf die
 // globalen Timer mappen, damit die Tests dasselbe Verhalten sehen wie der
-// Obsidian-Renderer.
-(globalThis as { window?: typeof globalThis }).window = globalThis;
+// Obsidian-Renderer. Der Shim kommt aus dem Kit (`full: true`: `window` ist das globale Objekt);
+// gibt es schon ein `window`, tut er nichts.
+import { installWindowTimers } from './vendor/kit/window-timers';
+installWindowTimers({ full: true });
 
 // Alle Tests erwarten Englisch (kanonische Sprache) — F2 (i18n DE/EN) macht die
 // Sprache settings-/obsidian-gesteuert, aber die bestehenden Fixtures/Assertions

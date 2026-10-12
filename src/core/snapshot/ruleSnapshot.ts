@@ -16,11 +16,38 @@
  */
 
 import type { VaultPort } from "../ports";
-import { selectGfsRetention, DEFAULT_GFS, type GfsPolicy } from "./gfs-retention";
-import { snapshotFileName, snapshotTimeFromName } from "./snapshotName";
+import {
+	DEFAULT_GFS_POLICY,
+	selectGfsRetention,
+	stampedName,
+	timeFromStampedName,
+	type GfsPolicy,
+} from "../../vendor/kit/rotation";
 
 /** Präfix aller Regel-Schnappschüsse. */
 export const RULES_SNAPSHOT_PREFIX = "rules";
+
+/**
+ * Form eines Schnappschuss-Namens: `rules-<Stempel>.json`, der Stempel UTC mit Millisekunden.
+ *
+ * Der Zeitpunkt steckt im Namen, nicht in der mtime: ein Sync oder Restore setzt mtimes neu und
+ * würde die Rotation verfälschen.
+ */
+const NAME_AFFIXES = { prefix: `${RULES_SNAPSHOT_PREFIX}-`, suffix: ".json" } as const;
+
+/**
+ * Der Zeitpunkt, den ein Name zur Aufbewahrung beiträgt, oder `null` — dann bleibt die Datei liegen.
+ *
+ * `timeFromStampedName` findet den Stempel irgendwo im Namen. Das genügt hier nicht: `rules-<Stempel>.txt`,
+ * `….json.bak` und Sync-Konfliktkopien wie `… (1).json` bekämen eine Zeit und würden mit rotiert, also
+ * gelöscht. Nur was `snapshotRules` selbst genau so schreiben würde, gehört zur Aufbewahrung (Rundlauf
+ * Name → Zeit → Name). Unbekannt heißt erhalten.
+ */
+function rotationTime(name: string): number | null {
+	const time = timeFromStampedName(name);
+	if (time === null) return null;
+	return stampedName(time, NAME_AFFIXES) === name ? time : null;
+}
 
 export interface SnapshotFileEntry {
 	/** Vault-relativer Pfad, wie er beim Zurückholen wieder geschrieben würde. */
@@ -86,7 +113,7 @@ export async function snapshotRules(
 		snapshotsFolder,
 		reason,
 		now = Date.now(),
-		policy = DEFAULT_GFS,
+		policy = DEFAULT_GFS_POLICY,
 	} = options;
 
 	let rulePaths: string[] = [];
@@ -113,7 +140,7 @@ export async function snapshotRules(
 	};
 
 	await vault.mkdir(snapshotsFolder);
-	const name = snapshotFileName(RULES_SNAPSHOT_PREFIX, now);
+	const name = stampedName(now, NAME_AFFIXES);
 	const target = `${snapshotsFolder}/${name}`;
 	await vault.write(target, `${JSON.stringify(snapshot, null, 2)}\n`);
 
@@ -143,7 +170,7 @@ export interface RotateOptions {
 export async function rotateSnapshots(
 	options: RotateOptions,
 ): Promise<string[]> {
-	const { vault, snapshotsFolder, now, policy = DEFAULT_GFS } = options;
+	const { vault, snapshotsFolder, now, policy = DEFAULT_GFS_POLICY } = options;
 
 	let paths: string[] = [];
 	try {
@@ -154,14 +181,14 @@ export async function rotateSnapshots(
 
 	const entries = [];
 	for (const path of paths) {
-		const time = snapshotTimeFromName(basename(path));
+		const time = rotationTime(basename(path));
 		// Unbekannt heißt erhalten: ohne lesbaren Zeitstempel gar nicht erst hinein.
 		if (time !== null) entries.push({ name: path, time });
 	}
 
-	const { remove } = selectGfsRetention(entries, now, policy);
+	const { drop } = selectGfsRetention(entries, now, { policy });
 	const removed: string[] = [];
-	for (const path of remove) {
+	for (const path of drop) {
 		try {
 			await vault.remove(path);
 			removed.push(path);

@@ -1,11 +1,31 @@
 import { describe, it, expect } from "vitest";
 
 import {
-	selectGfsRetention,
-	selectGfsRetentionDetailed,
-	DEFAULT_GFS,
+	selectGfsRetention as selectKit,
+	DEFAULT_GFS_POLICY,
 	type GfsEntry,
-} from "../../../src/core/snapshot/gfs-retention";
+	type GfsPolicy,
+} from "../../../src/vendor/kit/rotation";
+
+/**
+ * Die Auswahl stammt seit 2026-10-12 aus dem Kit (code-kit `rotation`, vendort). Die Fälle unten
+ * sind die der früheren lokalen Fassung (`gfs-retention`) und gelten unverändert: gleiche
+ * Erwartungswerte, nur die Form der Antwort ist die des Kits (`drop`, Einträge mit `bucket`).
+ */
+function selectGfsRetention(
+	entries: readonly GfsEntry[],
+	now: number,
+	policy?: GfsPolicy,
+): { keep: string[]; remove: string[] } {
+	const r = selectKit(entries, now, policy ? { policy } : {});
+	return { keep: r.keep.map((k) => k.name), remove: r.drop };
+}
+
+const selectGfsRetentionDetailed = (entries: readonly GfsEntry[], now: number) => {
+	const r = selectKit(entries, now);
+	return { keep: r.keep, remove: r.drop };
+};
+const DEFAULT_GFS = DEFAULT_GFS_POLICY;
 
 /**
  * Die Erwartungswerte unten sind **nicht** mit dieser Implementierung erzeugt,
@@ -225,14 +245,6 @@ describe("selectGfsRetentionDetailed — welches Fenster hält welchen Stand", (
 
 		expect([...gruppen.keys()]).toEqual(["month", "week", "day", "today"]);
 		expect([...gruppen.values()].flat()).toHaveLength(keep.length);
-	});
-
-	it("bleibt deckungsgleich mit selectGfsRetention — eine Rechnung, zwei Sichten", () => {
-		const schlicht = selectGfsRetention(entries, NOW);
-		const ausfuehrlich = selectGfsRetentionDetailed(entries, NOW);
-
-		expect(ausfuehrlich.keep.map((e) => e.name)).toEqual(schlicht.keep);
-		expect(ausfuehrlich.remove).toEqual(schlicht.remove);
 	});
 
 	it("markiert einen Stand aus der Zukunft als `future`, nicht als Staffel", () => {

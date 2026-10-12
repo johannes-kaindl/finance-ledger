@@ -1,10 +1,10 @@
-// Waechter ueber vendorten Code (obsidian-kit@0.27.0, src/pure/clipboard.ts).
+// Waechter ueber vendorten Code (code-kit@0.24.0, src/ts/web/clipboard.ts; bis 0.27.0 obsidian-kit src/pure).
 // Der Grund fuers Vendoring steht in TBCPanel.ts:41 — bis dahin stand die Erfolgs-Notice
 // unbedingt neben `void navigator.clipboard.writeText(...)`, der Nutzer las also "Kopiert!"
 // auch bei leerer Zwischenablage. Diese Faelle nageln genau die Zusage fest, auf die sich
 // der Knopf jetzt verlaesst: onCopied laeuft NUR nach erfolgreichem Schreiben.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { writeClipboard } from "../../../src/vendor/kit/clipboard";
+import { writeClipboard } from "../../src/vendor/kit/clipboard";
 
 const original = Object.getOwnPropertyDescriptor(globalThis, "navigator");
 

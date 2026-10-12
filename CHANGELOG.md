@@ -8,6 +8,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Changed
 
+- **Snapshot retention now comes from the shared library** (code-kit 0.24.0, `rotation`) instead of a local copy. The policy and the selection are the same (six newest of today, plus the oldest of each of the last seven days, four weeks and six months); the golden tables moved with it. Two edge cases changed, both towards keeping more: a file name with a timestamp that is not a real date (month 13) used to be rolled over to another day and could be rotated away, now it stays; and only files named exactly `rules-<timestamp>.json` take part in the retention (before, any `<prefix>-<timestamp>.json` did). Backup copies and sync conflict copies such as `….json.bak` or `… (1).json` stay untouched, as before.
+- Internal: the vendored kit modules moved to obsidian-kit 0.57.0 and code-kit 0.24.0 (`i18n`, `sha256` and `clipboard` now come from code-kit; no change in behaviour, the files are identical apart from the origin header), and the test setup uses the kit's window-timer shim. Nothing else in obsidian-kit 0.28.0–0.57.0 or code-kit reaches this plugin's users: the other vendored modules (`callout`, `frontmatter`, `confirm`, `hub`, `folder-suggest`, `help-setting`) are unchanged, and `settings_walker` only gained an extra function this plugin does not call.
 - The installation section of both READMEs now names the community store as the recommended route. It still said the plugin was not distributed there, which has not been true since the return to GitHub on 2026-09-24 (the plugin is listed in `community-plugins.json`). The sideloader catalog and the manual route stay as alternatives.
 
 ## [0.3.2] — 2026-10-03

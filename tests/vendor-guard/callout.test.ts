@@ -1,10 +1,11 @@
+// Liegt in tests/vendor-guard/, nicht in tests/vendor/kit/: dieses Verzeichnis gehört dem Vendoring (kit-sync --check).
 // Waechter ueber vendorten Code: das Kit testet wrapCallout selbst (obsidian-kit/tests/callout.test.ts,
 // 30 Faelle). Diese fuenf Faelle standen bis zum 0.27.0-Vendoring in tests/core/notes/render.test.ts
 // und pruefen die lokale Fassung. Sie bleiben, weil sie ein leeres oder halb kopiertes
 // src/vendor/kit/callout.ts sofort auffallen lassen — sonst faellt ein kaputtes Re-Vendoring
 // erst im Betrieb auf.
 import { describe, expect, it } from "vitest";
-import { wrapCallout } from "../../../src/vendor/kit/callout";
+import { wrapCallout } from "../../src/vendor/kit/callout";
 
 describe("wrapCallout", () => {
 	it("zitiert jede Zeile des Rumpfs", () => {

@@ -7,6 +7,7 @@
     { "dir": "src/vendor/kit", "source": "obsidian-kit", "from": "src/pure", "modules": ["callout", "frontmatter"] },
     { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/pure", "modules": ["i18n", "rotation", "sha256"] },
     { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/web", "modules": ["clipboard"] },
+    { "dir": "tests/vendor/kit", "source": "obsidian-kit", "from": "src/testing", "modules": ["window-timers"] },
     {
       "dir": "src/vendor/kit-obsidian", "source": "obsidian-kit", "from": "src/obsidian",
       "modules": ["confirm", "hub", "settings_walker", "folder-suggest", "help-setting"]
