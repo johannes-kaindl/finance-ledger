@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-10-12
+
 ### Changed
 
 - **Snapshot retention now comes from the shared library** (code-kit 0.24.0, `rotation`) instead of a local copy. The policy and the selection are the same (six newest of today, plus the oldest of each of the last seven days, four weeks and six months); the golden tables moved with it. Two edge cases changed, both towards keeping more: a file name with a timestamp that is not a real date (month 13) used to be rolled over to another day and could be rotated away, now it stays; and only files named exactly `rules-<timestamp>.json` take part in the retention (before, any `<prefix>-<timestamp>.json` did). Backup copies and sync conflict copies such as `….json.bak` or `… (1).json` stay untouched, as before.
