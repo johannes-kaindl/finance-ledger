@@ -192,29 +192,13 @@ Session-Handoff unter `.remember/` (gitignored).
 - [x] PROF-OBS-02 — Deploy per `${OBSIDIAN_PLUGIN_DIR:?…}`
 - [x] CORE-GIT-01 — Forgejo-`origin` + GitHub-Mirror eingerichtet, 0.1.0 released
 - [x] CORE-META-09 — `README.md` EN-kanonisch + `README.de.md`, mit Sprach-Toggle-Zeile
-- [~] PROF-OBS-14 — **gegenstandslos seit 2026-09-03.** Das GitHub-Konto des Maintainers ist
-      geflaggt, alle Plugins sind aus dem Community Store geflogen. Der Store ist damit kein
-      Verteilungsweg mehr, und die Einreichung übers Developer Dashboard entfällt.
-      Verteilung läuft jetzt über den Forgejo-Release — siehe Abschnitt „Verteilung".
+- [x] PROF-OBS-14 — Community-Store: `finance-ledger` steht seit der Rückkehr zu GitHub (2026-09-24) wieder in `community-plugins.json` (gemessen 2026-10-12), Scorecard `Review Passed · Health Excellent`. Ausstieg vom 03. bis 24.09.2026 ist Chronik.
 
-## Verteilung: Forgejo-Release, nicht Community Store
+## Verteilung: Release über `release.mjs`, Store und Sideloader
 
-**Der Store ist kein Weg mehr** (2026-09-03): Das GitHub-Konto ist geflaggt, die Plugins sind
-aus dem Store entfernt, die GitHub-Actions stehen. Ein Release entsteht deshalb so:
+Seit der Rückkehr zu GitHub (2026-09-24, Dach-AGENTS § Store-Einreichung) gelten wieder beide Wege: der Community-Store und der `anysource-sideloader`-Katalog. Ein Release entsteht mit `npm run release -- <version>`: `release.mjs` setzt den Tag, erzeugt den Forgejo-Release mit `main.js`, `manifest.json`, `styles.css` **und** `checksums.sha256` (die vier Assets, die `anysource-sideloader` erwartet und prüft) und schiebt Branch und Tag per Dual-Push nach GitHub, wo `release.yml` das GitHub-Release baut. `--no-github` wird nicht mehr verwendet (das Flag existiert in `release.mjs` weiter, steht aber in keiner `package.json`); GitHub bekommt Branch und Tag nur von `release.mjs`, nie per Hand-Push.
 
-```bash
-npm run release -- <version> --no-github
-```
-
-Das erzeugt einen Forgejo-Release mit `main.js`, `manifest.json`, `styles.css` **und**
-`checksums.sha256` — genau die vier Assets, die `anysource-sideloader` erwartet und prüft.
-`--no-github` ist dabei kein Notbehelf, sondern die benannte Entscheidung: ohne das Flag
-versucht das Skript den Mirror-Push samt Verifikation und wartet auf eine Action, die nicht
-mehr läuft.
-
-⚠️ **Was danach noch fehlt, liegt nicht in diesem Repo:** ein abonnierbarer Katalog, ohne den
-das Plugin zwar installierbar, aber nicht auffindbar ist. Dach-Task *„Eigener Plugin-Katalog
-fehlt — Releases sind da, aber nicht auffindbar"*.
+Releases fährt die koordinierende Session nach Freigabe, nicht die Arbeitssession (CORE-AGENT-14). Nach dem Tag steht der Review noch aus: Rescan im Developer Dashboard anstoßen (nur der Maintainer), danach `scorecard.py finance-ledger` prüfen. Die Installationswege für Nutzer stehen in `README.md` und `README.de.md`.
 
 ## Abweichungen von der Leitkonvention
 

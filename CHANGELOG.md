@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Changed
+
+- The installation section of both READMEs now names the community store as the recommended route. It still said the plugin was not distributed there, which has not been true since the return to GitHub on 2026-09-24 (the plugin is listed in `community-plugins.json`). The sideloader catalog and the manual route stay as alternatives.
+
 ## [0.3.2] — 2026-10-03
 
 ### Changed

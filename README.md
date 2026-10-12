@@ -120,27 +120,24 @@ into `opening_balances.ledger`. The plugin then filters out transactions before 
 
 ## Install
 
-This plugin is **not distributed through the community store**. It lives on its own forge, and
-there are two ways to get it.
+**Recommended — from the community store:** Obsidian → Settings → Community plugins → Browse → search for **Finance Ledger** → Install → Enable. Updates arrive through Obsidian like for any other plugin.
 
-**Recommended — via [AnySource Sideloader](https://git.jkaindl.de/jkaindl/anysource-sideloader)**,
-which installs and updates plugins from any git forge. Subscribe to this catalog once:
+**Alternatively — via [AnySource Sideloader](https://git.jkaindl.de/jkaindl/anysource-sideloader)**, which installs and updates plugins from any git forge. Subscribe to this catalog once:
 
 ```
 https://git.jkaindl.de/jkaindl/obsidian-catalog/raw/branch/main/catalog.json
 ```
 
-Finance Ledger then appears in the sideloader's plugin list and updates like any other plugin —
-no manual copying, and every download is checksum-verified.
+Finance Ledger then appears in the sideloader's plugin list and updates like any other plugin — no manual copying, and every download is checksum-verified.
 
-**By hand**, if you would rather not add another plugin:
+**By hand**, if you would rather not use either:
 
 1. Download `main.js`, `manifest.json` and `styles.css` from the
    [latest release](https://github.com/johannes-kaindl/finance-ledger/releases).
 2. Copy them into `<vault>/.obsidian/plugins/finance-ledger/`.
 3. Obsidian → Settings → Community plugins → enable **Finance Ledger**.
 
-Updates then have to be repeated by hand — the sideloader route exists to avoid exactly that.
+Updates then have to be repeated by hand — the store and the sideloader exist to avoid exactly that.
 
 From source: `npm install && npm run build` produces the same files; `npm run deploy` puts
 them straight into a configured vault (see *Build and deploy*).
