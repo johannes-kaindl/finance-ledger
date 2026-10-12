@@ -1,30 +1,22 @@
 # GUI-Smoke — Checkliste
 
-⚠️ **Zuerst prüfen, wer sonst an Obsidian hängt.** Obsidian ist Single-Instance — ein
-`quit` trifft die Instanz, an der möglicherweise eine andere Session arbeitet, und zerstört
-deren Zustand. Der eigene Lauf ist danach sauber grün; der Schaden entsteht woanders und
-fällt nicht auf.
+Was gegen einen Mock geprüft ist, ist spezifiziert, nicht getestet (CORE-TEST-02). Diese Liste läuft gegen ein **laufendes** Obsidian mit einem getrackten Fixture-Vault.
+
+⚠️ **Der Smoke läuft auf einer Zweitinstanz mit eigenem Profil und eigenem Port, nie auf der regulären Instanz.** Ein `quit` dort trifft die Sitzung einer fremden Session; die Sperre hängt am `--user-data-dir`, nicht am Rechner. `--port` ist Pflicht, es gibt keinen Standardport. Das vollständige Rezept steht im Kopf von `scripts/gui-smoke.ts`; in Kürze:
 
 ```bash
-lsof -nP -iTCP:9222 -sTCP:LISTEN >/dev/null && echo "läuft bereits — NICHT beenden"
+npm run build
+npm run smoke:gui -- --setup                      # Staging-Vault aus docs/images/fixture bauen, Plugin deployen
+UD=/tmp/obs-test-finance-ledger; mkdir -p "$UD"
+cp ~/Library/Application\ Support/obsidian/obsidian-*.asar "$UD"/
+# $UD/obsidian.json mit dem Vault und "language":"en" schreiben, dann starten:
+/Applications/Obsidian.app/Contents/MacOS/Obsidian --user-data-dir="$UD" --remote-debugging-port=<port> &
+python3 ~/.claude/hooks/obsidian-cdp-lock.py acquire --label finance-ledger --intent "GUI-Smoke" --exclusive focus --port <port> --ttl 300
+npm run smoke:gui -- --port <port>
+python3 ~/.claude/hooks/obsidian-cdp-lock.py release
 ```
 
-Hört der Port schon, dann **mitnutzen statt neu starten**: ein eigenes Fenster per
-`vault-open` über IPC öffnen, dann `attachTo("workspace", port, vault)` — der Vault-Name
-wählt, nicht die Reihenfolge. ⚠️ Die Port-Prüfung ersetzt die Frage nicht: sie zeigt aktive
-CDP-Treiber, aber nicht, wer ein Fenster offen hält oder auf den Port wartet.
-
-Erst wenn nichts läuft — oder nach Absprache mit dem, der es benutzt — gilt das Rezept unten.
-
-Was gegen einen Mock geprüft ist, ist spezifiziert, nicht getestet (CORE-TEST-02). Diese
-Liste läuft gegen ein **laufendes** Obsidian mit echten Daten.
-
-```bash
-osascript -e 'quit app "Obsidian"'
-open -a Obsidian --args --remote-debugging-port=9222
-OBSIDIAN_PLUGIN_DIR="<vault>/.obsidian/plugins/finance-ledger" npm run deploy
-npm run smoke:gui -- --vault <VaultName>
-```
+Vertrauensdialog und Restricted Mode hebt der Treiber selbst auf (`bereiteInstanzVor`), den Finanzordner stellt er ein, falls `--setup` die Einstellungen gelöscht hat. Je Messlauf ein frischer Prozess; der erste Lauf nach der Profilanlage ist ein Aufwärmlauf.
 
 ## Was der Treiber prüft
 
@@ -44,66 +36,13 @@ gepflegte.
 | 7 | Der Abschnitt „📌 Notizen" überlebt zeichengenau | die Marker-Grenze am echten, gewachsenen Notiz-Text |
 | 8 | Fremde Frontmatter-Felder überleben | ebenso |
 | 9 | `opening_balances.ledger` trägt Eröffnungsbuchungen, keine „fehlt"-Zeilen | beweist, dass die Komma-Schreibweise gelesen wurde |
-| 10 | Eine Vertrags-Notiz hat Marker, Stichprobe und Diagramm | Rendering-nahe Struktur |
-| 11 | **Zweiter Lauf erzeugt byte-gleiche Dateien** | Idempotenz ist die Kernzusage von E3 — und der Grund, warum dieser Smoke im echten Vault laufen darf |
+| 10 | Eine Vertrags-Notiz hat Stichprobe und Vertragsdaten (das Diagramm braucht zwei Monate, das Fixture hat einen) | Rendering-nahe Struktur |
+| 11 | **Zweiter Lauf erzeugt byte-gleiche Dateien** | Idempotenz ist die Kernzusage von E3 — und der Grund, warum dieser Smoke schreiben darf |
+| 12 | Das Import-Modal liest die Konten aus `konten.yaml` — Gegenprobe: ohne die Datei zeigt es den Ladefehler | Die Konten-Quelle ist ein Vault-Lesevorgang im echten Modal |
+| 13 | Die CSV-Vorschau zählt neu und Duplikate — Gegenprobe: dieselbe CSV unter anderem Namen ist komplett Duplikat | Datei-Feld, `DataTransfer` und Vergleich gegen den Umsatzordner |
+| 14 | Ein Regel-Schreibvorgang legt einen Schnappschuss mit dem Stand **vorher** an und rotiert den Bestand; Dateien mit fremdem Namen bleiben liegen | echter Mausklick im Regel-Modal, GFS-Aufbewahrung über die Vault-API |
 
 ## Was er bewusst nicht prüft
 
 - Ob die Zahlen *fachlich* richtig sind — das kann nur der Abgleich mit dem Online-Banking.
-- Ob das Mermaid-Diagramm hübsch aussieht. Geprüft wird, dass es da ist.
-- **Die drei Pfade, die seit 2026-10-03 node-frei laufen:** das CSV-Import-Modal, seine
-  Anti-Duplikat-Vorschau und den Schnappschuss vor dem Regel-Schreiben. Der Treiber prüft
-  den Rebuild-Befehl, nicht sie. Alle drei wurden beim Umbau von Hand per CDP gegen die
-  laufende App gemessen (Konten aus `konten.yaml`, Vorschau „10 neu / 0 Duplikate",
-  Schnappschuss mit dem Stand vor dem Schreibvorgang) — das ist **einmal** belegt, aber
-  nicht reproduzierbar. Offen als TaskNote „GUI-Smoke deckt die drei node-freien Pfade
-  nicht ab".
-- Den Importer-CLI selbst. Er erzeugt die Berichte und Dimensions-Notizen (Port-Etappen
-  E4–E7) und läuft im Terminal, nicht im Plugin.
-
-## Warum dieser Smoke in den produktiven Vault schreiben darf
-
-Prüfpunkt 11 ist die Begründung: der Import ist idempotent. Der erste Lauf bringt den
-Vault auf den Stand, den er ohnehin haben soll; jeder weitere lässt ihn byte-gleich. Ein
-Werkzeug, das seinen eigenen Vorzustand wiederherstellen müsste, könnte genau diese
-Zusage nicht prüfen.
-
-Trotzdem legt der Treiber vor dem Lauf eine **Rettungskopie** der betroffenen Ordner an
-und nennt ihren Pfad im Protokoll — das `finally` läuft bei Ctrl-C nicht mehr.
-
-## Durchläufe
-
-| Datum | Obsidian | Ergebnis | Gegenprobe |
-|---|---|---|---|
-| 2026-08-17 | 1.13.7 | **21/21 grün** — 1576 Buchungen, 26 Notizen nachgezogen | **15/20 rot** an den erwarteten Punkten |
-
-### Was die Gegenprobe zutage förderte
-
-Ausgebauter Fix: `planKontoNotes` regeneriert die Notiz, statt sie zu patchen — also genau
-der Python-Fehler, den die Port-Roadmap als „Verbesserung, die das Remake mitnehmen sollte"
-führt. Erwartet rot waren die Grenz-Punkte; eingetreten sind sie mit einer Kausalkette, die
-man beim Entwerfen nicht auf dem Zettel hat:
-
-- `anfangssaldo_eur` fiel auf `null` — und **dadurch** meldete `opening_balances.ledger`
-  vier „fehlt"-Zeilen statt vier Eröffnungsbuchungen. Ein Frontmatter-Verlust schlägt bis
-  in eine ganz andere Datei durch.
-- `created` sprang auf heute (Sperrliste umgangen).
-- Fremde Frontmatter-Felder verschwanden.
-
-**Zwei Mängel im Treiber selbst — der eigentliche Ertrag des Schritts:**
-
-1. Der Punkt „eigener Abschnitt überlebt" blieb **fälschlich grün**. Alle vier Notizen
-   trugen den unveränderten Vorgabetext, und der wird bei Regeneration identisch neu
-   erzeugt — der Prüfpunkt verglich Gleiches mit Gleichem (Falle „Prüfpunkt ohne
-   Gegenstand"). Der Treiber schreibt jetzt vor dem Lauf selbst eine Spur in den Abschnitt
-   und nimmt sie im `finally` wieder heraus.
-2. Die Abweichung der fremden Felder wurde als `[object Object] → [object Object]`
-   gemeldet — eine Meldung, die einen Defekt bestätigt und nichts über ihn sagt. Sie
-   benennt jetzt die verlorenen Schlüssel.
-
-### Bewusste Abweichung vom Skill-Rezept
-
-Der Treiber ruft **kein** `requireVisible`. Dieser Smoke misst keine Pixel, sondern
-Dateiinhalte und Meldungstexte; beides läuft auch im gedrosselten Hintergrund. Ein harter
-Abbruch bei `hidden` würde den Lauf davon abhängig machen, ob gerade jemand am Rechner
-sitzt. Der Zustand wird gemeldet, damit er bei einer Zeitüberschreitung die erste Spur ist.
+- Das Mermaid-Diagramm der Vertrags-Notiz („Betrags-Verlauf“): es entsteht erst ab Buchungen aus zwei Monaten, das Fixture hat nur August. Die Notiz selbst (Stichprobe, Vertragsdaten) wird geprüft.

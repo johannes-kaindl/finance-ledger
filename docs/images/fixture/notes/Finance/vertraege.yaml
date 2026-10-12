@@ -1,0 +1,10 @@
+# Example contract configuration (fixture, invented data).
+# Northwind is the only payee with two or more bookings in the fixture CSVs (the minimum
+# for a contract note), so the GUI smoke can reach the contract-note code path with it.
+vertraege:
+  - filename: "Northwind Grocers.md"
+    ledger_kategorie: "Ausgaben:Groceries:Northwind"
+    vertragspartner: Northwind Grocers
+    vertrag_kategorie: Groceries
+    vertrag_subkategorie: Delivery box
+    abbucht_von_konto: checking

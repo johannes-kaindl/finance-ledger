@@ -29,28 +29,24 @@
  * OBSIDIAN_PLUGIN_DIR="$STAGING_VAULTS_DIR/finance-ledger/.obsidian/plugins/finance-ledger" \
  *   npm run deploy
  *
- * # 3) Zweitinstanz mit eigenem Profil starten
- * UD=/tmp/obs-finance-ledger; mkdir -p "$UD"
- * /Applications/Obsidian.app/Contents/MacOS/Obsidian \
- *   --user-data-dir="$UD" --remote-debugging-port=9334 &
+ * # 3) Zweitinstanz mit eigenem Profil starten (Port frei wählen: lsof -nP -iTCP:<port> -sTCP:LISTEN)
+ * UD=/tmp/obs-test-finance-ledger; mkdir -p "$UD"
+ * cp ~/Library/Application\ Support/obsidian/obsidian-*.asar "$UD"/   # aktuelle Version, sonst 1.12.4
  * #    ⚠️ Den Vault NICHT über einen obsidian://-Link öffnen — der geht an die REGULÄRE
  * #    Instanz, die den Protokoll-Handler hält. Ein frisches Profil erfährt seinen Vault
- * #    über die eigene obsidian.json, und die liest Obsidian nur BEIM START:
+ * #    über die eigene obsidian.json (Oberfläche Englisch: "language":"en"), und die liest
+ * #    Obsidian nur BEIM START — also schreiben, DANN starten:
  * #
- * #      python3 - <<'EOF'
- * #      import json, time, pathlib
- * #      ud = pathlib.Path("/tmp/obs-finance-ledger")
- * #      vault = "/Users/Shared/60_StagingVaults/finance-ledger"
- * #      (ud / "obsidian.json").write_text(json.dumps({"vaults": {
- * #          "finledger01": {"path": vault, "ts": int(time.time() * 1000), "open": True}}}))
- * #      EOF
+ * #      {"vaults":{"<id>":{"path":"<STAGING_VAULTS_DIR>/finance-ledger","ts":0,"open":true}},"language":"en"}
  * #
- * #    Also: obsidian.json schreiben, DANN starten. Beim ersten Öffnen fragt Obsidian nach
- * #    Vertrauen → bestätigen, sonst läuft das Plugin nicht und jedes Bild ist leer.
+ * /Applications/Obsidian.app/Contents/MacOS/Obsidian \
+ *   --user-data-dir="$UD" --remote-debugging-port=<port> &
+ * #    Vertrauensdialog und Restricted Mode hebt `bereiteInstanzVor` aus der Brücke auf
+ * #    (der GUI-Smoke `npm run smoke:gui` ruft sie; ohne sie zeigt jedes Bild eine leere Seitenleiste).
  *
  * # 4) Aufnehmen
- * npm run shots -- --port 9334
- * npm run shots -- --port 9334 --only settings.png
+ * npm run shots -- --port <port>
+ * npm run shots -- --port <port> --only settings.png
  * ```
  *
  * ⚠️ **Der CDP-Lock bleibt trotzdem die Eintrittskarte** — er sieht den Port nicht, sondern den
@@ -58,7 +54,7 @@
  *
  * ```bash
  * python3 ~/.claude/hooks/obsidian-cdp-lock.py acquire --label finance-ledger \
- *   --exclusive focus --intent "README-Bilder aufnehmen (Zweitinstanz, Port 9334)"
+ *   --exclusive focus --intent "README-Bilder aufnehmen (Zweitinstanz, Port <port>)"
  * # … Lauf …
  * python3 ~/.claude/hooks/obsidian-cdp-lock.py release
  * ```
@@ -83,6 +79,7 @@ import {
   attachTo,
   Cdp,
   pollUntil,
+  bereiteInstanzVor,
   releaseAlwaysOnTop,
   requireUntil,
   requireVisible,
@@ -476,24 +473,28 @@ async function main(): Promise<void> {
         "    ZWEITINSTANZ mit eigenem Profil. Die Sperre hängt am --user-data-dir, nicht am\n" +
         "    Rechner (gemessen 2026-09-02); ein Quit auf der regulären Instanz zerstört die\n" +
         "    Sitzung einer fremden Session, während der eigene Lauf sauber grün bleibt.\n" +
-        "\n  # freien Port wählen (9333 ist im Workspace vergeben):\n" +
-        "  lsof -nP -iTCP:9334 -sTCP:LISTEN\n" +
-        "  UD=/tmp/obs-finance-ledger; mkdir -p \"$UD\"\n" +
+        "\n  # Port frei wählen (lsof -nP -iTCP:<port> -sTCP:LISTEN), Profil je Repo:\n" +
+        "  UD=/tmp/obs-test-finance-ledger; mkdir -p \"$UD\"\n" +
+        "  cp ~/Library/Application\\ Support/obsidian/obsidian-*.asar \"$UD\"/\n" +
+        `  # $UD/obsidian.json: {"vaults":{"<id>":{"path":"${vaultDir}","ts":0,"open":true}},"language":"en"}\n` +
+        "  # (Obsidian liest die Datei nur beim Start — erst schreiben, dann starten)\n" +
         "  /Applications/Obsidian.app/Contents/MacOS/Obsidian \\\n" +
-        "    --user-data-dir=\"$UD\" --remote-debugging-port=9334 &\n" +
-        `\n  # Vault registrieren — ein frisches Profil kennt den NAMEN noch nicht,\n` +
-        `  # also über den PFAD (URL-kodiert, auf eine Datei IM Vault zeigend):\n` +
-        `  open "obsidian://open?path=..."   # unter ${vaultDir}\n` +
-        "\nBeim ersten Öffnen fragt Obsidian nach Vertrauen — bestätigen, sonst läuft das\n" +
-        "Plugin nicht und jedes Bild zeigt eine leere Seitenleiste.\n" +
-        "\nDann aufnehmen mit:  npm run shots -- --port 9334\n" +
+        "    --user-data-dir=\"$UD\" --remote-debugging-port=<port> &\n" +
+        "\nVertrauensdialog und Restricted Mode hebt der Treiber beim Verbinden auf (bereiteInstanzVor).\n" +
+        "\nDann aufnehmen mit:  npm run shots -- --port <port>\n" +
         "⚠️  Vorher den CDP-Lock nehmen (--exclusive focus) — er sieht den Port nicht,\n" +
         "    sondern den Kommandotext, und blockt ohne Halter genauso wie bei fremdem.",
     );
     return;
   }
 
-  const port = Number(flag("--port") ?? env.SHOTS_PORT ?? 9222);
+  const portText = flag("--port") ?? env.SHOTS_PORT;
+  if (portText === undefined) {
+    // Kein Standardport: 9222 gehört der regulären Instanz, und ein Rezept, das dort stillschweigend
+    // landet, fotografiert die Sitzung einer fremden Session.
+    throw new Error("--port <n> fehlt (oder SHOTS_PORT). Es gibt keinen Standardport — Zweitinstanz laut Kopfkommentar starten.");
+  }
+  const port = Number(portText);
   const nur = flag("--only");
   if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
@@ -505,6 +506,8 @@ async function main(): Promise<void> {
     );
   }
   console.log(`Verbunden auf Port ${port}.`);
+  // Frisches Profil: Vertrauensdialog bestätigen, Restricted Mode aufheben, Plugin laden.
+  console.log(`Instanz: ${(await bereiteInstanzVor(cdp, { pluginIds: [PLUGIN_ID], nurVault: REPO_NAME })).hinweis}`);
 
   // Außerhalb des try: die Sprache muss auch nach einem Abbruch zurück.
   let spracheVorher: string | null = null;
