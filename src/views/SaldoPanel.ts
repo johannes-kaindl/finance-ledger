@@ -8,6 +8,7 @@ import { formatMoneyAmount, type MoneyDisplay } from './helpers';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { renderNotConfigured, renderNoJournal } from './emptyState';
 
 export class SaldoPanel implements FinancePanel {
   readonly id = 'saldo' as const;
@@ -37,7 +38,7 @@ export class SaldoPanel implements FinancePanel {
 
     const paths = this.getPaths();
     if (!paths.isConfigured) {
-      container.createEl('p', { text: notConfiguredMessage(), cls: 'fl-empty' });
+      renderNotConfigured(container, this.app, notConfiguredMessage());
       return;
     }
 
@@ -45,7 +46,7 @@ export class SaldoPanel implements FinancePanel {
     try {
       text = await this.app.vault.adapter.read(normalizePath(paths.journal));
     } catch {
-      container.createEl('p', { text: t('saldo.noJournal', paths.journal) });
+      renderNoJournal(container, this.app, t('saldo.noJournal', paths.journal));
       return;
     }
 
@@ -107,7 +108,7 @@ export class SaldoPanel implements FinancePanel {
       } else {
         const dot = standAmTd.createSpan({ cls: 'fl-txn-state fl-mr-1' });
         dot.setAttribute('data-state', 'tbc');
-        standAmTd.createSpan({ text: 'TBC' });
+        standAmTd.createSpan({ text: t('saldo.state.tbc') });
         standAmTd.addClass('fl-warning');
         standAmTd.title = t('saldo.openingTbcTitle', s.account);
       }

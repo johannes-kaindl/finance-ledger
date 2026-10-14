@@ -9,6 +9,7 @@ import { buildAccountFilter, formatMoneyAmount, moneyCtx, type MoneyDisplay } fr
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { renderNotConfigured, renderNoJournal } from './emptyState';
 
 type PrefixMode = 'Ausgaben' | 'Einnahmen' | 'Alle';
 
@@ -54,7 +55,7 @@ export class CategoryPanel implements FinancePanel {
 
     const paths = this.getPaths();
     if (!paths.isConfigured) {
-      container.createEl('p', { text: notConfiguredMessage(), cls: 'fl-empty' });
+      renderNotConfigured(container, this.app, notConfiguredMessage());
       return;
     }
 
@@ -62,7 +63,7 @@ export class CategoryPanel implements FinancePanel {
     try {
       text = await this.app.vault.adapter.read(normalizePath(paths.journal));
     } catch {
-      container.createEl('p', { text: t('category.noJournal', paths.journal) });
+      renderNoJournal(container, this.app, t('category.noJournal', paths.journal));
       return;
     }
 
@@ -85,13 +86,25 @@ export class CategoryPanel implements FinancePanel {
       Alle: t('category.mode.all'),
     };
 
+    // Zustands-Knöpfe (UI-STANDARD §8): `aria-pressed` für Screenreader, `is-active` samt Schriftgewicht für
+    // alle anderen — der Zustand steht nicht nur in der Farbe.
+    const buttons = new Map<PrefixMode, HTMLElement>();
+    const markActive = (): void => {
+      for (const [m, b] of buttons) {
+        b.setAttribute('aria-pressed', m === this.prefixMode ? 'true' : 'false');
+        b.toggleClass('is-active', m === this.prefixMode);
+      }
+    };
     for (const mode of ['Ausgaben', 'Einnahmen', 'Alle'] as PrefixMode[]) {
       const btn = bar.createEl('button', { text: modeLabels[mode], cls: 'fl-fs-sm' });
+      buttons.set(mode, btn);
       btn.onclick = () => {
         this.prefixMode = mode;
+        markActive();
         this.rerender();
       };
     }
+    markActive();
 
     this.buildRangeControls(container);
   }

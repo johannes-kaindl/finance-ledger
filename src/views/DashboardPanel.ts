@@ -10,7 +10,9 @@ import { buildAccountFilter, formatMoneyAmount, moneyCtx, type MoneyDisplay } fr
 import type { DataAccessor } from './TBCPanel';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
-import { t } from '../i18n/strings';
+import { getLang, t } from '../i18n/strings';
+import { renderNotConfigured } from './emptyState';
+import { localYearMonth } from '../vendor/kit/local-stamp';
 import { confirmRebuild } from '../ui/confirmOverwrite';
 
 // labelKey statt Klartext — Übersetzung erfolgt lazy am Render-Ort (t()), da
@@ -63,7 +65,7 @@ export class DashboardPanel implements FinancePanel {
 
     const paths = this.getPaths();
     if (!paths.isConfigured) {
-      container.createEl('p', { text: notConfiguredMessage(), cls: 'fl-empty' });
+      renderNotConfigured(container, this.app, notConfiguredMessage());
       return;
     }
 
@@ -186,7 +188,7 @@ export class DashboardPanel implements FinancePanel {
     const tsLine = card.createDiv({ cls: 'fl-stat-line' });
     tsLine.createSpan({ text: t('dashboard.card.activity.lastReimport'), cls: 'fl-muted' });
     const tsValue = data.lastReimportTimestamp
-      ? new Date(data.lastReimportTimestamp).toLocaleString('de-DE')
+      ? new Date(data.lastReimportTimestamp).toLocaleString(getLang() === 'de' ? 'de-DE' : 'en')
       : t('dashboard.card.activity.never');
     tsLine.createSpan({ text: tsValue });
 
@@ -300,7 +302,9 @@ export class DashboardPanel implements FinancePanel {
       return;
     }
 
-    const ymPrefix = new Date().toISOString().slice(0, 7);
+    // Der laufende Monat des Nutzers, nicht der UTC-Monat: in der ersten Stunde des Monats (Ortszeit)
+    // stünde sonst noch der Vormonat da.
+    const ymPrefix = localYearMonth(new Date());
     const filtered = txs.filter(tx => tx.date.startsWith(ymPrefix));
 
     if (filtered.length === 0) {

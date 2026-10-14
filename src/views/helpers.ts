@@ -1,5 +1,5 @@
 import type { Transaction, LedgerDiagnostics } from '../parser/ledger';
-import { t, tPlural } from '../i18n/strings';
+import { getLang, t, tPlural } from '../i18n/strings';
 
 /**
  * One-line, human-readable summary of non-fatal parse findings — or `null` when
@@ -220,12 +220,32 @@ export function flowCtxFromSign(amountEur: number): MoneyCtx {
   return amountEur >= 0 ? 'expense' : 'income';
 }
 
-const EUR_PLAIN = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
-const EUR_SIGNED = new Intl.NumberFormat('de-DE', {
-  style: 'currency',
-  currency: 'EUR',
-  signDisplay: 'exceptZero',
-});
+/**
+ * Das Zahlenformat folgt der Oberflächensprache (Obsidian-Spracheinstellung), nicht einem festen Land: ein
+ * englisch eingestellter Nutzer sah vorher „−588,31 €“ neben englischen Beschriftungen. Deutsch bleibt
+ * `de-DE`; jede andere Sprache bekommt das neutrale `en`.
+ */
+// Nicht exportiert: dieselbe Zuordnung steht als `localeTag()` in health-vitals (`i18n/strings.ts`) — ein Kit-Kandidat
+// (code-kit `i18n`), als Kit-Kandidat an den Master gemeldet. Bis dahin je Repo eine Zeile.
+function numberLocale(): string {
+  return getLang() === 'de' ? 'de-DE' : 'en';
+}
+
+interface EurFormats { plain: Intl.NumberFormat; signed: Intl.NumberFormat }
+const eurFormats = new Map<string, EurFormats>();
+
+/** Pro Sprache einmal gebaut (Intl.NumberFormat ist teuer) und beim Sprachwechsel neu gewählt. */
+function eurFormatsFor(locale: string): EurFormats {
+  let f = eurFormats.get(locale);
+  if (!f) {
+    f = {
+      plain: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }),
+      signed: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', signDisplay: 'exceptZero' }),
+    };
+    eurFormats.set(locale, f);
+  }
+  return f;
+}
 
 function moneyTone(amountEur: number, ctx: MoneyCtx, display: MoneyDisplay): MoneyTone {
   if (amountEur === 0) return 'zero';
@@ -249,7 +269,8 @@ export function formatMoneyAmount(
 ): { text: string; tone: MoneyTone } {
   const isFlow = ctx === 'income' || ctx === 'expense';
   const value = isFlow && display.signMode === 'intuitive' ? -amountEur : amountEur;
-  const text = isFlow ? EUR_SIGNED.format(value) : EUR_PLAIN.format(value);
+  const fmt = eurFormatsFor(numberLocale());
+  const text = isFlow ? fmt.signed.format(value) : fmt.plain.format(value);
   return { text, tone: moneyTone(amountEur, ctx, display) };
 }
 

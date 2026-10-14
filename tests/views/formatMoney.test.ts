@@ -1,4 +1,5 @@
-import { it, expect, describe } from 'vitest';
+import { it, expect, describe, afterEach } from 'vitest';
+import { setLang } from '../../src/i18n/strings';
 import {
   moneyCtx,
   flowCtxFromSign,
@@ -89,5 +90,25 @@ describe('formatMoneyAmount — Farbe (tone), orthogonal zum Vorzeichen', () => 
     expect(income0.tone).toBe('zero');
     expect(income0.text).not.toMatch(/^[+-]/);
     expect(formatMoneyAmount(0, 'balance', d('intuitive', 'classic')).tone).toBe('zero');
+  });
+});
+
+describe('Zahlenformat folgt der Oberflächensprache', () => {
+  afterEach(() => { setLang('en'); });
+
+  it('Deutsch: Komma als Dezimaltrenner, Punkt als Tausender, Euro hinten', () => {
+    setLang('de');
+    expect(formatMoneyAmount(1234.5, 'balance', d('accounting', 'classic')).text).toBe('1.234,50\u00a0€');
+  });
+  it('Englisch: Punkt als Dezimaltrenner, Komma als Tausender, Euro vorn', () => {
+    setLang('en');
+    expect(formatMoneyAmount(1234.5, 'balance', d('accounting', 'classic')).text).toBe('€1,234.50');
+  });
+  it('der Wechsel gilt sofort (kein beim Laden festgehaltenes Format)', () => {
+    setLang('de');
+    const de = formatMoneyAmount(2.5, 'balance', d('accounting', 'classic')).text;
+    setLang('en');
+    const en = formatMoneyAmount(2.5, 'balance', d('accounting', 'classic')).text;
+    expect(de).not.toBe(en);
   });
 });

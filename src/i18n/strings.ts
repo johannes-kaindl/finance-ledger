@@ -20,6 +20,7 @@ export const EN: Record<string, string> = {
   'panel.tbc.label': 'To classify',
 
   // common / shared
+  'empty.openSettings': 'Open settings',
   'common.notConfigured': 'Configure your finance project folder in the Finance Ledger settings.',
   'common.cancel': 'Cancel',
   'common.ok': 'OK',
@@ -70,7 +71,7 @@ export const EN: Record<string, string> = {
   'dashboard.base.payees': 'Payees',
   'dashboard.action.importCsv': 'Import CSV',
   'dashboard.action.reimport': 'Re-import',
-  'dashboard.action.reimportRunning': 'Importer running…',
+  'dashboard.action.reimportRunning': 'Rebuilding…',
   'notice.importCsvCommandMissing': 'CSV import command not available (Obsidian commands API missing).',
   'notice.reimportUnavailable': 'Re-import not available (plugin data missing).',
 
@@ -126,11 +127,12 @@ export const EN: Record<string, string> = {
   'saldo.col.lastTx': 'Last transaction',
   'saldo.openingTbcTitle': 'Opening balance TBC for {0} — set anfangssaldo_eur + anfangssaldo_stand_am in the account note frontmatter',
   'saldo.noAssets': 'No asset accounts found in the ledger.',
+  'saldo.state.tbc': 'TBC',
   'saldo.noJournal': 'Could not find journal.ledger: {0}',
 
   // TBC panel
   'tbc.importError.title': 'Re-import failed',
-  'tbc.importError.noStderr': '(no stderr)',
+  'tbc.importError.noDetails': '(no details)',
   'tbc.importError.retry': 'Try again',
   'tbc.importError.copyCmd': 'Copy terminal command',
   'tbc.importError.copied': 'Copied!',
@@ -139,7 +141,7 @@ export const EN: Record<string, string> = {
   'tbc.header.title': 'TBC triage',
   'tbc.header.reimportNow': 'Re-import now',
   'tbc.counter': '{0} new rules',
-  'tbc.banner.running': 'Importer running… 30–60s',
+  'tbc.banner.running': 'Rebuilding journal…',
   'tbc.col.hashTitle': 'Number of transactions',
   'tbc.action.classify': 'Classify',
   'tbc.footer.summary': 'TBC: {0} transactions, {1} counterparties — total: ',
@@ -233,7 +235,6 @@ export const EN: Record<string, string> = {
   'modal.importCsv.importing': 'Importing…',
   'notice.importSuccess': 'Import successful — {0}',
   'modal.importCsv.summary.withCounts': '{0} CSV(s) copied · {1} new / {2} skipped',
-  'modal.importCsv.summary.withoutCounts': '{0} CSV(s) copied · importer ok ({1}s)',
   'notice.importError': 'Import error: {0}',
 
   // built-in import (no Python)
@@ -275,6 +276,7 @@ export const DE: Record<string, string> = {
   'panel.saldo.label': 'Kontostände',
   'panel.tbc.label': 'Zu klassifizieren',
 
+  'empty.openSettings': 'Einstellungen öffnen',
   'common.notConfigured': 'Konfiguriere deinen Finanzprojekt-Ordner in den Finance-Ledger-Einstellungen.',
   'common.cancel': 'Abbrechen',
   'common.ok': 'OK',
@@ -323,7 +325,7 @@ export const DE: Record<string, string> = {
   'dashboard.base.payees': 'Empfänger',
   'dashboard.action.importCsv': 'CSV importieren',
   'dashboard.action.reimport': 'Neu importieren',
-  'dashboard.action.reimportRunning': 'Importer läuft…',
+  'dashboard.action.reimportRunning': 'Wird neu aufgebaut…',
   'notice.importCsvCommandMissing': 'CSV-Import-Befehl nicht verfügbar (Obsidian-Commands-API fehlt).',
   'notice.reimportUnavailable': 'Re-Import nicht verfügbar (Plugin-Daten fehlen).',
 
@@ -376,10 +378,11 @@ export const DE: Record<string, string> = {
   'saldo.col.lastTx': 'Letzte Transaktion',
   'saldo.openingTbcTitle': 'Anfangssaldo TBC für {0} — anfangssaldo_eur + anfangssaldo_stand_am im Konto-Notiz-Frontmatter setzen',
   'saldo.noAssets': 'Keine Aktivkonten im Journal gefunden.',
+  'saldo.state.tbc': 'TBC',
   'saldo.noJournal': 'journal.ledger konnte nicht gefunden werden: {0}',
 
   'tbc.importError.title': 'Re-Import fehlgeschlagen',
-  'tbc.importError.noStderr': '(kein stderr)',
+  'tbc.importError.noDetails': '(keine Details)',
   'tbc.importError.retry': 'Erneut versuchen',
   'tbc.importError.copyCmd': 'Terminal-Befehl kopieren',
   'tbc.importError.copied': 'Kopiert!',
@@ -388,7 +391,7 @@ export const DE: Record<string, string> = {
   'tbc.header.title': 'TBC-Triage',
   'tbc.header.reimportNow': 'Jetzt re-importieren',
   'tbc.counter': '{0} neue Regeln',
-  'tbc.banner.running': 'Importer läuft… 30–60s',
+  'tbc.banner.running': 'Journal wird neu aufgebaut…',
   'tbc.col.hashTitle': 'Anzahl Transaktionen',
   'tbc.action.classify': 'Klassifizieren',
   'tbc.footer.summary': 'TBC: {0} Transaktionen, {1} Gegenparteien — gesamt: ',
@@ -479,7 +482,6 @@ export const DE: Record<string, string> = {
   'modal.importCsv.importing': 'Importiere…',
   'notice.importSuccess': 'Import erfolgreich — {0}',
   'modal.importCsv.summary.withCounts': '{0} CSV(s) kopiert · {1} neu / {2} übersprungen',
-  'modal.importCsv.summary.withoutCounts': '{0} CSV(s) kopiert · Importer ok ({1}s)',
   'notice.importError': 'Import-Fehler: {0}',
 
   'cmd.rebuildJournal': 'Journal aus CSVs neu aufbauen (eingebaut)',

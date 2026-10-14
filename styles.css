@@ -389,6 +389,8 @@ body {
 .fl-table th.fl-sortable {
   cursor: pointer;
 }
+.fl-sort-arrow { color: var(--text-muted); }
+.fl-toolbar button.is-active { font-weight: var(--font-semibold); background: var(--interactive-accent); color: var(--text-on-accent); }
 .fl-table th.fl-num {
   text-align: right;
 }

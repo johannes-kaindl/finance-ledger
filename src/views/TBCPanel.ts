@@ -10,6 +10,7 @@ import type { PluginData } from '../types/plugin-data';
 import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { renderNotConfigured, renderNoJournal } from './emptyState';
 import { writeClipboard } from '../vendor/kit/clipboard';
 import { confirmRebuild } from '../ui/confirmOverwrite';
 
@@ -21,7 +22,7 @@ export type DataAccessor = {
 class ImportErrorModal extends Modal {
   constructor(
     app: App,
-    private readonly stderr: string,
+    private readonly details: string,
     private readonly onRetry: () => void,
     private readonly importerCwd: string,
     private readonly env: Record<string, string> = {},
@@ -32,7 +33,7 @@ class ImportErrorModal extends Modal {
   onOpen(): void {
     const { contentEl } = this;
     contentEl.createEl('h3', { text: t('tbc.importError.title') });
-    contentEl.createEl('pre', { text: this.stderr || t('tbc.importError.noStderr'), cls: 'fl-pre' });
+    contentEl.createEl('pre', { text: this.details || t('tbc.importError.noDetails'), cls: 'fl-pre' });
 
     const cmd = buildImporterCommand(this.importerCwd, this.env);
     const btnRow = contentEl.createDiv({ cls: 'fl-row-actions' });
@@ -93,7 +94,7 @@ export class TBCPanel implements FinancePanel {
     container.empty();
 
     if (!this.getPaths().isConfigured) {
-      container.createEl('p', { text: notConfiguredMessage(), cls: 'fl-empty' });
+      renderNotConfigured(container, this.app, notConfiguredMessage());
       return;
     }
 
@@ -248,7 +249,8 @@ export class TBCPanel implements FinancePanel {
     } catch {
       this.diagnosticsEl.empty();
       this.tableBody.empty();
-      this.footerEl.setText(t('tbc.noJournal'));
+      this.footerEl.empty();
+      renderNoJournal(this.footerEl, this.app, t('tbc.noJournal'));
       return;
     }
 

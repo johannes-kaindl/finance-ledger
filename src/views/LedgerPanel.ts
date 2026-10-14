@@ -24,6 +24,7 @@ import { confirmAction } from '../vendor/kit-obsidian/confirm';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { renderNotConfigured, renderNoJournal } from './emptyState';
 
 export class LedgerPanel implements FinancePanel {
   readonly id = 'ledger' as const;
@@ -35,6 +36,7 @@ export class LedgerPanel implements FinancePanel {
   private filter: FilterState = { dateFrom: '', dateTo: '', counterparty: '', account: '', tags: '' };
   private sortCol: SortColumn = 'date';
   private sortDir: SortDirection = 'asc';
+  private sortHeaders = new Map<SortColumn, { th: HTMLElement; arrow: HTMLElement }>();
   private tbody!: HTMLTableSectionElement;
   private footer!: HTMLDivElement;
   private filterInputs!: Record<'dateFrom' | 'dateTo' | 'counterparty' | 'account' | 'tags', HTMLInputElement>;
@@ -63,7 +65,7 @@ export class LedgerPanel implements FinancePanel {
 
     const paths = this.getPaths();
     if (!paths.isConfigured) {
-      container.createEl('p', { text: notConfiguredMessage(), cls: 'fl-empty' });
+      renderNotConfigured(container, this.app, notConfiguredMessage());
       return;
     }
 
@@ -71,7 +73,7 @@ export class LedgerPanel implements FinancePanel {
     try {
       text = await this.app.vault.adapter.read(normalizePath(paths.journal));
     } catch {
-      container.createEl('p', { text: t('ledger.noJournal', paths.journal) });
+      renderNoJournal(container, this.app, t('ledger.noJournal', paths.journal));
       return;
     }
 
@@ -207,8 +209,12 @@ export class LedgerPanel implements FinancePanel {
     const thead = table.createTHead();
     const tr = thead.insertRow();
     for (const { labelKey, col } of cols) {
-      const th = tr.createEl('th', { text: t(labelKey), cls: 'fl-sortable' });
-      th.onclick = () => {
+      const th = tr.createEl('th', { cls: 'fl-sortable' });
+      th.createSpan({ text: t(labelKey) });
+      const arrow = th.createSpan({ cls: 'fl-sort-arrow' });
+      // Tastatur wie Maus: ein Kopf, der nur auf Klick reagiert, ist ohne Maus nicht zu bedienen.
+      th.setAttribute('tabindex', '0');
+      const toggle = (): void => {
         if (this.sortCol === col) {
           this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
         } else {
@@ -217,10 +223,28 @@ export class LedgerPanel implements FinancePanel {
         }
         this.rerender();
       };
+      th.onclick = toggle;
+      th.onkeydown = (e: KeyboardEvent) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        toggle();
+      };
+      this.sortHeaders.set(col, { th, arrow });
     }
+    this.updateSortIndicators();
 
     this.tbody = table.createTBody();
     this.footer = container.createDiv();
+  }
+
+  /** Die sortierte Spalte trägt `aria-sort` und einen Pfeil; alle anderen `none` und keinen. Der Pfeil ist
+   *  der zweite Kanal neben dem Attribut: wer nicht vorliest, sieht, wonach sortiert ist. */
+  private updateSortIndicators(): void {
+    for (const [col, { th, arrow }] of this.sortHeaders) {
+      const active = col === this.sortCol;
+      th.setAttribute('aria-sort', active ? (this.sortDir === 'asc' ? 'ascending' : 'descending') : 'none');
+      arrow.setText(active ? (this.sortDir === 'asc' ? ' ▲' : ' ▼') : '');
+    }
   }
 
   // ── Footer ─────────────────────────────────────────────────────────────────
@@ -232,6 +256,7 @@ export class LedgerPanel implements FinancePanel {
   // ── Re-render ──────────────────────────────────────────────────────────────
 
   private rerender(): void {
+    this.updateSortIndicators();
     const visible = sortRows(filterRows(this.allRows, this.filter, this.slugMaps), this.sortCol, this.sortDir);
 
     this.tbody.empty();

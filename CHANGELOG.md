@@ -10,6 +10,15 @@ All notable changes to the Finance Ledger plugin. Format after
 
 - **Ask before overwriting.** "Rebuild journal" (command, and the re-import buttons in the dashboard and the triage tab) now asks first: it rewrites `journal.ledger`, `accounts.ledger` and `opening_balances.ledger` from the CSVs. The CSV import asks when a file with the same name is already in the statements folder, naming the files; the old version is not kept. Cancel does nothing.
 
+- **Amounts follow the interface language.** With Obsidian set to English, amounts and the "last re-import" time are now written the English way (`−€1,234.50`) instead of always the German way (`−1.234,50 €`). German stays as it was.
+- **Empty views point the way.** A panel that has nothing to show (plugin not set up, no `journal.ledger` yet) now offers one button: "Open settings" or "Import CSV". The "journal not found" lines had no styling at all before.
+- **Accessibility.** The Expenses / Income / All buttons in the category overview report their state (`aria-pressed`, plus a bold active button). The ledger's column headers show an arrow for the sorted column, announce it (`aria-sort`) and can be sorted with the keyboard (Enter or Space).
+- The "Importer running… 30–60s" banner and the "(no stderr)" placeholder in the re-import error dialog were left over from the Python importer; they now say "Rebuilding journal…" and "(no details)". The button label while rebuilding reads "Rebuilding…". The "TBC" marker in the balances table is a translatable string now.
+
+### Fixed
+
+- The dashboard's "top categories of the current month" card used the UTC month. In the first hour of a month (local time) it still showed the previous month; it now uses your local month.
+
 ### Added
 
 - **Categories: period filter.** The category overview can be limited to a period: this month, last month, this quarter, this year, last year, or a free date range (both ends included). Without a period it still counts everything. The share column and the volume are computed over the chosen period only, and clicking a category opens the ledger with the same period, so the numbers match.

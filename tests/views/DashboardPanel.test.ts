@@ -238,6 +238,22 @@ describe('DashboardPanel', () => {
     }
   });
 
+  it('Top-Categories-Card nimmt in der ersten Stunde des Monats (Ortszeit) schon den neuen Monat', async () => {
+    // vitest.config.ts pinnt TZ=Europe/Berlin: 22:30 UTC am 30. April ist dort 00:30 am 1. Mai. Der UTC-Monat
+    // wäre noch April und zeigte „Sonstiges“ statt der Mai-Buchungen.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-30T22:30:00.000Z'));
+    try {
+      const { el } = await render(makeFakeApp(), makeFakeAccessor());
+      const topCard = findCards(el).find(c => (c.cls as string).includes('card-top-categories'))!;
+      const allTexts = walkAll(topCard).map(e => e.text as string).join('|');
+      expect(allTexts).toContain('Wohnen');
+      expect(allTexts).not.toContain('Sonstiges');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('Top-Categories-Row navigiert zum ledger-Tab', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-15T12:00:00.000Z'));
@@ -419,7 +435,7 @@ describe('DashboardPanel — Saldo card opening balances (H3)', () => {
   it('Saldo total includes opening balances, not just transaction movement', async () => {
     const { el } = await render(makeAppWithOpening(), makeFakeAccessor());
 
-    const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+    const eur = new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' });
     const saldoCard = findCards(el).find(c => (c.cls as string).includes('card-saldo'))!;
     const totalRow = walkAll(saldoCard).find(
       e => typeof e.cls === 'string' && e.cls.includes('fl-total-row'),
