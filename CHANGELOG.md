@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Fixed
+
+- The settings tab named two different fields "Accounts file" / "Konten-Datei" right below each other. The field for the ledger's `accounts.ledger` is now "Account chart file" ("Kontenplan-Datei"); "Accounts file" stays the `konten.yaml` import configuration, as the documentation calls it.
+
 ### Changed
 
 - Internal only, nothing changes for users: the vendored kit modules move to obsidian-kit 0.60.1 and code-kit 0.27.1 (the files are identical apart from their origin headers; none of the skipped kit releases reaches this plugin's users). The clock for "today" now comes from the shared `local-stamp` module (same local day as before; a test now covers the hour after midnight).

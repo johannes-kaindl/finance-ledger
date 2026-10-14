@@ -9,6 +9,16 @@ describe('i18n strings', () => {
     expect(de).toEqual(en);
   });
 
+  it('accounts.ledger und konten.yaml tragen verschiedene Labels (nie zwei Felder mit demselben Namen)', () => {
+    // Beide stehen untereinander im Settings-Tab und in der Settings-Suche; „Konten-Datei“ für beide
+    // war am 2026-09-16 der Befund. Das Label von konten.yaml bleibt, die Doku nennt es so.
+    for (const dict of [EN, DE]) {
+      expect(dict['settings.field.accountsFile']).not.toBe(dict['settings.kontenFile.name']);
+    }
+    expect(DE['settings.kontenFile.name']).toBe('Konten-Datei');
+    expect(DE['settings.field.accountsFile']).toBe('Kontenplan-Datei');
+  });
+
   it('registerI18n + setLang liefert die richtige Sprache, EN als Fallback', () => {
     registerI18n();
     setLang('de');
