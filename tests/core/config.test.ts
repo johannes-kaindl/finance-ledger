@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	createImporterContext,
 	fixedClock,
@@ -172,5 +172,16 @@ describe("ClockPort", () => {
 
 	it("liefert lokal formatierte ISO-Daten", () => {
 		expect(systemClock().today()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+	});
+
+	it("nennt nach Mitternacht den lokalen Tag, nicht den UTC-Vortag", () => {
+		// vitest.config.ts pinnt TZ=Europe/Berlin: 23:30 UTC am 1. Januar ist dort 00:30 am 2.
+		vi.useFakeTimers();
+		try {
+			vi.setSystemTime(new Date("2026-01-01T23:30:00Z"));
+			expect(systemClock().today()).toBe("2026-01-02");
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });

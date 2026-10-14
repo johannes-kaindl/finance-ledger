@@ -13,6 +13,7 @@
  * am Fundament, damit ihn keine spätere Etappe nachziehen muss.
  */
 
+import { localDate } from "../../vendor/kit/local-stamp";
 import type { IsoDate } from "../dates";
 import {
 	activeKonten,
@@ -43,13 +44,7 @@ export function fixedClock(date: IsoDate): ClockPort {
 /** Uhr auf Basis der Systemzeit. Bewusst lokal, nicht UTC: Buchungstage sind lokal. */
 export function systemClock(): ClockPort {
 	return {
-		today: () => {
-			const now = new Date();
-			const year = String(now.getFullYear()).padStart(4, "0");
-			const month = String(now.getMonth() + 1).padStart(2, "0");
-			const day = String(now.getDate()).padStart(2, "0");
-			return `${year}-${month}-${day}`;
-		},
+		today: () => localDate(new Date()),
 	};
 }
 
