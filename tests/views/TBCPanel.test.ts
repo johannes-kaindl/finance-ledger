@@ -55,6 +55,7 @@ const PATHS = {
   isConfigured: true, root: 'R',
   journal: 'R/Ledger/journal.ledger', openingBalances: 'R/Ledger/opening_balances.ledger', accounts: 'R/Ledger/accounts.ledger',
   rulesFolder: 'R/55-Categorizer-Rules', basesFolder: 'R/05-Bases', kategorienFolder: 'R/45-Kategorien', empfaengerFolder: 'R/60-Empfänger', umsatzDir: 'R/Umsätze',
+  kontenFile: 'R/Konten.md', vertraegeFile: 'R/Verträge.md', snapshotsFolder: 'R/.snapshots',
 };
 
 async function render(app: ReturnType<typeof makeFakeApp>): Promise<FakeEl> {

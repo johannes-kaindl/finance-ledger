@@ -34,7 +34,7 @@ function makeApp(opts?: { slugFileExists?: boolean }) {
       adapter: { basePath: '/vault', read: vi.fn() },
     },
     metadataCache: { getFileCache: () => null },
-  } as unknown as Parameters<typeof CategorizerRuleModal>[0];
+  } as unknown as ConstructorParameters<typeof CategorizerRuleModal>[0];
 }
 
 function findButtonByText(
@@ -63,6 +63,7 @@ const getPaths = () => ({
   isConfigured: true, root: 'R',
   journal: 'R/Ledger/journal.ledger', openingBalances: 'R/Ledger/opening_balances.ledger', accounts: 'R/Ledger/accounts.ledger',
   rulesFolder: 'Rules', basesFolder: 'R/05-Bases', kategorienFolder: 'R/45-Kategorien', empfaengerFolder: 'R/60-Empfänger', umsatzDir: 'R/Umsätze',
+  kontenFile: 'R/Konten.md', vertraegeFile: 'R/Verträge.md', snapshotsFolder: 'R/.snapshots',
 });
 
 describe('CategorizerRuleModal', () => {
@@ -93,7 +94,7 @@ describe('CategorizerRuleModal', () => {
       onSuccess: async () => {},
     }, getPaths);
     modal.onOpen();
-    expect(findByTag(modal.contentEl, 'datalist')).toBe(true);
+    expect(findByTag(modal.contentEl as unknown as ReturnType<typeof makeFakeEl>, 'datalist')).toBe(true);
   });
 
   it('accountInput hat list-Attribut gesetzt', () => {
@@ -104,7 +105,7 @@ describe('CategorizerRuleModal', () => {
       onSuccess: async () => {},
     }, getPaths);
     modal.onOpen();
-    expect(findInputWithList(modal.contentEl)).toBe(true);
+    expect(findInputWithList(modal.contentEl as unknown as ReturnType<typeof makeFakeEl>)).toBe(true);
   });
 
   it('prüft Slug-Existenz via getAbstractFileByPath', () => {
@@ -126,7 +127,7 @@ describe('CategorizerRuleModal', () => {
       onSuccess: async () => {},
     }, getPaths);
     modal.onOpen();
-    const btn = findButtonByText(modal.contentEl, 'Save rule');
+    const btn = findButtonByText(modal.contentEl as unknown as ReturnType<typeof makeFakeEl>, 'Save rule');
     expect(btn).not.toBeNull();
     expect((btn as Record<string, unknown>).disabled).toBe(true);
   });
@@ -139,7 +140,7 @@ describe('CategorizerRuleModal', () => {
       onSuccess: async () => {},
     }, getPaths);
     modal.onOpen();
-    const btn = findButtonByText(modal.contentEl, 'Save rule');
+    const btn = findButtonByText(modal.contentEl as unknown as ReturnType<typeof makeFakeEl>, 'Save rule');
     expect(btn).not.toBeNull();
     expect((btn as Record<string, unknown>).disabled).toBeFalsy();
   });

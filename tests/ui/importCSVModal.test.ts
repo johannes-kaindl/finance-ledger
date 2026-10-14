@@ -127,7 +127,7 @@ function makeModal(opts?: { onImportSuccess?: () => Promise<void> }) {
     snapshotsFolder: 'R/.fl-snapshots',
   };
   const modal = new ImportCSVModal(
-    app as unknown as Parameters<typeof ImportCSVModal>[0],
+    app as unknown as ConstructorParameters<typeof ImportCSVModal>[0],
     accessor,
     () => paths,
     { onImportSuccess: opts?.onImportSuccess },

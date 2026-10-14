@@ -21,7 +21,7 @@ function makeRule(
 }
 
 function emptyRules(): CategorizerRulesResult {
-  return { counterpartyRules: [], paypalRules: [], conflicts: [] };
+  return { counterpartyRules: [], paypalRules: [], conflicts: [], incomplete: [] };
 }
 
 function makeApp(createdFile = { name: 'test.md' }) {
@@ -116,6 +116,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('pop-mart', 'substring', 500, 'pop-mart.md')],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,6 +151,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('REWE', 'substring', 500, 'rewe.md')],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -174,6 +176,7 @@ describe('createCategorizerRule', () => {
       ],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -191,6 +194,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('pop-mart', 'substring', 500, 'pop-mart.md')],
       paypalRules: [makeRule('pop-mart', 'paypal-sub', 100, 'pop-mart-pp.md')],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,6 +212,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('edeka', 'substring', 800, 'edeka.md')],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -227,6 +232,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('aldi sued', 'substring', 810, 'aldi-sued.md', ['aldi süd'])],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,6 +256,7 @@ describe('createCategorizerRule', () => {
       counterpartyRules: [makeRule('rewe', 'substring', 700, 'rewe.md')],
       paypalRules: [],
       conflicts: [],
+      incomplete: [],
     };
     const result = await createCategorizerRule(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

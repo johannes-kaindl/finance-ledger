@@ -1,0 +1,8 @@
+{
+  // Typprüfung der Testdateien (src + tests). `tsconfig.build.json` prüft nur src; ohne diese Datei
+  // fielen die Tests aus dem Gate (Welle 22). Ohne `scripts/**`: die Treiber dort hängen am
+  // Dach-Checkout und haben `tsconfig.scripts.json` samt Existenz-Guard.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node", "vitest/globals"] },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
+}

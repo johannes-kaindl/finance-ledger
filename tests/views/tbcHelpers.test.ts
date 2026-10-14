@@ -18,11 +18,12 @@ function makeTx(
   return {
     date: '2025-08-01',
     counterparty,
-    description: counterparty,
+    quelle: null,
+    verwendungszweck: null,
     tags,
     postings: [
-      { account: 'Aktiva:Bank', amountEur: -amountEur, currency: 'EUR' },
-      { account: 'Ausgaben:Test', amountEur: amountEur, currency: 'EUR' },
+      { account: 'Aktiva:Bank', amountEur: -amountEur },
+      { account: 'Ausgaben:Test', amountEur: amountEur },
     ],
   };
 }

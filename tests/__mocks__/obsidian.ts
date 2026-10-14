@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 export class Modal {
   app: unknown;
-  contentEl: ReturnType<typeof makeFakeEl>;
+  contentEl: FakeEl;
   constructor(app: unknown) {
     this.app = app;
     this.contentEl = makeFakeEl('div');
@@ -12,7 +12,7 @@ export class Modal {
 
 export class ItemView {
   app: unknown;
-  containerEl: ReturnType<typeof makeFakeEl>;
+  containerEl: FakeEl;
   leaf: unknown;
   constructor(leaf: unknown) {
     this.leaf = leaf;
@@ -83,7 +83,31 @@ export const Platform = {
 };
 
 // ── Settings API (minimal, faithful to real Obsidian for unit tests) ──────
-type FakeEl = ReturnType<typeof makeFakeEl>;
+/** Der Doppelgänger eines DOM-Elements. Explizit statt aus `makeFakeEl` abgeleitet: dessen Rumpf ist
+ *  ein `Record<string, unknown>`, und aus ihm fiele jede Methode als `unknown` heraus (Typprüfung der
+ *  Tests, Welle 22). Der Index erlaubt, dass Tests beliebige weitere Felder lesen und setzen. */
+export interface FakeEl {
+  [key: string]: unknown;
+  tag: string;
+  children: unknown[];
+  rows: unknown[];
+  attrs: Record<string, string>;
+  createEl(childTag: string, childOpts?: Record<string, unknown>): FakeEl;
+  createDiv(divOpts?: FakeElOpts): FakeEl;
+  createSpan(spanOpts?: FakeElOpts): FakeEl;
+  createTHead(): FakeEl;
+  createTBody(): FakeEl;
+  insertRow(): FakeEl;
+  setText(t: string): void;
+  empty(): void;
+  setAttribute(key: string, val: string): void;
+  addClass(...cs: string[]): void;
+  addClasses(cs: string[]): void;
+  removeClass(...cs: string[]): void;
+  toggleClass(c: string, on: boolean): void;
+  addEventListener(): void;
+  removeEventListener(): void;
+}
 
 class TextComponent {
   inputEl: FakeEl;
@@ -166,8 +190,8 @@ type FakeElOpts = {
   attr?: Record<string, string>;
 };
 
-export function makeFakeEl(tag: string, opts?: FakeElOpts) {
-  const el: Record<string, unknown> = {
+export function makeFakeEl(tag: string, opts?: FakeElOpts): FakeEl {
+  const el: FakeEl = {
     tag,
     text: opts?.text ?? '',
     value: opts?.value ?? '',
