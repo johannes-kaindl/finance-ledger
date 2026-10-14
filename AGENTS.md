@@ -122,11 +122,17 @@ npm run smoke:gui       # GUI-Smoke gegen laufendes Obsidian (maintainer-lokal, 
 Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
 bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
 
+## Importer-Port (Stand Welle 22)
+
+Der eingebaute Kern (`src/core/`) deckt E0–E3 ab und seit Welle 22 den Aggregations-Kern samt Budget (E4, `src/core/aggregate/`, noch nicht verdrahtet; E5–E7 hängen daran). Berichte und Dimensions-Notizen erzeugt weiterhin der Python-Importer (Referenz lokal unter `~/Archive/repos/26-011-finanzplan-importer`).
+
 ## Test-Konventionen
 
 - Framework: **vitest**, Environment Node, obsidian-Mock via Alias (`tests/__mocks__/obsidian.ts`)
 - `test.exclude` für `.claude/**` und `node_modules/**` nicht entfernen (Worktree-Schutz)
 - Neues Verhalten: erst Test, dann Implementierung (TDD)
+- Die Typprüfung der Tests gehört ins Gate (`npm run typecheck:test`, `tsconfig.test.json`); `tests/__mocks__/obsidian.ts` hat ein explizit typisiertes `FakeEl`, `vitest.config.ts` pinnt `TZ=Europe/Berlin` (eine Zonenprobe mit `TZ=… npx vitest` misst nichts)
+- Zahlenformat und Datumszeit folgen der Oberflächensprache (`numberLocale()` in `views/helpers.ts`), nie einem festen Land
 - Alle Tests grün vor `git commit`; `tests/bundle.test.ts` prüft das **gebaute** main.js
   (Regressions-Guard gegen untransformierte Node-Builtin-Imports im Bundle)
 
