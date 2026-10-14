@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Added
+
+- **Categories: period filter.** The category overview can be limited to a period: this month, last month, this quarter, this year, last year, or a free date range (both ends included). Without a period it still counts everything. The share column and the volume are computed over the chosen period only, and clicking a category opens the ledger with the same period, so the numbers match.
+
 ### Fixed
 
 - The settings tab named two different fields "Accounts file" / "Konten-Datei" right below each other. The field for the ledger's `accounts.ledger` is now "Account chart file" ("Kontenplan-Datei"); "Accounts file" stays the `konten.yaml` import configuration, as the documentation calls it.

@@ -3,8 +3,8 @@ import type { Transaction } from '../parser/ledger';
 
 /** Ein Zeitrahmen; ein leeres Ende heißt „offen“ (wie `dateFrom`/`dateTo` im Ledger-Filter). */
 export interface DateRange {
-  from: IsoDate | '';
-  to: IsoDate | '';
+  from: IsoDate;
+  to: IsoDate;
 }
 
 export type DatePreset = 'thisMonth' | 'lastMonth' | 'thisQuarter' | 'thisYear' | 'lastYear' | 'all';
