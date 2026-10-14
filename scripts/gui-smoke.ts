@@ -60,15 +60,17 @@ import { cwd } from "node:process";
 import { Vorbedingung, createBilanz, parseArgs, runDriver } from "../../tools/obsidian-cdp/bilanz.js";
 import {
   attachTo,
+  beimAbbruch,
   bereiteInstanzVor,
   clearNotices,
   clickReal,
+  istAbgebrochen,
   notices,
   pollUntil,
   requireVisible,
   type Cdp,
 } from "../../tools/obsidian-cdp/cdp.js";
-import { buildVault, stagingVaultDir } from "../../tools/obsidian-cdp/vault.js";
+import { buildVault, requireEigenerBuild, stagingVaultDir } from "../../tools/obsidian-cdp/vault.js";
 
 const REPO_NAME = "finance-ledger";
 const PLUGIN_ID = "finance-ledger";
@@ -252,8 +254,8 @@ function backup(vaultBase: string, root: string): string {
  * ersten und der Idempotenz-Punkt wäre grün, ohne je gemessen zu haben.
  */
 async function runImport(cdp: Cdp): Promise<string> {
+  await clearNotices(cdp);
   await cdp.evaluate(`
-    [...document.querySelectorAll(".notice")].forEach((n) => n.remove());
     app.commands.executeCommandById(${JSON.stringify(COMMAND_ID)});
     return true;
   `);
@@ -638,39 +640,23 @@ async function main(): Promise<void> {
   let markierteNotiz: string | null = null;
   let markierungVorher: string | null = null;
 
-  // Dieselbe Aufräumarbeit wie im `finally` unten — als eigene Funktion, damit der
-  // SIGINT/SIGTERM-Handler sie aufrufen kann, ohne Code zu duplizieren. Ein Ctrl-C mitten
-  // im Lauf überspringt das `finally` NICHT (try/catch-Semantik), sondern beendet den
-  // Node-Prozess sofort — ohne eigenen Handler bliebe die Prüf-Spur in der Konto-Notiz
-  // stehen. Die Rettungskopie wird bewusst NICHT gelöscht: ein abgebrochener Lauf ist kein
-  // bestätigt grüner, und die Kopie ist genau für den unklaren Fall da.
-  const cleanupState = async (): Promise<void> => {
+  // Alles, was der Lauf an der Konto-Notiz und an konten.yaml ändert, geht als EIN Schritt beim Abbruch-Modul der
+  // Brücke wieder zurück (`beimAbbruch`, angemeldet vor der ersten Mutation). Ctrl-C/SIGTERM: das Modul sperrt den
+  // Hauptzweig, fährt den Schritt, druckt die Bilanz, Exit 130 — der frühere lokale Handler lief neben dem `finally`
+  // her. Die Rettungskopie wird bewusst NICHT gelöscht: ein abgebrochener Lauf ist kein bestätigt grüner, und die
+  // Kopie ist genau für den unklaren Fall da. Idempotent (das Zurückschreiben und das Umbenennen prüfen vorher).
+  const zustandZurueck = async (): Promise<void> => {
     if (markierteNotiz !== null && markierungVorher !== null) {
-      await cdp
-        .evaluate(`
-          const file = app.vault.getAbstractFileByPath(${JSON.stringify(markierteNotiz)});
-          if (file) await app.vault.modify(file, ${JSON.stringify(markierungVorher)});
-          return true;
-        `)
-        .catch(() => undefined);
+      await cdp.evaluate(`
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(markierteNotiz)});
+        if (file) await app.vault.modify(file, ${JSON.stringify(markierungVorher)});
+        return true;
+      `);
     }
-    if (root) await stelleKontenWiederHer(cdp, root).catch(() => undefined);
+    if (root) await stelleKontenWiederHer(cdp, root);
     if (rettung) console.log(`\nRettungskopie steht (Abbruch, nicht gelöscht): ${rettung}`);
   };
-
-  let signalCleanupRunning = false;
-  const onAbortSignal = (signal: NodeJS.Signals) => {
-    if (signalCleanupRunning) return;
-    signalCleanupRunning = true;
-    void (async () => {
-      console.log(`\n\nAbbruch durch ${signal} — räume Smoke-Zustand auf...`);
-      await cleanupState();
-      cdp.close();
-      process.exit(130);
-    })();
-  };
-  process.on("SIGINT", onAbortSignal);
-  process.on("SIGTERM", onAbortSignal);
+  const zustand = beimAbbruch(zustandZurueck, "Konto-Notiz und konten.yaml zurücksetzen");
 
   try {
     await cdp.mitschnitt((zeile: string) => console.log(`    [renderer] ${zeile}`));
@@ -678,6 +664,12 @@ async function main(): Promise<void> {
 
     // Vertrauensdialog, Restricted Mode und Plugin laden — in dieser Reihenfolge, aus der Brücke.
     const vor = await bereiteInstanzVor(cdp, { pluginIds: [PLUGIN_ID], nurVault: vault, sprache: "en" });
+
+    // Herkunft des Builds: der Lauf misst den gebauten Repo-Stand, nicht den Store-Build im Vault (CORE-TEST-08 a).
+    const ort = await cdp.evaluate<{ basePath: string; configDir: string }>(
+      `return { basePath: app.vault.adapter.basePath, configDir: app.vault.configDir };`,
+    );
+    requireEigenerBuild(join(ort.basePath, ort.configDir, "plugins", PLUGIN_ID, "main.js"), join(cwd(), "main.js"));
 
     console.log("── Fundament");
     const aktiv = await cdp.evaluate<boolean>(
@@ -978,12 +970,11 @@ async function main(): Promise<void> {
       () => pruefeSchnappschuss(cdp, root),
     );
   } finally {
-    // Alles, was der Treiber angelegt hat, geht wieder heraus — auch nach einem Abbruch mitten im
-    // Lauf. Dieselbe Funktion wie der SIGINT/SIGTERM-Handler oben (Notiz-Rückname), kein
-    // Doppelcode; das Byte-gleich-Protokoll bleibt hier, weil es einen erfolgreich DURCHGELAUFENEN
-    // Vorher-Wert braucht, den der Signalpfad nicht sinnvoll verifizieren kann.
-    process.off("SIGINT", onAbortSignal);
-    process.off("SIGTERM", onAbortSignal);
+    // Nach Ctrl-C räumt das Abbruch-Modul auf, druckt die Bilanz und beendet den Prozess; dieser Zweig darf
+    // dann weder ein zweites Mal aufräumen noch die Bilanz ein zweites Mal drucken.
+    if (istAbgebrochen()) return;
+    // Normalweg: das Byte-gleich-Protokoll bleibt hier, weil es einen erfolgreich DURCHGELAUFENEN Vorher-Wert
+    // braucht, den der Abbruchschritt nicht sinnvoll verifizieren kann.
     if (root) await raeumeAuf(cdp, root).catch(() => undefined);
     if (markierteNotiz !== null && markierungVorher !== null) {
       await cdp
@@ -1000,6 +991,7 @@ async function main(): Promise<void> {
           : "\n⚠️ Spur-Rücknahme ABWEICHUNG — Rettungskopie prüfen.",
       );
     }
+    zustand();
     cdp.close();
   }
 
