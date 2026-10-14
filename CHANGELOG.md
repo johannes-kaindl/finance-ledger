@@ -17,6 +17,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Fixed
 
+- Dashboard, card "Top 3 categories": the category name and its amount were glued together on one line (since 0.3.1, when the dotted underline moved to a border). They are a row again, name left and amount right.
 - The dashboard's "top categories of the current month" card used the UTC month. In the first hour of a month (local time) it still showed the previous month; it now uses your local month.
 
 ### Added

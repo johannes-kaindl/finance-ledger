@@ -602,6 +602,15 @@ body {
   display: inline-block;
   border-bottom: 1px dotted currentColor;
 }
+/* Eine anklickbare Kennzahl-Zeile (Dashboard, Top-Kategorien) bleibt eine Flex-Zeile: `inline-block` oben
+   ließ Name und Betrag ohne Abstand aneinanderkleben. Die Linie sitzt dann an den beiden Spans. */
+.fl-stat-row.fl-link-affordance {
+  display: flex;
+  border-bottom: none;
+}
+.fl-stat-row.fl-link-affordance > span {
+  border-bottom: 1px dotted currentColor;
+}
 .fl-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;

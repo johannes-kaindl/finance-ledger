@@ -277,6 +277,13 @@ const SHOTS: Shot[] = [
         if (datei) await app.workspace.getLeaf(false).openFile(datei, { state: { mode: "preview" } });
         return true;
       `);
+      // Der Filter des Ledger-Tabs liegt im localStorage des PROFILS (`finance:filterState`) und überlebt
+      // Läufe: der GUI-Smoke setzt über den Kategorie-Klick einen Datumsfilter, und das Hero zeigte danach
+      // eine leere Tabelle. Das Rezept setzt den Zustand, den es zeigen will, selbst (CORE-TEST-21).
+      await cdp.evaluate(`
+        app.saveLocalStorage("finance:filterState", JSON.stringify({ dateFrom: "", dateTo: "", counterparty: "", account: "", tags: "" }));
+        return true;
+      `);
       await hubTab(cdp, "open-ledger-viewer");
       await sidebarBreit(cdp, 820);
       await statusleisteAus(cdp);

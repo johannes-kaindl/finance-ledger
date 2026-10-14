@@ -559,6 +559,12 @@ async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
     return { alle, leer, tag, zeilenTag, ledgerVon: felder[0]?.value ?? "", ledgerBis: felder[1]?.value ?? "" };
   `);
   if (messung === null) throw new Vorbedingung("Zeitrahmen-Felder oder Kategoriezeile nicht im DOM");
+  // Der Klick hat im localStorage des Profils einen Datumsfilter hinterlassen — zurücksetzen, sonst erbt ihn
+  // der nächste Lauf (das Hero der README-Bilder zeigte danach eine leere Tabelle).
+  await cdp.evaluate(`
+    app.saveLocalStorage("finance:filterState", JSON.stringify({ dateFrom: "", dateTo: "", counterparty: "", account: "", tags: "" }));
+    return true;
+  `);
   const summe = (xs: number[]): number => xs.reduce((a, b) => a + b, 0);
   const ok =
     messung.leer === 0 &&
