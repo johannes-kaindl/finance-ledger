@@ -115,6 +115,7 @@ const PUNKTE = [
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
+  "Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter",
 ] as const;
 
 const bilanz = createBilanz({ punkte: PUNKTE });
@@ -492,6 +493,70 @@ async function pruefeVorschau(cdp: Cdp, root: string): Promise<void> {
   } finally {
     await schliesseModale(cdp);
   }
+}
+
+/**
+ * Kategorien-Tab: der Zeitrahmen. Gemessen wird an den Beträgen im DOM, nicht am Vorhandensein der
+ * Felder: (1) ein leerer Zeitrahmen zeigt keine Beträge mehr, (2) der Tag der ersten Buchung zeigt einen
+ * kleineren oder gleich großen Betrag als „Gesamter Zeitraum“ und mindestens eine Zeile, (3) der Klick auf
+ * eine Kategorie nimmt den Zeitrahmen in den Ledger-Filter mit.
+ */
+async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
+  const NAME = "Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter";
+  const journal = await readNote(cdp, `${root}/Ledger/journal.ledger`);
+  const ersterTag = journal === null ? null : /^(\d{4}-\d{2}-\d{2})/m.exec(journal)?.[1] ?? null;
+  if (ersterTag === null) throw new Vorbedingung("Kein Datum im journal.ledger gefunden");
+
+  await cdp.evaluate(`await app.commands.executeCommandById(${JSON.stringify(`${PLUGIN_ID}:open-category-overview`)}); return true;`);
+  const da = await pollUntil<boolean>(cdp, `return !!document.querySelector(".fl-range-bar select") && document.querySelectorAll(".fl-table tbody tr").length > 0;`, 10_000);
+  if (!da) throw new Vorbedingung("Kategorien-Tab mit Zeitrahmen-Leiste nicht erreicht");
+
+  const messung = await cdp.evaluate<{ alle: number[]; leer: number; tag: number[]; zeilenTag: number; ledgerVon: string; ledgerBis: string } | null>(`
+    // Der Hub hält alle Tabs gemountet: nur die Tabelle des Kategorien-Panels zählt (das Panel, das die Leiste trägt).
+    const panel = document.querySelector(".fl-range-bar")?.closest(".fl-view");
+    if (!panel) return null;
+    // Die Buchungszahl der obersten Zeile (3. Spalte, ganze Zahl) statt des Betrags: Betragsformat und
+    // Tausendertrennzeichen hängen an der Sprache, die Zahl der Buchungen nicht.
+    const geld = () => {
+      const erste = panel.querySelector(".fl-table tbody tr");
+      const zelle = erste ? erste.querySelectorAll("td")[2] : null;
+      return zelle ? [Number((zelle.textContent ?? "").replace(/\\D/g, "")) || 0] : [];
+    };
+    const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+    const von = panel.querySelector(".fl-range-bar input[type=date]");
+    const bis = panel.querySelectorAll(".fl-range-bar input[type=date]")[1];
+    if (!von || !bis) return null;
+    const setze = async (v, b) => {
+      for (const [el, x] of [[von, v], [bis, b]]) { el.value = x; el.dispatchEvent(new Event("input", { bubbles: true })); }
+      await warte(300);
+    };
+    const alle = geld();
+    await setze("2000-01-01", "2000-01-02");
+    const leer = geld().length;
+    await setze(${JSON.stringify(ersterTag)}, ${JSON.stringify(ersterTag)});
+    const tag = geld();
+    const zeilenTag = panel.querySelectorAll(".fl-table tbody tr").length;
+    const link = panel.querySelector(".fl-table .fl-link-affordance");
+    if (!link) return null;
+    link.click();
+    await warte(800);
+    const felder = Array.from(document.querySelectorAll(".ledger-filter-bar input[type=date]"));
+    return { alle, leer, tag, zeilenTag, ledgerVon: felder[0]?.value ?? "", ledgerBis: felder[1]?.value ?? "" };
+  `);
+  if (messung === null) throw new Vorbedingung("Zeitrahmen-Felder oder Kategoriezeile nicht im DOM");
+  const summe = (xs: number[]): number => xs.reduce((a, b) => a + b, 0);
+  const ok =
+    messung.leer === 0 &&
+    messung.zeilenTag > 0 &&
+    summe(messung.tag) > 0 &&
+    summe(messung.tag) <= summe(messung.alle) &&
+    messung.ledgerVon === ersterTag &&
+    messung.ledgerBis === ersterTag;
+  record(
+    NAME,
+    ok,
+    `leer: ${messung.leer} Zeilen mit Zahl; Tag ${ersterTag}: ${messung.zeilenTag} Zeilen, ${summe(messung.tag)} von ${summe(messung.alle)} Buchungen in der obersten Zeile; Ledger-Filter ${messung.ledgerVon}…${messung.ledgerBis}`,
+  );
 }
 
 async function pruefeSchnappschuss(cdp: Cdp, root: string): Promise<void> {
@@ -969,6 +1034,8 @@ async function main(): Promise<void> {
       "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
       () => pruefeSchnappschuss(cdp, root),
     );
+    console.log("── Kategorien: Zeitrahmen");
+    await bilanz.punkt("Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter", () => pruefeKategorien(cdp, root));
   } finally {
     // Nach Ctrl-C räumt das Abbruch-Modul auf, druckt die Bilanz und beendet den Prozess; dieser Zweig darf
     // dann weder ein zweites Mal aufräumen noch die Bilanz ein zweites Mal drucken.

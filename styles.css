@@ -357,6 +357,7 @@ body {
   font-size: var(--fl-fs-sm);
   flex-shrink: 0;
 }
+.fl-range-bar { flex-wrap: wrap; align-items: flex-end; }
 .fl-toolbar {
   display: flex;
   gap: var(--fl-space-1);

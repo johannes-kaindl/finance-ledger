@@ -195,6 +195,7 @@ export function makeFakeEl(tag: string, opts?: FakeElOpts): FakeEl {
     tag,
     text: opts?.text ?? '',
     value: opts?.value ?? '',
+    type: opts?.type ?? '',
     cls: opts?.cls ?? '',
     className: opts?.cls ?? '',
     textContent: opts?.text ?? '',

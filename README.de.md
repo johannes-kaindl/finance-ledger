@@ -55,7 +55,7 @@ Plugin-Code unverändert (tolerant gegen erweiterte Notizschemas).
   Buchungen nach diesem Datum`. Buchungen vor dem Stand-Am werden gefiltert, damit der
   Bootstrap-Ablauf nichts doppelt zählt. Konten ohne `anfangssaldo_eur:` bekommen einen
   TBC-Marker.
-- **Kategorie-Übersicht** — hierarchisches Aggregat aller Kategorien mit Anteil in Prozent
+- **Kategorie-Übersicht** — hierarchisches Aggregat aller Kategorien mit Anteil in Prozent, für einen frei wählbaren Zeitraum (dieser Monat, letzter Monat, dieses Quartal, dieses Jahr, letztes Jahr oder ein eigener Datumsbereich; der Zeitraum geht beim Klick in den Ledger mit)
 - **TBC-Triage** — alle `:tbc:`-Buchungen mit einer Ein-Klick-Aktion: *Konto zuweisen,
   Categorizer-Regel speichern, Tag entfernen*
 - **Finance-Dashboard** — Fünf-Karten-Übersicht (Saldi, TBC-Rückstand, Wiederkehrendes,

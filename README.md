@@ -54,7 +54,7 @@ unchanged (tolerant of extended note schemas).
 - **Balance overview** — **as-of-aware**: shows `opening balance (as-of date per account) +
   transactions after that date`. Transactions before the as-of date are filtered out, so the
   bootstrap workflow never double-counts. Accounts without `anfangssaldo_eur:` get a TBC marker.
-- **Category overview** — hierarchical aggregate of all categories with percentage share
+- **Category overview** — hierarchical aggregate of all categories with percentage share, for a period of your choice (this month, last month, this quarter, this year, last year or a free date range; the period travels with you when you click through to the ledger)
 - **TBC triage** — every `:tbc:` transaction with a one-click action: *assign account, save
   categorizer rule, remove tag*
 - **Finance dashboard** — five-card overview (balances, TBC backlog, recurring items, top

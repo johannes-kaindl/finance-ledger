@@ -2,6 +2,8 @@ import { App, normalizePath, setIcon } from 'obsidian';
 import { parseLedgerWithDiagnostics, type Transaction } from '../parser/ledger';
 import { renderDiagnosticsBanner } from './diagnosticsBanner';
 import { aggregateCategoryTotals, type CategoryNode } from '../aggregator/category';
+import { systemClock, type ClockPort } from '../core/config/context';
+import { DATE_PRESETS, presetRange, transactionsInRange, type DatePreset, type DateRange } from './dateRange';
 import { saveState } from '../state/filterState';
 import { buildAccountFilter, formatMoneyAmount, moneyCtx, type MoneyDisplay } from './helpers';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
@@ -25,6 +27,8 @@ export class CategoryPanel implements FinancePanel {
   private container!: HTMLElement;
   private prefixMode: PrefixMode = 'Ausgaben';
   private allTransactions: Transaction[] = [];
+  /** Zeitrahmen der Ansicht; bleibt über Tab-Wechsel erhalten, nicht über einen Neustart. */
+  private range: DateRange = { from: '', to: '' };
   private treeContainer!: HTMLElement;
 
   constructor(
@@ -32,6 +36,7 @@ export class CategoryPanel implements FinancePanel {
     private readonly getPaths: () => ResolvedFinancePaths,
     private readonly navigate: HubNavigate,
     private readonly getDisplay: () => MoneyDisplay,
+    private readonly clock: ClockPort = systemClock(),
   ) {}
 
   mount(container: HTMLElement): void {
@@ -87,6 +92,55 @@ export class CategoryPanel implements FinancePanel {
         this.rerender();
       };
     }
+
+    this.buildRangeControls(container);
+  }
+
+  /** Zeitrahmen: Voreinstellung (Monat, Quartal, Jahr …) plus zwei freie Datumsfelder. Ohne Zeitrahmen
+   *  ist „Volumen“ eine Summe über alle Jahre und sagt wenig; mit ihm zählt jede Zahl dieselben Buchungen
+   *  wie der Ledger-Filter mit denselben Grenzen. */
+  private buildRangeControls(container: HTMLElement): void {
+    const bar = container.createDiv({ cls: 'fl-toolbar fl-range-bar' });
+
+    const presetWrap = bar.createDiv();
+    presetWrap.createEl('label', { text: t('category.range.label'), cls: 'fl-filter-label' });
+    const select = presetWrap.createEl('select', { cls: 'fl-filter-select' });
+    for (const p of DATE_PRESETS) select.createEl('option', { text: t(`category.range.${p}`), attr: { value: p } });
+    select.createEl('option', { text: t('category.range.custom'), attr: { value: 'custom' } });
+
+    const mkDate = (label: string, key: keyof DateRange): HTMLInputElement => {
+      const wrap = bar.createDiv();
+      wrap.createEl('label', { text: label, cls: 'fl-filter-label' });
+      const inp = wrap.createEl('input', { type: 'date', cls: 'fl-filter-input' });
+      inp.value = this.range[key];
+      inp.oninput = () => {
+        this.range = { ...this.range, [key]: inp.value };
+        select.value = this.matchingPreset() ?? 'custom';
+        this.rerender();
+      };
+      return inp;
+    };
+    const from = mkDate(t('ledger.filter.from'), 'from');
+    const to = mkDate(t('ledger.filter.to'), 'to');
+
+    select.value = this.matchingPreset() ?? 'custom';
+    select.onchange = () => {
+      if (select.value === 'custom') return;
+      this.range = presetRange(select.value as DatePreset, this.clock.today());
+      from.value = this.range.from;
+      to.value = this.range.to;
+      this.rerender();
+    };
+  }
+
+  /** Das Preset, das den Zeitrahmen gerade genau beschreibt — damit die Auswahl nach einem Tippen in die
+   *  Datumsfelder nicht ein Preset behauptet, das nicht mehr gilt. */
+  private matchingPreset(): DatePreset | null {
+    const today = this.clock.today();
+    return DATE_PRESETS.find((p) => {
+      const r = presetRange(p, today);
+      return r.from === this.range.from && r.to === this.range.to;
+    }) ?? null;
   }
 
   // ── Re-render ──────────────────────────────────────────────────────────────
@@ -97,7 +151,7 @@ export class CategoryPanel implements FinancePanel {
       : this.prefixMode === 'Einnahmen' ? 'Einnahmen:'
       : '';
 
-    const nodes = aggregateCategoryTotals(this.allTransactions, prefix);
+    const nodes = aggregateCategoryTotals(transactionsInRange(this.allTransactions, this.range), prefix);
     this.treeContainer.empty();
 
     const table = this.treeContainer.createEl('table', { cls: 'fl-table' });
@@ -205,7 +259,8 @@ export class CategoryPanel implements FinancePanel {
   private navigateToFilter(account: string): void {
     // Fresh account-only filter — must NOT inherit invisible kategorie/empfaenger
     // deep-link filters, which would AND with the account and blank the ledger.
-    saveState(buildAccountFilter(account));
+    // Der Zeitrahmen der Ansicht reist mit: sonst zählt der Ledger andere Buchungen als die Zahl, auf die man klickte.
+    saveState({ ...buildAccountFilter(account), dateFrom: this.range.from, dateTo: this.range.to });
     // The filter travels through the (vault-scoped) localStorage channel; the
     // ledger panel reads it in onShow(). Just switch tabs.
     this.navigate('ledger');
