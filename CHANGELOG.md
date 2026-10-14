@@ -29,6 +29,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Changed
 
+- Internal only, nothing changes for users: the aggregation core of the reports (category totals, savings rate, top payees, budget per category with traffic light and forecast) is ported from the Python importer (step E4 of the importer port) with its tests. Nothing calls it yet; the reports themselves follow in E5 to E7.
 - Internal only, nothing changes for users: the vendored kit modules move to obsidian-kit 0.60.1 and code-kit 0.27.1 (the files are identical apart from their origin headers; none of the skipped kit releases reaches this plugin's users). The clock for "today" now comes from the shared `local-stamp` module (same local day as before; a test now covers the hour after midnight).
 
 ## [0.3.3] — 2026-10-12
