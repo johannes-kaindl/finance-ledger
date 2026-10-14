@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Changed
+
+- Internal only, nothing changes for users: the vendored kit modules move to obsidian-kit 0.60.1 and code-kit 0.27.1 (the files are identical apart from their origin headers; none of the skipped kit releases reaches this plugin's users).
+
 ## [0.3.3] — 2026-10-12
 
 ### Changed
