@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-14
+
 ### Changed
 
 - **Ask before overwriting.** "Rebuild journal" (command, and the re-import buttons in the dashboard and the triage tab) now asks first: it rewrites `journal.ledger`, `accounts.ledger` and `opening_balances.ledger` from the CSVs. The CSV import asks when a file with the same name is already in the statements folder, naming the files; the old version is not kept. Cancel does nothing.
