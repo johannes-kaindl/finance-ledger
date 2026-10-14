@@ -239,6 +239,13 @@ export const EN: Record<string, string> = {
   // built-in import (no Python)
   'cmd.rebuildJournal': 'Rebuild journal from CSVs (built-in)',
   'notice.rebuildRunning': 'Rebuilding journal…',
+  'confirm.rebuild.title': 'Rebuild journal?',
+  'confirm.rebuild.message1': 'This rewrites journal.ledger, accounts.ledger and opening_balances.ledger from the CSVs in your statements folder.',
+  'confirm.rebuild.message2': 'The managed fields of the account and contract notes are updated; the text you wrote in them stays.',
+  'confirm.rebuild.confirm': 'Rebuild',
+  'confirm.replaceCsv.title': 'Replace existing CSV files?',
+  'confirm.replaceCsv.message': '{0} file(s) with the same name already exist in the statements folder and will be replaced. The old version is not kept:',
+  'confirm.replaceCsv.confirm': 'Replace',
   'notice.rebuildSuccess':
     '{0} transactions from {1} CSV(s) — {2} duplicate(s) skipped, {3} to classify',
   'notice.rebuildNoFiles': 'No CSVs found in {0}.',
@@ -477,6 +484,13 @@ export const DE: Record<string, string> = {
 
   'cmd.rebuildJournal': 'Journal aus CSVs neu aufbauen (eingebaut)',
   'notice.rebuildRunning': 'Journal wird neu aufgebaut…',
+  'confirm.rebuild.title': 'Journal neu aufbauen?',
+  'confirm.rebuild.message1': 'Das schreibt journal.ledger, accounts.ledger und opening_balances.ledger aus den CSVs im Umsatzordner neu.',
+  'confirm.rebuild.message2': 'Die verwalteten Felder der Konto- und Vertrags-Notizen werden nachgezogen; dein eigener Text darin bleibt.',
+  'confirm.rebuild.confirm': 'Neu aufbauen',
+  'confirm.replaceCsv.title': 'Vorhandene CSV-Dateien ersetzen?',
+  'confirm.replaceCsv.message': '{0} Datei(en) mit demselben Namen liegen schon im Umsatzordner und werden ersetzt. Die alte Fassung bleibt nicht erhalten:',
+  'confirm.replaceCsv.confirm': 'Ersetzen',
   'notice.rebuildSuccess':
     '{0} Buchungen aus {1} CSV(s) — {2} Doppelung(en) übersprungen, {3} zu klassifizieren',
   'notice.rebuildNoFiles': 'Keine CSVs gefunden in {0}.',

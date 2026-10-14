@@ -102,3 +102,17 @@ describe('main.ts — CSV-Import ist plattformübergreifend', () => {
     expect(src).not.toMatch(/import\(\s*['"](node:)?(child_process|fs|path|os)['"]/);
   });
 });
+
+describe('Rückfrage vor dem Neuaufbau', () => {
+  // Jede Stelle, die den Neuaufbau auslöst, fragt VOR dem Lauf (Inventur 2026-10-07: Überschreiben ohne
+  // Rückfrage). Strukturtest wie die übrigen in dieser Datei: die Reihenfolge im Quelltext.
+  for (const datei of ['main.ts', 'views/TBCPanel.ts', 'views/DashboardPanel.ts']) {
+    it(`${datei}: confirmRebuild steht vor runNativeImport`, () => {
+      const src = readFileSync(resolve(__dirname, '../src', datei), 'utf8');
+      const frage = src.indexOf('confirmRebuild(');
+      const lauf = src.indexOf('runNativeImport({');
+      expect(frage).toBeGreaterThan(-1);
+      expect(lauf).toBeGreaterThan(frage);
+    });
+  }
+});

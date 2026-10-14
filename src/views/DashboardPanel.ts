@@ -11,6 +11,7 @@ import type { DataAccessor } from './TBCPanel';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
 import { t } from '../i18n/strings';
+import { confirmRebuild } from '../ui/confirmOverwrite';
 
 // labelKey statt Klartext — Übersetzung erfolgt lazy am Render-Ort (t()), da
 // dieses Modul-Level-Array vor registerI18n()/setLang() (im onload) importiert wird.
@@ -265,6 +266,7 @@ export class DashboardPanel implements FinancePanel {
       new Notice(t('notice.reimportUnavailable'));
       return;
     }
+    if (!(await confirmRebuild(this.app))) return;
     const data = await this.accessor.loadData();
     btn.disabled = true;
     const originalLabel = btn.textContent ?? t('dashboard.action.reimport');

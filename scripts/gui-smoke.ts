@@ -116,6 +116,7 @@ const PUNKTE = [
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
   "Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter",
+  "Neuaufbau fragt vorher; „Abbrechen“ schreibt nichts",
 ] as const;
 
 const bilanz = createBilanz({ punkte: PUNKTE });
@@ -254,12 +255,26 @@ function backup(vaultBase: string, root: string): string {
  * Die alten Meldungen werden vorher entfernt: sonst liest der zweite Lauf die Meldung des
  * ersten und der Idempotenz-Punkt wäre grün, ohne je gemessen zu haben.
  */
+/** Klickt in der Rückfrage (Kit-Baustein confirm) auf „Bestätigen“ (rechts) oder „Abbrechen“ (links). */
+async function antworteRueckfrage(cdp: Cdp, bestaetigen: boolean): Promise<boolean> {
+  const da = await pollUntil<boolean>(cdp, `return document.querySelector(".modal-container .modal-button-container button") ? true : null;`, 10_000, 200);
+  if (!da) return false;
+  await cdp.evaluate(`
+    const knoepfe = document.querySelectorAll(".modal-container .modal-button-container button");
+    knoepfe[${bestaetigen ? "knoepfe.length - 1" : "0"}].click();
+    return true;
+  `);
+  return true;
+}
+
 async function runImport(cdp: Cdp): Promise<string> {
   await clearNotices(cdp);
   await cdp.evaluate(`
     app.commands.executeCommandById(${JSON.stringify(COMMAND_ID)});
     return true;
   `);
+  // Seit Welle 22 fragt der Neuaufbau vorher (Überschreiben ohne Rückfrage war der Inventur-Befund).
+  if (!(await antworteRueckfrage(cdp, true))) throw new Error("Die Rückfrage vor dem Neuaufbau erschien nicht.");
   const meldung = await pollUntil<string>(
     cdp,
     `
@@ -556,6 +571,32 @@ async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
     NAME,
     ok,
     `leer: ${messung.leer} Zeilen mit Zahl; Tag ${ersterTag}: ${messung.zeilenTag} Zeilen, ${summe(messung.tag)} von ${summe(messung.alle)} Buchungen in der obersten Zeile; Ledger-Filter ${messung.ledgerVon}…${messung.ledgerBis}`,
+  );
+}
+
+/** Der Neuaufbau fragt, und „Abbrechen“ lässt Journal und Meldungen unberührt. */
+async function pruefeRueckfrage(cdp: Cdp, root: string): Promise<void> {
+  const journalVorher = await readNote(cdp, `${root}/Ledger/journal.ledger`);
+  await clearNotices(cdp);
+  await cdp.evaluate(`app.commands.executeCommandById(${JSON.stringify(COMMAND_ID)}); return true;`);
+  const frage = await cdp.evaluate<{ da: boolean; titel: string }>(`
+    await new Promise((r) => setTimeout(r, 800));
+    const modal = document.querySelector(".modal-container");
+    return { da: !!modal, titel: modal?.querySelector(".modal-title")?.textContent ?? "" };
+  `);
+  const geklickt = frage.da ? await antworteRueckfrage(cdp, false) : false;
+  await cdp.evaluate(`await new Promise((r) => setTimeout(r, 1500)); return true;`);
+  const danach = await cdp.evaluate<{ modal: boolean; meldungen: string }>(`
+    return {
+      modal: !!document.querySelector(".modal-container"),
+      meldungen: [...document.querySelectorAll(".notice")].map((n) => n.textContent.trim()).join(" | "),
+    };
+  `);
+  const journalNachher = await readNote(cdp, `${root}/Ledger/journal.ledger`);
+  record(
+    "Neuaufbau fragt vorher; „Abbrechen“ schreibt nichts",
+    frage.da && geklickt && !danach.modal && !/Buchungen|transactions|Rebuilding|neu aufgebaut/i.test(danach.meldungen) && journalNachher === journalVorher,
+    `Frage „${frage.titel}“, nach Abbrechen: Modal ${danach.modal ? "noch offen" : "zu"}, Meldungen „${danach.meldungen.slice(0, 80)}“, Journal ${journalNachher === journalVorher ? "byte-gleich" : "GEÄNDERT"}`,
   );
 }
 
@@ -1034,6 +1075,8 @@ async function main(): Promise<void> {
       "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
       () => pruefeSchnappschuss(cdp, root),
     );
+    console.log("── Rückfrage vor dem Überschreiben");
+    await bilanz.punkt("Neuaufbau fragt vorher; „Abbrechen“ schreibt nichts", () => pruefeRueckfrage(cdp, root));
     console.log("── Kategorien: Zeitrahmen");
     await bilanz.punkt("Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter", () => pruefeKategorien(cdp, root));
   } finally {

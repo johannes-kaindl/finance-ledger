@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Changed
+
+- **Ask before overwriting.** "Rebuild journal" (command, and the re-import buttons in the dashboard and the triage tab) now asks first: it rewrites `journal.ledger`, `accounts.ledger` and `opening_balances.ledger` from the CSVs. The CSV import asks when a file with the same name is already in the statements folder, naming the files; the old version is not kept. Cancel does nothing.
+
 ### Added
 
 - **Categories: period filter.** The category overview can be limited to a period: this month, last month, this quarter, this year, last year, or a free date range (both ends included). Without a period it still counts everything. The share column and the volume are computed over the chosen period only, and clicking a category opens the ledger with the same period, so the numbers match.

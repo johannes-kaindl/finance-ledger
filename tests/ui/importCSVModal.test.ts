@@ -23,18 +23,28 @@ vi.mock('../../src/obsidian/nativeImport', () => ({
   runNativeImport: vi.fn(),
 }));
 
+// Die Rückfrage vor dem Überschreiben ist ein Modal (Kit-Baustein); hier zählt, WANN gefragt wird.
+vi.mock('../../src/ui/confirmOverwrite', () => ({
+  confirmReplaceCsvs: vi.fn().mockResolvedValue(true),
+  confirmRebuild: vi.fn().mockResolvedValue(true),
+}));
+
 import { ImportCSVModal, autoDetectKonto, type CheckCsvResult } from '../../src/ui/importCSVModal';
 import type { KontoSpec } from '../../src/core/config/konten';
 import { loadKonten, loadKontenConfig } from '../../src/state/konten';
 import { previewCsv } from '../../src/core/import/preview';
 import { runNativeImport } from '../../src/obsidian/nativeImport';
 import { Notice } from 'obsidian';
+import { confirmReplaceCsvs } from '../../src/ui/confirmOverwrite';
 
 const loadKontenMock = loadKonten as ReturnType<typeof vi.fn>;
 const loadKontenConfigMock = loadKontenConfig as ReturnType<typeof vi.fn>;
 const previewCsvMock = previewCsv as ReturnType<typeof vi.fn>;
 const runNativeImportMock = runNativeImport as ReturnType<typeof vi.fn>;
 const NoticeMock = Notice as unknown as ReturnType<typeof vi.fn>;
+
+// Standard: der Nutzer bestätigt (vitest.config setzt die Mocks zwischen den Tests zurück).
+beforeEach(() => { (confirmReplaceCsvs as ReturnType<typeof vi.fn>).mockResolvedValue(true); });
 
 /** Vollständiger Kern-`KontoSpec` mit den Feldern, die der Test setzt. */
 function konto(partial: Partial<KontoSpec> & Pick<KontoSpec, 'id' | 'iban'>): KontoSpec {
@@ -291,6 +301,45 @@ describe('ImportCSVModal — runPreview', () => {
     await (modal as unknown as { runPreview: () => Promise<void> }).runPreview();
 
     expect(previewCsvMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('ImportCSVModal — Rückfrage vor dem Überschreiben', () => {
+  const confirmMock = confirmReplaceCsvs as ReturnType<typeof vi.fn>;
+  beforeEach(() => { confirmMock.mockClear(); confirmMock.mockResolvedValue(true); runNativeImportMock.mockClear(); });
+
+  const run = (modal: unknown): Promise<void> => (modal as { runImport: () => Promise<void> }).runImport();
+
+  it('fragt mit den Namen der Dateien, die schon da sind — nur mit diesen', async () => {
+    const { modal, app } = makeModal();
+    await modal.onOpen();
+    // Der Ordner existiert (true), die erste Datei auch, die zweite nicht.
+    app.vault.adapter.exists.mockImplementation(async (p: string) => !p.endsWith('neu.CSV'));
+    invokeFileSelection(modal, [makeFile('alt.CSV'), makeFile('neu.CSV')]);
+    await run(modal);
+    expect(confirmMock).toHaveBeenCalledOnce();
+    expect(confirmMock.mock.calls[0][1]).toEqual(['alt.CSV']);
+  });
+
+  it('keine vorhandene Datei: keine Rückfrage', async () => {
+    const { modal, app } = makeModal();
+    await modal.onOpen();
+    app.vault.adapter.exists.mockImplementation(async (p: string) => !p.endsWith('.CSV'));
+    invokeFileSelection(modal, [makeFile('neu.CSV')]);
+    await run(modal);
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(app.vault.adapter.writeBinary).toHaveBeenCalledOnce();
+  });
+
+  it('„Abbrechen“: nichts geschrieben, kein Lauf, der Knopf ist wieder bedienbar', async () => {
+    const { modal, app } = makeModal();
+    await modal.onOpen();
+    confirmMock.mockResolvedValue(false);
+    invokeFileSelection(modal, [makeFile('alt.CSV')]);
+    await run(modal);
+    expect(app.vault.adapter.writeBinary).not.toHaveBeenCalled();
+    expect(runNativeImportMock).not.toHaveBeenCalled();
+    expect((modal as unknown as { importBtn: { disabled: boolean } }).importBtn.disabled).toBe(false);
   });
 });
 

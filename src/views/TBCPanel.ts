@@ -11,6 +11,7 @@ import { notConfiguredMessage, importerEnvFor, type ResolvedFinancePaths } from 
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
 import { writeClipboard } from '../vendor/kit/clipboard';
+import { confirmRebuild } from '../ui/confirmOverwrite';
 
 export type DataAccessor = {
   loadData: () => Promise<PluginData>;
@@ -154,6 +155,7 @@ export class TBCPanel implements FinancePanel {
   // ── Re-Import with UI-lock ─────────────────────────────────────────────
 
   private async triggerReimport(): Promise<void> {
+    if (!(await confirmRebuild(this.app))) return;
     const data = await this.accessor.loadData();
     const importerCwd = data.importerCwd;
 

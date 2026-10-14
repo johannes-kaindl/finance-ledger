@@ -8,6 +8,7 @@ import { loadKonten, loadKontenConfig, type KontoSpec } from '../state/konten';
 import type { PluginData } from '../types/plugin-data';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import { t } from '../i18n/strings';
+import { confirmReplaceCsvs } from './confirmOverwrite';
 
 /**
  * Das Vorschau-Ergebnis je Datei.
@@ -265,6 +266,13 @@ export class ImportCSVModal extends Modal {
       if (!(await adapter.exists(targetDir))) {
         await adapter.mkdir(targetDir);
       }
+
+      // Gleichnamige CSVs werden ersetzt, die alte Fassung ist danach weg: vorher fragen, mit den Namen.
+      const vorhanden: string[] = [];
+      for (const file of this.files) {
+        if (await adapter.exists(normalizePath(`${targetDir}/${file.name}`))) vorhanden.push(file.name);
+      }
+      if (vorhanden.length > 0 && !(await confirmReplaceCsvs(this.app, vorhanden))) return;
 
       let copied = 0;
       for (const file of this.files) {

@@ -17,6 +17,7 @@ import { resolveFinancePaths, migrateFinanceRoot, type ResolvedFinancePaths } fr
 import { setStorageApp, migrateRawLocalStorageToApp, migrateLegacyKeys, loadState, saveState } from './state/filterState';
 import type { FilterState, MoneyDisplay } from './views/helpers';
 import { runNativeImport } from './obsidian/nativeImport';
+import { confirmRebuild } from './ui/confirmOverwrite';
 
 /** Anzeigedauer der Import-Meldung: lang genug, um vier Zahlen zu lesen. */
 const REBUILD_NOTICE_MS = 20_000;
@@ -155,6 +156,7 @@ export default class FinancePlugin extends Plugin {
    */
   private async rebuildJournal(): Promise<void> {
     const paths = this.resolvePaths();
+    if (!(await confirmRebuild(this.app))) return;
     new Notice(t('notice.rebuildRunning'));
     try {
       const result = await runNativeImport({ app: this.app, paths });
