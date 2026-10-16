@@ -281,18 +281,19 @@ export function formatMoneyAmount(
  *
  * Ohne Flags schreibt der Importer nur Journal, Kontenplan, Eröffnungsbilanz,
  * Konto- und Vertrags-Notizen — also genau das, was das Plugin seit 2026-10-03
- * selbst erzeugt (`runNativeImport`). Die Auswertungen — Monats-, Quartals- und
- * Jahresberichte, Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen —
- * entstehen ausschließlich auf Anforderung, und sie sind der Grund, warum
- * dieser Befehl noch existiert: das Plugin kann sie bis zum Abschluss der
- * Port-Etappen E4–E7 nicht.
+ * selbst erzeugt (`runNativeImport`), seit E5 (2026-10-16) auch die Monats-,
+ * Quartals- und Jahresberichte. Deshalb fehlt `--all-aggregates` hier: ein
+ * Lauf des Importers danach schriebe die Frontmatter der Berichte komplett neu
+ * und setzte `created` auf heute. Übrig sind die Kategorie-, Empfänger-,
+ * Tx-Typ- und Mandats-Notizen; sie entstehen ausschließlich auf Anforderung und
+ * sind der Grund, warum dieser Befehl noch existiert: das Plugin kann sie bis
+ * zum Abschluss der Port-Etappen E6 und E7 nicht.
  *
  * Bewusst NICHT enthalten: `--all-sparziele-bodies` und `--all-vertraege-bodies`
  * schreiben Notizen ohne Marker um — das ist eine einmalige Migration, kein
  * Schritt, der bei jedem Lauf ungefragt läuft.
  */
 export const IMPORTER_REPORT_ARGS: readonly string[] = [
-  '--all-aggregates',
   '--all-kategorie-notes',
   '--all-empfaenger-notes',
   '--all-tx-typ-notes',

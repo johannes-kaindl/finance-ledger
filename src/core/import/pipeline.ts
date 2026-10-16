@@ -10,12 +10,13 @@
 import type { ImporterContext } from "../config/context";
 import type { VertragSpec } from "../config/vertraege";
 import { InputFormatError } from "../errors";
+import { alleBerichtePerioden, berichtPath, planBerichte } from "../notes/berichtNotes";
 import { kontoNotePath, planKontoNotes, type NotePlan } from "../notes/kontoNotes";
 import { planVertragNotes } from "../notes/vertragNotes";
 import { formatOpeningBalances } from "./openingBalances";
 import { silentLog, type LogPort, type VaultPort } from "../ports";
 import { decodeLatin1, decodeUtf8OrLatin1 } from "../text/decode";
-import type { SignDependentRule } from "./categorize";
+import type { CategorizationResult, SignDependentRule } from "./categorize";
 import { txHash } from "./dedupe";
 import { DEFAULT_SIGN_RULES, signRuleAccounts } from "./defaultSignRules";
 import { detectSchema, SCHEMA_VISA } from "./detectSchema";
@@ -53,6 +54,11 @@ export interface ImportOptions {
 	 * Dutzende Notizen anzufassen.
 	 */
 	stammdaten?: { vertraege: readonly VertragSpec[] };
+	/**
+	 * Monats-, Quartals- und Jahresberichte mitschreiben (E5). Wie die Stammdaten opt-in: ein Lauf, der nur das
+	 * Journal erneuern soll, legt nicht unangekündigt Dutzende Notizen an.
+	 */
+	berichte?: boolean;
 	log?: LogPort;
 }
 
@@ -70,6 +76,8 @@ export interface ImportResult {
 	writtenFiles: string[];
 	/** Angelegte oder nachgezogene Stammdaten-Notizen. */
 	notesWritten: number;
+	/** Neu angelegte oder geänderte Berichte; unveränderte werden nicht angefasst und zählen nicht. */
+	reportsWritten: number;
 	/** Frühester und spätester Buchungstag, `null` bei leerem Ergebnis. */
 	dateRange: { first: string; last: string } | null;
 }
@@ -116,6 +124,8 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		? await writeStammdaten(options, categorized, transactions, log)
 		: [];
 
+	const berichte = options.berichte ? await writeBerichte(options, categorized, transactions) : [];
+
 	const kontenNotes = await readKontoNotes(options);
 	const openingPath = join(options.outDir, OPENING_BALANCES_FILENAME);
 	await options.vault.write(
@@ -130,8 +140,9 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		duplicatesSkipped,
 		vorgemerktSkipped: parsed.reduce((sum, p) => sum + p.vorgemerkt, 0),
 		unkategorisiert: countUnkategorisiert(categorized),
-		writtenFiles: [...writtenFiles, ...notes],
+		writtenFiles: [...writtenFiles, ...notes, ...berichte],
 		notesWritten: notes.length,
+		reportsWritten: berichte.length,
 		dateRange: dateRange(transactions),
 	};
 }
@@ -338,6 +349,36 @@ async function writePlans(
 		written.push(plan.path);
 	}
 	return written;
+}
+
+/**
+ * Schreibt die Berichte aller Perioden mit Buchungen und liefert die Pfade, die sich geändert haben.
+ *
+ * Der Kategorisierer ist hier eine Nachschlagetabelle über das Ergebnis des Laufs: Python kategorisiert jede
+ * Buchung für jeden Bericht neu, das wären hunderte Läufe über denselben Bestand.
+ */
+async function writeBerichte(
+	options: ImportOptions,
+	categorized: readonly CategorizedTx[],
+	transactions: readonly BankTransaction[],
+): Promise<string[]> {
+	const byTx = new Map(categorized.map((c) => [c.tx, c.result]));
+	const categorizer = (tx: BankTransaction): CategorizationResult => {
+		const result = byTx.get(tx);
+		if (result === undefined) throw new Error("Buchung ohne Kategorisierung im Berichtslauf");
+		return result;
+	};
+	const perioden = alleBerichtePerioden(transactions);
+	const existing: Record<string, string> = {};
+	for (const periode of perioden) {
+		const path = berichtPath(options.ctx, periode);
+		if (await options.vault.exists(path)) existing[path] = await options.vault.read(path);
+	}
+	const plans = planBerichte(options.ctx, transactions, categorizer, perioden, existing);
+	return writePlans(
+		options,
+		plans.filter((plan) => existing[plan.path] !== plan.content),
+	);
 }
 
 /** Vorhandene Konto- und Vertrags-Notizen, nach Pfad. */

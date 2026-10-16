@@ -180,7 +180,7 @@ describe('buildImporterCommand', () => {
     expect(cmd).toContain('cd /srv/finance-ledger-importer && uv run python -m importer.cli');
     // Die Flags sind der Grund, warum der Befehl noch existiert: diese Notizen
     // erzeugt das Plugin nicht (Port-Etappen E4–E7).
-    expect(cmd).toContain('--all-aggregates');
+    expect(cmd).not.toContain('--all-aggregates');
     expect(cmd).toContain('--all-empfaenger-notes');
   });
 

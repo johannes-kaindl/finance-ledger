@@ -65,6 +65,7 @@ export async function runNativeImport(
 		stammdaten: {
 			vertraege: await loadVertraegeFromVault(vault, paths.vertraegeFile),
 		},
+		berichte: true,
 		log: options.log,
 	});
 	return { ...result, incompleteRules: incomplete };

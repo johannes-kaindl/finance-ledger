@@ -256,6 +256,7 @@ export const EN: Record<string, string> = {
   'settings.kontenFile.name': 'Accounts file',
   'settings.vertraegeFile.name': 'Contracts file',
   'notice.rebuildNotes': '{0} account/contract note(s) updated',
+  'notice.rebuildReports': '{0} report(s) written',
   'settings.kontenFile.desc':
     'YAML file with your account configuration, relative to the finance folder. Used by the built-in import.',
 };
@@ -502,6 +503,7 @@ export const DE: Record<string, string> = {
   'settings.kontenFile.name': 'Konten-Datei',
   'settings.vertraegeFile.name': 'Verträge-Datei',
   'notice.rebuildNotes': '{0} Konto-/Vertrags-Notiz(en) nachgezogen',
+  'notice.rebuildReports': '{0} Bericht(e) geschrieben',
   'settings.kontenFile.desc':
     'YAML-Datei mit deiner Konten-Konfiguration, relativ zum Finanzordner. Wird vom eingebauten Import genutzt.',
 };
