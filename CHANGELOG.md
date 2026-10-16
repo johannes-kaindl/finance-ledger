@@ -10,6 +10,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 - **Monthly, quarterly and yearly reports are written by the plugin.** Every import and every journal rebuild now writes a report for each month, quarter and year that has transactions (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`), with the three views (all accounts, private, rental), category tables, the budget overview with traffic lights, the top payees and the quarter/year breakdown. No Python needed. On a 293-transaction test set they match the Python importer byte for byte.
 
+- A payee name with `|`, `[` or `]` (bank data you do not control) no longer breaks the report's top-payee table; brackets are dropped and the pipe is escaped.
 - The "Rebuild journal" notice names the number of reports written ("12 report(s) written"); nothing is listed when no report changed.
 
 ### Changed

@@ -480,10 +480,19 @@ function budgetSektion(ctx: ImporterContext, budget: readonly BudgetState[]): st
 	return text;
 }
 
+/**
+ * Der Empfängername stammt aus Bankdaten Dritter und steht als Anzeigetext in einer Wikilink-Tabellenzelle: ein `|`
+ * zerrisse die Tabelle, `[[`/`]]` den Link. Eckige Klammern entfallen, das Pipe wird escaped. Python schreibt den
+ * Namen roh; auf gewöhnlichen Namen ist das Ergebnis identisch.
+ */
+function anzeigeSicher(name: string): string {
+	return name.replace(/[[\]]/g, "").replace(/\|/g, "\\|");
+}
+
 function topEmpfaengerSektion(ctx: ImporterContext, top: readonly TopEmpfaenger[]): string {
 	const rows = ["| Empfänger | Volumen | Buchungen |", "|---|---:|---:|"];
 	for (const t of top) {
-		const cell = empfaengerWikilink(ctx, t.ledgerAccount, { display: t.counterparty, forTable: true });
+		const cell = empfaengerWikilink(ctx, t.ledgerAccount, { display: anzeigeSicher(t.counterparty), forTable: true });
 		rows.push(`| ${cell} | ${formatGermanEuro(t.volumen)} | ${t.anzahl} |`);
 	}
 	return "## 🏆 Top-Empfänger\n\n" + rows.join("\n");

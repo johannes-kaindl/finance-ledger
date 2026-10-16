@@ -226,6 +226,20 @@ describe("Sichten und Randfälle", () => {
 		expect(text).toContain("| Sparquote | 100.0 % |");
 	});
 
+	it("entschärft Empfängernamen aus Bankdaten: kein Pipe, keine Klammern in der Tabellenzelle", () => {
+		const text = renderBericht(
+			einKonto,
+			[makeTx({ buchungstag: "2026-04-15", betrag: "-10.00", beguenstigter: "Evil | x ]] [[Fremd]] GmbH" })],
+			() => fixedCat("Ausgaben:Lebensmittel:Supermarkt"),
+			{ art: "monat", year: 2026, month: 4 },
+		);
+		const zeile = text.split("\n").find((l) => l.includes("Evil")) ?? "";
+		expect(zeile).toContain("\\|Evil \\| x  Fremd GmbH]]");
+		expect(zeile.match(/\]\]/g)).toHaveLength(1);
+		// Die Zeile hat genau drei Spalten (vier ungeescapte Pipes).
+		expect(zeile.replace(/\\\|/g, "").match(/\|/g)).toHaveLength(4);
+	});
+
 	it("legt einen Monat ohne Ausgaben ohne Diagramm und ohne Budget an", () => {
 		const text = renderBericht(
 			einKonto,
