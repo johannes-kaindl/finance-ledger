@@ -79,6 +79,8 @@ export interface NoteFolders {
 	monatsberichte: string;
 	quartalsberichte: string;
 	jahresberichte: string;
+	/** Ordner der Bases, die die Berichte einbetten. */
+	bases: string;
 }
 
 /** Die Namen, die der Python-Importer fest verdrahtet hat. */
@@ -92,6 +94,7 @@ export const DEFAULT_NOTE_FOLDERS: NoteFolders = {
 	monatsberichte: "40-Monatsberichte",
 	quartalsberichte: "70-Quartalsberichte",
 	jahresberichte: "80-Jahresberichte",
+	bases: "05-Bases",
 };
 
 /**

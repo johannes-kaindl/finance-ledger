@@ -1,0 +1,239 @@
+{
+ "konten": {
+  "konten": [
+   {
+    "id": "k1",
+    "iban": "GB00ACME00000001",
+    "ledger_account": "Aktiva:Bank:Everyday Checking",
+    "bank": "Acme Bank",
+    "bic": "ACMEGB2L",
+    "konto_typ": "giro",
+    "konto_rolle": "hauptkonto_privat",
+    "csv_schema": "sparkasse_camt52",
+    "inhaber": "Jane Doe",
+    "filename": "Konto 01 – Everyday Checking.md",
+    "sticker": "lucide//landmark",
+    "rolle_beschreibung": "Testkonto",
+    "aliases": []
+   },
+   {
+    "id": "k2",
+    "iban": "GB00ACME00000002",
+    "ledger_account": "Aktiva:Bank:Household Pool",
+    "bank": "Acme Bank",
+    "bic": "ACMEGB2L",
+    "konto_typ": "giro",
+    "konto_rolle": "familienpool",
+    "csv_schema": "sparkasse_camt52",
+    "inhaber": "Jane Doe",
+    "filename": "Konto 02 – Household Pool.md",
+    "sticker": "lucide//landmark",
+    "rolle_beschreibung": "Testkonto",
+    "aliases": []
+   },
+   {
+    "id": "k3",
+    "iban": "GB00ACME00000003",
+    "ledger_account": "Passiva:Credit Card:Everyday Visa",
+    "bank": "Acme Bank",
+    "bic": "ACMEGB2L",
+    "konto_typ": "kreditkarte",
+    "konto_rolle": "visa_daily",
+    "csv_schema": "sparkasse_visa",
+    "inhaber": "Jane Doe",
+    "filename": "Konto 03 – Everyday Visa.md",
+    "sticker": "lucide//landmark",
+    "rolle_beschreibung": "Testkonto",
+    "aliases": []
+   },
+   {
+    "id": "k4",
+    "iban": "GB00ACME00000004",
+    "ledger_account": "Aktiva:Bank:Rental",
+    "bank": "Acme Bank",
+    "bic": "ACMEGB2L",
+    "konto_typ": "giro",
+    "konto_rolle": "vermietung",
+    "csv_schema": "sparkasse_camt52",
+    "inhaber": "Jane Doe",
+    "filename": "Konto 04 – Rental.md",
+    "sticker": "lucide//landmark",
+    "rolle_beschreibung": "Testkonto",
+    "aliases": []
+   }
+  ]
+ },
+ "notes": [
+  {
+   "pattern": "acme power",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Wohnen:Strom",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "acme power.md"
+  },
+  {
+   "pattern": "cinema",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Freizeit:Kino",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "cinema.md"
+  },
+  {
+   "pattern": "club",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Mitgliedschaft:Club",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "club.md"
+  },
+  {
+   "pattern": "finanzamt",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Steuern:Einkommen",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "finanzamt.md"
+  },
+  {
+   "pattern": "globex",
+   "patternType": "substring",
+   "ledgerAccount": "Einnahmen:Gehalt:Globex",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "globex.md"
+  },
+  {
+   "pattern": "handwerker",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Sonstiges:Einmalig:Reparatur",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "handwerker.md"
+  },
+  {
+   "pattern": "hausverwaltung",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Wohnen:Miete",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "hausverwaltung.md"
+  },
+  {
+   "pattern": "initech",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Tech_Abos:Streaming",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "initech.md"
+  },
+  {
+   "pattern": "insure",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Versicherung:Haftpflicht",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "insure.md"
+  },
+  {
+   "pattern": "kontofuehrung",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Bankgebuehren:Konto",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "kontofuehrung.md"
+  },
+  {
+   "pattern": "metro",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Mobilitaet:OPNV",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "metro.md"
+  },
+  {
+   "pattern": "mieter",
+   "patternType": "substring",
+   "ledgerAccount": "Einnahmen:Miete:Mieter",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "mieter.md"
+  },
+  {
+   "pattern": "miller",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Wohnen:Bewirtschaftung",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "miller.md"
+  },
+  {
+   "pattern": "northwind",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Lebensmittel:Northwind",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "northwind.md"
+  },
+  {
+   "pattern": "pharmacy",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Gesundheit:Apotheke",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "pharmacy.md"
+  },
+  {
+   "pattern": "shopmax",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Online_Shopping:Shopmax",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "shopmax.md"
+  },
+  {
+   "pattern": "soylent",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Essen_Auswaerts:Cafe",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "soylent.md"
+  },
+  {
+   "pattern": "spende verein",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Spende:Verein",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "spende verein.md"
+  },
+  {
+   "pattern": "telco",
+   "patternType": "substring",
+   "ledgerAccount": "Ausgaben:Kommunikation:Mobil",
+   "priority": 50,
+   "tags": [],
+   "aliases": [],
+   "sourceFile": "telco.md"
+  }
+ ]
+}

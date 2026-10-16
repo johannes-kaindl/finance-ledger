@@ -175,6 +175,17 @@ describe("Tabellen", () => {
 		);
 	});
 
+	it("Anteil rundet wie Pythons :.1f: Gleichstand zur geraden Ziffer (12.25 → 12.2, 87.75 → 87.8)", () => {
+		const t = aggregateTransactions(
+			[makeTx({ betrag: "-49.00", rawRowIdx: 1, buchungstag: "2026-04-01" }), makeTx({ betrag: "-351.00", rawRowIdx: 2, buchungstag: "2026-04-02" })],
+			april,
+			(tx) => fixedCat(tx.rawRowIdx === 1 ? "Ausgaben:Freizeit:X" : "Ausgaben:Wohnen:Miete"),
+		);
+		const tabelle = kategorienTabelle(ctx, t, false);
+		expect(tabelle).toContain("| Freizeit | 49,00 € | 12.2% |");
+		expect(tabelle).toContain("| Wohnen | 351,00 € | 87.8% |");
+	});
+
 	it("Kategorien-Tabelle mit Wikilinks: der Alias-Trenner ist escaped", () => {
 		const t = kategorienTabelle(ctx, r, true);
 		expect(t).toContain("[[");

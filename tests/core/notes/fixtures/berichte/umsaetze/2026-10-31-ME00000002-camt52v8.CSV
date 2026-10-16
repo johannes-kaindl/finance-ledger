@@ -1,0 +1,33 @@
+Auftragskonto;Buchungstag;Valutadatum;Buchungstext;Verwendungszweck;Glaeubiger ID;Mandatsreferenz;Kundenreferenz (End-to-End);Sammlerreferenz;Lastschrift Ursprungsbetrag;Auslagenersatz Ruecklastschrift;Beguenstigter/Zahlungspflichtiger;Kontonummer/IBAN;BIC (SWIFT-Code);Betrag;Waehrung;Info
+GB00ACME00000002;20.10.25;20.10.25;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.10.25;22.10.25;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-8,33;EUR;Umsatz gebucht
+GB00ACME00000002;20.11.25;20.11.25;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.11.25;22.11.25;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-28,70;EUR;Umsatz gebucht
+GB00ACME00000002;20.12.25;20.12.25;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.12.25;22.12.25;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-30,05;EUR;Umsatz gebucht
+GB00ACME00000002;23.12.25;23.12.25;ONLINE-UEBERWEISUNG;Spende;;;;;;;Spende Verein e.V.;;;-25,00;EUR;Umsatz gebucht
+GB00ACME00000002;24.12.25;24.12.25;LASTSCHRIFT;Beitrag;;;;;;;Sports Club;;;-120,00;EUR;Umsatz gebucht
+GB00ACME00000002;20.01.26;20.01.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.01.26;22.01.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-30,58;EUR;Umsatz gebucht
+GB00ACME00000002;20.02.26;20.02.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.02.26;22.02.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-18,14;EUR;Umsatz gebucht
+GB00ACME00000002;20.03.26;20.03.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.03.26;22.03.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-33,52;EUR;Umsatz gebucht
+GB00ACME00000002;23.03.26;23.03.26;ONLINE-UEBERWEISUNG;Spende;;;;;;;Spende Verein e.V.;;;-25,00;EUR;Umsatz gebucht
+GB00ACME00000002;24.03.26;24.03.26;LASTSCHRIFT;Beitrag;;;;;;;Sports Club;;;-120,00;EUR;Umsatz gebucht
+GB00ACME00000002;20.04.26;20.04.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.04.26;22.04.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-12,10;EUR;Umsatz gebucht
+GB00ACME00000002;20.05.26;20.05.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.05.26;22.05.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-22,08;EUR;Umsatz gebucht
+GB00ACME00000002;20.06.26;20.06.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.06.26;22.06.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-13,36;EUR;Umsatz gebucht
+GB00ACME00000002;23.06.26;23.06.26;ONLINE-UEBERWEISUNG;Spende;;;;;;;Spende Verein e.V.;;;-25,00;EUR;Umsatz gebucht
+GB00ACME00000002;24.06.26;24.06.26;LASTSCHRIFT;Beitrag;;;;;;;Sports Club;;;-120,00;EUR;Umsatz gebucht
+GB00ACME00000002;20.07.26;20.07.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.07.26;22.07.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-19,77;EUR;Umsatz gebucht
+GB00ACME00000002;20.08.26;20.08.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.08.26;22.08.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-13,17;EUR;Umsatz gebucht
+GB00ACME00000002;20.09.26;20.09.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.09.26;22.09.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-16,85;EUR;Umsatz gebucht
+GB00ACME00000002;20.10.26;20.10.26;GUTSCHRIFT;Umbuchung;;;;;;;Jane Doe;;;200,00;EUR;Umsatz gebucht
+GB00ACME00000002;22.10.26;22.10.26;KARTENZAHLUNG;Apotheke;;;;;;;Pharmacy Plus;;;-22,66;EUR;Umsatz gebucht

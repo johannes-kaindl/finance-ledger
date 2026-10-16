@@ -1,0 +1,184 @@
+Auftragskonto;Buchungstag;Valutadatum;Buchungstext;Verwendungszweck;Glaeubiger ID;Mandatsreferenz;Kundenreferenz (End-to-End);Sammlerreferenz;Lastschrift Ursprungsbetrag;Auslagenersatz Ruecklastschrift;Beguenstigter/Zahlungspflichtiger;Kontonummer/IBAN;BIC (SWIFT-Code);Betrag;Waehrung;Info
+GB00ACME00000001;01.10.25;01.10.25;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3300,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.10.25;02.10.25;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-85,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.10.25;03.10.25;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.10.25;04.10.25;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.10.25;05.10.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-31,39;EUR;Umsatz gebucht
+GB00ACME00000001;12.10.25;12.10.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-78,49;EUR;Umsatz gebucht
+GB00ACME00000001;19.10.25;19.10.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-55,12;EUR;Umsatz gebucht
+GB00ACME00000001;26.10.25;26.10.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-64,71;EUR;Umsatz gebucht
+GB00ACME00000001;08.10.25;08.10.25;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.10.25;10.10.25;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.10.25;15.10.25;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.10.25;16.10.25;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-16,76;EUR;Umsatz gebucht
+GB00ACME00000001;17.10.25;17.10.25;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 9;;;-63,66;EUR;Umsatz gebucht
+GB00ACME00000001;20.10.25;20.10.25;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.11.25;01.11.25;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3400,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.11.25;02.11.25;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-109,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.11.25;03.11.25;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.11.25;04.11.25;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.11.25;05.11.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-32,02;EUR;Umsatz gebucht
+GB00ACME00000001;12.11.25;12.11.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-38,67;EUR;Umsatz gebucht
+GB00ACME00000001;19.11.25;19.11.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-37,02;EUR;Umsatz gebucht
+GB00ACME00000001;26.11.25;26.11.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-70,81;EUR;Umsatz gebucht
+GB00ACME00000001;08.11.25;08.11.25;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.11.25;10.11.25;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.11.25;15.11.25;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.11.25;16.11.25;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-17,62;EUR;Umsatz gebucht
+GB00ACME00000001;17.11.25;17.11.25;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 1;;;-88,98;EUR;Umsatz gebucht
+GB00ACME00000001;20.11.25;20.11.25;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.12.25;01.12.25;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3200,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.12.25;02.12.25;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-117,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.12.25;03.12.25;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.12.25;04.12.25;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.12.25;05.12.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-60,23;EUR;Umsatz gebucht
+GB00ACME00000001;12.12.25;12.12.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-44,08;EUR;Umsatz gebucht
+GB00ACME00000001;19.12.25;19.12.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-47,69;EUR;Umsatz gebucht
+GB00ACME00000001;26.12.25;26.12.25;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-59,71;EUR;Umsatz gebucht
+GB00ACME00000001;08.12.25;08.12.25;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.12.25;10.12.25;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.12.25;15.12.25;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.12.25;16.12.25;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-20,58;EUR;Umsatz gebucht
+GB00ACME00000001;17.12.25;17.12.25;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 6;;;-51,08;EUR;Umsatz gebucht
+GB00ACME00000001;20.12.25;20.12.25;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.01.26;01.01.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3450,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.01.26;02.01.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-110,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.01.26;03.01.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.01.26;04.01.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.01.26;05.01.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-78,38;EUR;Umsatz gebucht
+GB00ACME00000001;12.01.26;12.01.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-66,65;EUR;Umsatz gebucht
+GB00ACME00000001;19.01.26;19.01.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-43,40;EUR;Umsatz gebucht
+GB00ACME00000001;26.01.26;26.01.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-44,91;EUR;Umsatz gebucht
+GB00ACME00000001;08.01.26;08.01.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.01.26;10.01.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.01.26;15.01.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.01.26;16.01.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-12,65;EUR;Umsatz gebucht
+GB00ACME00000001;17.01.26;17.01.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 9;;;-57,98;EUR;Umsatz gebucht
+GB00ACME00000001;20.01.26;20.01.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.02.26;01.02.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3200,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.02.26;02.02.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-107,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.02.26;03.02.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.02.26;04.02.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.02.26;05.02.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-33,18;EUR;Umsatz gebucht
+GB00ACME00000001;12.02.26;12.02.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-76,53;EUR;Umsatz gebucht
+GB00ACME00000001;19.02.26;19.02.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-52,57;EUR;Umsatz gebucht
+GB00ACME00000001;26.02.26;26.02.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-76,92;EUR;Umsatz gebucht
+GB00ACME00000001;08.02.26;08.02.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.02.26;10.02.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.02.26;15.02.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.02.26;16.02.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-14,74;EUR;Umsatz gebucht
+GB00ACME00000001;17.02.26;17.02.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 6;;;-22,86;EUR;Umsatz gebucht
+GB00ACME00000001;20.02.26;20.02.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.03.26;01.03.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3250,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.03.26;02.03.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-96,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.03.26;03.03.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.03.26;04.03.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.03.26;05.03.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-42,24;EUR;Umsatz gebucht
+GB00ACME00000001;12.03.26;12.03.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-38,77;EUR;Umsatz gebucht
+GB00ACME00000001;19.03.26;19.03.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-39,78;EUR;Umsatz gebucht
+GB00ACME00000001;26.03.26;26.03.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-70,38;EUR;Umsatz gebucht
+GB00ACME00000001;08.03.26;08.03.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.03.26;10.03.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.03.26;15.03.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.03.26;16.03.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-13,87;EUR;Umsatz gebucht
+GB00ACME00000001;17.03.26;17.03.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 6;;;-28,33;EUR;Umsatz gebucht
+GB00ACME00000001;20.03.26;20.03.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.04.26;01.04.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3350,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.04.26;02.04.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-82,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.04.26;03.04.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.04.26;04.04.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.04.26;05.04.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-34,58;EUR;Umsatz gebucht
+GB00ACME00000001;12.04.26;12.04.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-64,09;EUR;Umsatz gebucht
+GB00ACME00000001;19.04.26;19.04.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-62,22;EUR;Umsatz gebucht
+GB00ACME00000001;26.04.26;26.04.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-31,91;EUR;Umsatz gebucht
+GB00ACME00000001;08.04.26;08.04.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.04.26;10.04.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.04.26;15.04.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.04.26;16.04.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-12,32;EUR;Umsatz gebucht
+GB00ACME00000001;17.04.26;17.04.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 4;;;-7,08;EUR;Umsatz gebucht
+GB00ACME00000001;20.04.26;20.04.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;28.04.26;28.04.26;ONLINE-UEBERWEISUNG;Steuer;;;;;;;Finanzamt Mitte;;;-1234,56;EUR;Umsatz gebucht
+GB00ACME00000001;01.05.26;01.05.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3200,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.05.26;02.05.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-102,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.05.26;03.05.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.05.26;04.05.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.05.26;05.05.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-31,30;EUR;Umsatz gebucht
+GB00ACME00000001;12.05.26;12.05.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-60,88;EUR;Umsatz gebucht
+GB00ACME00000001;19.05.26;19.05.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-70,18;EUR;Umsatz gebucht
+GB00ACME00000001;26.05.26;26.05.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-45,83;EUR;Umsatz gebucht
+GB00ACME00000001;08.05.26;08.05.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.05.26;10.05.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.05.26;15.05.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.05.26;16.05.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-9,75;EUR;Umsatz gebucht
+GB00ACME00000001;17.05.26;17.05.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 2;;;-48,30;EUR;Umsatz gebucht
+GB00ACME00000001;20.05.26;20.05.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.06.26;01.06.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3300,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.06.26;02.06.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-93,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.06.26;03.06.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.06.26;04.06.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.06.26;05.06.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-37,50;EUR;Umsatz gebucht
+GB00ACME00000001;12.06.26;12.06.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-38,47;EUR;Umsatz gebucht
+GB00ACME00000001;19.06.26;19.06.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-75,57;EUR;Umsatz gebucht
+GB00ACME00000001;26.06.26;26.06.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-73,33;EUR;Umsatz gebucht
+GB00ACME00000001;08.06.26;08.06.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.06.26;10.06.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.06.26;15.06.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.06.26;16.06.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-22,30;EUR;Umsatz gebucht
+GB00ACME00000001;17.06.26;17.06.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 3;;;-44,09;EUR;Umsatz gebucht
+GB00ACME00000001;20.06.26;20.06.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.07.26;01.07.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3300,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.07.26;02.07.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-106,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.07.26;03.07.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.07.26;04.07.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.07.26;05.07.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-43,52;EUR;Umsatz gebucht
+GB00ACME00000001;12.07.26;12.07.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-63,80;EUR;Umsatz gebucht
+GB00ACME00000001;19.07.26;19.07.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-35,69;EUR;Umsatz gebucht
+GB00ACME00000001;26.07.26;26.07.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-49,53;EUR;Umsatz gebucht
+GB00ACME00000001;08.07.26;08.07.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.07.26;10.07.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.07.26;15.07.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.07.26;16.07.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-20,17;EUR;Umsatz gebucht
+GB00ACME00000001;17.07.26;17.07.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 5;;;-74,64;EUR;Umsatz gebucht
+GB00ACME00000001;20.07.26;20.07.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.08.26;01.08.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3400,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.08.26;02.08.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-83,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.08.26;03.08.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.08.26;04.08.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.08.26;05.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-53,33;EUR;Umsatz gebucht
+GB00ACME00000001;12.08.26;12.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-38,88;EUR;Umsatz gebucht
+GB00ACME00000001;19.08.26;19.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-32,07;EUR;Umsatz gebucht
+GB00ACME00000001;26.08.26;26.08.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-41,40;EUR;Umsatz gebucht
+GB00ACME00000001;08.08.26;08.08.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.08.26;10.08.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.08.26;15.08.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.08.26;16.08.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-15,80;EUR;Umsatz gebucht
+GB00ACME00000001;17.08.26;17.08.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 9;;;-75,52;EUR;Umsatz gebucht
+GB00ACME00000001;20.08.26;20.08.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.09.26;01.09.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3400,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.09.26;02.09.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-114,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.09.26;03.09.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.09.26;04.09.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.09.26;05.09.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-39,30;EUR;Umsatz gebucht
+GB00ACME00000001;12.09.26;12.09.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-49,25;EUR;Umsatz gebucht
+GB00ACME00000001;19.09.26;19.09.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-75,94;EUR;Umsatz gebucht
+GB00ACME00000001;26.09.26;26.09.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-68,56;EUR;Umsatz gebucht
+GB00ACME00000001;08.09.26;08.09.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.09.26;10.09.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-55,50;EUR;Umsatz gebucht
+GB00ACME00000001;15.09.26;15.09.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.09.26;16.09.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-18,20;EUR;Umsatz gebucht
+GB00ACME00000001;17.09.26;17.09.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 5;;;-5,64;EUR;Umsatz gebucht
+GB00ACME00000001;20.09.26;20.09.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht
+GB00ACME00000001;01.10.26;01.10.26;GUTSCHRIFT;Gehalt;;;;;;;Globex Corporation;;;3350,00;EUR;Umsatz gebucht
+GB00ACME00000001;02.10.26;02.10.26;LASTSCHRIFT;Strom;;;;;;;Acme Power;;;-93,00;EUR;Umsatz gebucht
+GB00ACME00000001;03.10.26;03.10.26;ONLINE-UEBERWEISUNG;Miete;;;;;;;Hausverwaltung Nord;;;-950,00;EUR;Umsatz gebucht
+GB00ACME00000001;04.10.26;04.10.26;LASTSCHRIFT;Handy;;;;;;;Telco One;;;-29,99;EUR;Umsatz gebucht
+GB00ACME00000001;05.10.26;05.10.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-32,47;EUR;Umsatz gebucht
+GB00ACME00000001;12.10.26;12.10.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-44,18;EUR;Umsatz gebucht
+GB00ACME00000001;19.10.26;19.10.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-66,80;EUR;Umsatz gebucht
+GB00ACME00000001;26.10.26;26.10.26;KARTENZAHLUNG;Einkauf;;;;;;;Northwind Grocers;;;-64,61;EUR;Umsatz gebucht
+GB00ACME00000001;08.10.26;08.10.26;KARTENZAHLUNG;Metro Ticket;;;;;;;Metro Transit;;;-49,00;EUR;Umsatz gebucht
+GB00ACME00000001;10.10.26;10.10.26;LASTSCHRIFT;Versicherung;;;;;;;Insure AG;;;-12,25;EUR;Umsatz gebucht
+GB00ACME00000001;15.10.26;15.10.26;ENTGELT;Kontofuehrung;;;;;;;Acme Bank Kontofuehrung;;;-4,90;EUR;Umsatz gebucht
+GB00ACME00000001;16.10.26;16.10.26;KARTENZAHLUNG;Kino;;;;;;;Cinema City;;;-10,67;EUR;Umsatz gebucht
+GB00ACME00000001;17.10.26;17.10.26;ONLINE-UEBERWEISUNG;Unbekannt;;;;;;;Zufallsfirma 7;;;-50,42;EUR;Umsatz gebucht
+GB00ACME00000001;20.10.26;20.10.26;ONLINE-UEBERWEISUNG;Umbuchung;;;;;;;Jane Doe;;;-200,00;EUR;Umsatz gebucht

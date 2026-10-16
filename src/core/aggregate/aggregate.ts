@@ -60,6 +60,26 @@ function rundeEineStelle(x: number): number {
 }
 
 /**
+ * Pythons `f"{x:.1f}"`: eine Nachkommastelle, Gleichstand zur geraden Ziffer, `-0.0` bleibt `-0.0`
+ * (`Number#toFixed` rundet einen echten Gleichstand nach oben und schreibt `-0` als `0.0`).
+ */
+function formatFixed1(x: number): string {
+	const r = rundeEineStelle(x);
+	return Object.is(r, -0) ? "-0.0" : r.toFixed(1);
+}
+
+/** Pythons `repr(float)` für einen auf eine Stelle gerundeten Wert: `100` wird `100.0`, `-0` wird `-0.0`. */
+function pyFloatRepr(x: number): string {
+	if (Object.is(x, -0)) return "-0.0";
+	return Number.isInteger(x) ? x.toFixed(1) : String(x);
+}
+
+/** Die Sparquote, wie Python sie in die Frontmatter schreibt (`repr` des Floats: `100.0`, `12.5`, `-0.0`). */
+export function sparquoteFrontmatter(agg: SichtAggregat): string {
+	return pyFloatRepr(agg.sparquoteProzent);
+}
+
+/**
  * Aggregiert die Buchungen einer Periode zu einer Sicht. `datePredicate` bekommt den Buchungstag
  * (`YYYY-MM-DD`) und sagt, ob die Buchung zur Periode gehört. Selbstüberweisungen (Tag `self-transfer`)
  * zählen nie.
@@ -155,7 +175,7 @@ export function kennzahlenTabelle(agg: SichtAggregat): string {
 		`| Einnahmen | ${formatGermanEuro(agg.einnahmenGesamt)} |`,
 		`| Ausgaben | ${formatGermanEuro(agg.ausgabenGesamt)} |`,
 		`| Saldo | ${formatGermanEuro(agg.saldo)} |`,
-		`| Sparquote | ${agg.sparquoteProzent.toFixed(1)} % |`,
+		`| Sparquote | ${formatFixed1(agg.sparquoteProzent)} % |`,
 	].join("\n");
 }
 
@@ -170,7 +190,7 @@ export function kategorienTabelle(ctx: ImporterContext, agg: SichtAggregat, with
 		const anteil = gesamt.isZero() ? 0 : wert.div(gesamt).times(100).toNumber();
 		const name = kategorieName(suffix);
 		const cell = withWikilinks ? kategorieWikilink(ctx, suffix, { display: name, forTable: true }) : name;
-		rows.push(`| ${cell} | ${formatGermanEuro(wert)} | ${anteil.toFixed(1)}% |`);
+		rows.push(`| ${cell} | ${formatGermanEuro(wert)} | ${formatFixed1(anteil)}% |`);
 	}
 	rows.push(`| **Summe** | **${formatGermanEuro(gesamt)}** | 100% |`);
 	return rows.join("\n");
