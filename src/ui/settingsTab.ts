@@ -159,7 +159,7 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
             control: {
               type: 'text',
               key: 'importerCwd',
-              placeholder: '/absolute/path/to/finance-ledger-importer',
+              placeholder: '/absolute/path/to/26-011-finanzplan-importer',
             },
           },
         ],

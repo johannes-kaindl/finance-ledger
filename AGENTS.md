@@ -9,7 +9,7 @@ Conventions for AI agents (Claude Code, Codex, …) working on this repository.
 ## Project character
 
 Obsidian-Plugin (TypeScript, esbuild), das die Outputs des Schwester-Tools
-[`finance-ledger-importer`](https://git.jkaindl.de/jkaindl/finance-ledger-importer)
+[`26-011-finanzplan-importer`](https://git.jkaindl.de/jkaindl/26-011-finanzplan-importer)
 im Vault rendert und zurückschreibt: hledger-Journal als filterbare Tabelle,
 Saldo-/Kategorie-Übersichten, TBC-Triage mit Categorizer-Rules-Verwaltung
 (Vault-Notes als Source-of-Truth), Dashboard, CSV-Import — wahlweise eingebaut
