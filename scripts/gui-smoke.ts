@@ -88,6 +88,12 @@ const SPUR = "<!-- gui-smoke: diese Zeile muss den Import überleben -->";
 const SMOKE_KONTO = "Ausgaben:GuiSmoke:Test";
 const KONTEN_NAME = "konten.yaml";
 const KONTEN_WEG = "konten.yaml.gui-smoke";
+/** Ordner und Notiz-Art der Berichte (E5). Der Treiber leert sie vor dem Lauf, damit „entstehen“ nichts Altes liest. */
+const BERICHT_ORDNER = [
+  { ordner: "40-Monatsberichte", art: "monatsbericht" },
+  { ordner: "70-Quartalsberichte", art: "quartalsbericht" },
+  { ordner: "80-Jahresberichte", art: "jahresbericht" },
+] as const;
 
 /** Alle Prüfpunkte (Nenner der Bilanz). Zweig-Alternativen tragen einen Namen, nie zwei. */
 const PUNKTE = [
@@ -110,8 +116,10 @@ const PUNKTE = [
   "…und keine „fehlt\"-Zeilen (Komma-Schreibweise gelesen)",
   "Vertrags-Notiz hat Stichprobe und Vertragsdaten",
   "…mit escaptem Alias-Trenner in der Tabelle",
+  "Berichte entstehen im Import: ein Monat, Quartal und Jahr je Periode mit Buchungen",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
+  "…und die Berichte ebenso",
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
@@ -350,10 +358,35 @@ async function schliesseModale(cdp: Cdp): Promise<void> {
   if (!zu) throw new Error("Ein Modal ließ sich nicht schließen (.modal-header-button).");
 }
 
+/** Berichte, die der Import angelegt hat, entfernen — sie sind erzeugt, nie Nutzer-Besitz dieses Vaults. */
+async function raeumeBerichte(cdp: Cdp, root: string): Promise<number> {
+  let n = 0;
+  for (const { ordner } of BERICHT_ORDNER) {
+    for (const pfad of (await listeDateien(cdp, `${root}/${ordner}`)).filter((f) => f.endsWith(".md"))) {
+      await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
+      n++;
+    }
+  }
+  return n;
+}
+
+/** Alle Berichte samt Text, nach Pfad. */
+async function leseBerichte(cdp: Cdp, root: string): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  for (const { ordner } of BERICHT_ORDNER) {
+    for (const pfad of (await listeDateien(cdp, `${root}/${ordner}`)).filter((f) => f.endsWith(".md"))) {
+      out.set(pfad, (await cdp.evaluate<string>(`return await app.vault.adapter.read(${JSON.stringify(pfad)});`)));
+    }
+  }
+  return out;
+}
+
 async function raeumeAuf(cdp: Cdp, root: string): Promise<string[]> {
   const log: string[] = [];
   await schliesseModale(cdp);
   await stelleKontenWiederHer(cdp, root);
+  const berichte = await raeumeBerichte(cdp, root);
+  if (berichte > 0) log.push(`${berichte} Bericht(e) entfernt`);
   const regeln = await smokeRegeln(cdp, root);
   for (const pfad of regeln) {
     await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
@@ -1050,6 +1083,29 @@ async function main(): Promise<void> {
     }
     console.log("");
 
+    // Berichte (E5): eine Notiz je Periode mit Buchungen. Die Soll-Zahl stammt aus dem geschriebenen Journal,
+    // nicht aus einer Konstante — das Fixture verschiebt seine Daten mit dem Stichtag.
+    const tage = [...(journal ?? "").matchAll(/^(\d{4})-(\d{2})-\d{2} /gm)];
+    const monate = new Set(tage.map((m) => `${m[1]}-${m[2]}`));
+    const quartale = new Set(tage.map((m) => `${m[1]}-Q${Math.floor((Number(m[2]) - 1) / 3) + 1}`));
+    const jahre = new Set(tage.map((m) => m[1]));
+    const berichteNach = await leseBerichte(cdp, root);
+    const soll = [monate.size, quartale.size, jahre.size];
+    const ist = BERICHT_ORDNER.map(({ ordner }) => [...berichteNach.keys()].filter((p) => p.startsWith(`${root}/${ordner}/`)).length);
+    const schlecht = [...berichteNach.entries()].filter(([pfad, text]) => {
+      const art = BERICHT_ORDNER.find(({ ordner }) => pfad.startsWith(`${root}/${ordner}/`))?.art;
+      return !(text.includes(`kategorie: ${art}`) && text.includes("<!-- BEGIN: AUTO-GENERATED -->") && text.includes("## 📊 Gesamt-Sicht"));
+    });
+    const berichteOk = soll[0] > 0 && ist.every((n, i) => n === soll[i]) && schlecht.length === 0;
+    record(
+      "Berichte entstehen im Import: ein Monat, Quartal und Jahr je Periode mit Buchungen",
+      berichteOk,
+      berichteOk
+        ? `${ist[0]} Monat(e), ${ist[1]} Quartal(e), ${ist[2]} Jahr(e)`
+        : `Soll ${soll.join("/")} (Monate/Quartale/Jahre), ist ${ist.join("/")}${schlecht.length > 0 ? `, ohne Gerüst: ${schlecht.map(([p]) => p.split("/").pop()).join(", ")}` : ""}`,
+    );
+    console.log("");
+
     console.log("── Idempotenz (der Grund, warum dieser Smoke schreiben darf)");
     const vorZweitem = new Map<string, string>();
     for (const pfad of kontoPfade) vorZweitem.set(pfad, (await readNote(cdp, pfad)) ?? "");
@@ -1071,6 +1127,16 @@ async function main(): Promise<void> {
       "…und die Eröffnungsbilanz ebenso",
       openingNach === openingVor,
       openingNach === openingVor ? "byte-gleich" : "ABWEICHUNG",
+    );
+    const berichteZweiter = await leseBerichte(cdp, root);
+    const berichteDrift = [...berichteNach.entries()]
+      .filter(([pfad, text]) => berichteZweiter.get(pfad) !== text)
+      .map(([pfad]) => pfad.split("/").pop() ?? pfad);
+    const berichteIdem = berichteNach.size > 0 && berichteDrift.length === 0 && berichteZweiter.size === berichteNach.size;
+    record(
+      "…und die Berichte ebenso",
+      berichteIdem,
+      berichteIdem ? `${berichteNach.size} Berichte byte-gleich` : `Drift in: ${berichteDrift.join(", ") || "Dateimenge"}`,
     );
     console.log("");
 

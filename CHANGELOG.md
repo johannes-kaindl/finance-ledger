@@ -6,6 +6,20 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Added
+
+- **Monthly, quarterly and yearly reports are written by the plugin.** Every import and every journal rebuild now writes a report for each month, quarter and year that has transactions (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`), with the three views (all accounts, private, rental), category tables, the budget overview with traffic lights, the top payees and the quarter/year breakdown. No Python needed. On a 293-transaction test set they match the Python importer byte for byte.
+
+- The "Rebuild journal" notice names the number of reports written ("12 report(s) written"); nothing is listed when no report changed.
+
+### Changed
+
+- **A report that already exists is updated in place.** Only its figures, `updated` and `generiert_aus_ledger_am` are rewritten and the generated block is replaced; your own tags, fields, the `created` date and everything you wrote below the block stay. The Python importer rewrote the whole frontmatter and set `created` to today on every run. Reports whose content did not change are not rewritten.
+- **Without an account of role `vermietung`** the reports show only the overall view instead of failing; the private and rental sections are left out.
+- **"Copy terminal command" no longer asks the Python importer for the reports** (`--all-aggregates` is gone from the command), since a Python run afterwards would overwrite the plugin's reports; it still builds the category, payee, transaction-type and mandate notes.
+- The share column in the category tables rounds a tie to the even digit like the Python importer did (12.25 % shows as 12.2 %, not 12.3 %).
+- The importer repository setting and its documentation name the right repository (`26-011-finanzplan-importer`); the old link led nowhere.
+
 ## [0.4.0] — 2026-10-14
 
 ### Changed

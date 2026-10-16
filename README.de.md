@@ -17,13 +17,15 @@ gespeist von einem begleitenden Python-Importer.
 
 ## Status
 
+**Stand 2026-10-16 — Importer-Port, Etappe E5:** Der eingebaute Import schreibt jetzt auch die Monats-, Quartals- und Jahresberichte (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`) — ohne Python. Sie stimmen auf einem Testbestand mit 293 Buchungen (13 Monate, 5 Quartale, 2 Jahre; `npm run parity`) Byte für Byte mit dem Python-Importer überein. Anders als der Python-Importer zieht das Plugin einen vorhandenen Bericht nach, statt ihn zu ersetzen: eigene Tags, Felder und Notizen bleiben, `created` bleibt. Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen (E6/E7) kommen weiterhin aus dem Python-Importer.
+
 **Stand 2026-08-17 — Importer-Port, Etappen E0–E3:** Der eingebaute Import erzeugt
 `journal.ledger`, `accounts.ledger`, `opening_balances.ledger` **und** die Konto- und
 Vertrags-Notizen — ohne Python. Dabei fasst er nur an, was er selbst erzeugt hat:
 `anfangssaldo_eur`, `created`, fremde Frontmatter-Felder und alles unterhalb des
 `AUTO-GENERATED`-Markers überleben jeden Lauf. Belegt durch `npm run smoke:gui` gegen ein
 laufendes Obsidian (21/21; Gegenprobe mit ausgebautem Patch-Pfad 15/20). Berichte und
-Dimensions-Notizen (E4–E7) kommen weiterhin aus dem Python-Importer, gefahren im Terminal.
+Dimensions-Notizen (E4–E7) kamen damals noch aus dem Python-Importer, gefahren im Terminal.
 
 **Stand 2026-10-03 — der Subprozess ist vollständig weg:** Import-Dialog,
 Anti-Duplikat-Vorschau und Re-Import starten den Python-Importer nicht mehr. Das Plugin lädt
@@ -117,8 +119,8 @@ daraus `opening_balances.ledger`. Das Plugin filtert dann die Buchungen vor dem 
   `opening_balances.ledger`. Ohne Journal zeigen die Ansichten nichts an.
 - Für den **eingebauten** Journal-Aufbau aus CSVs: eine `konten.yaml` im Vault. Kein Python,
   kein `uv` — dieser Weg läuft auch mobil.
-- Nur für den **Re-Import über das Begleit-Repo** (Berichte und Notiz-Generatoren): Desktop,
-  `uv` und ein Checkout des Python-Importers.
+- Nur für den **Re-Import über das Begleit-Repo** (Dimensions-Notizen und die übrigen
+  Notiz-Generatoren): Desktop, `uv` und ein Checkout des Python-Importers.
 
 ## Installation
 
@@ -213,10 +215,9 @@ Ausführliche Doku: [`docs/design.md`](https://github.com/johannes-kaindl/financ
   und damit auch die Plattform-Sperren, die an ihnen hingen.
   ⚠️ Auf einem echten Telefon oder Tablet noch **nicht** nachgemessen — der Codeweg ist
   node-frei und durch Tests gedeckt, die Dateiauswahl auf Mobilgeräten ist ungeprüft.
-- **Weiter desktop-gebunden:** Berichte und Dimensions-Notizen (Monats-, Quartals- und
-  Jahresberichte, Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen). Die kommen aus dem
-  Python-Importer, gefahren im Terminal — das Plugin gibt den vollständigen Befehl als
-  Kopier-Knopf heraus.
+- **Weiter desktop-gebunden:** die Dimensions-Notizen (Kategorie-, Empfänger-, Tx-Typ- und
+  Mandats-Notizen). Die kommen aus dem Python-Importer, gefahren im Terminal — das Plugin gibt den
+  vollständigen Befehl als Kopier-Knopf heraus. Die Monats-, Quartals- und Jahresberichte schreibt das Plugin selbst.
 - **Mobile Icons:** Auf iPhone und iPad sind nach dem letzten Icon-Fix teils noch Platzhalter
   sichtbar — die Diagnose steht am Desktop mit Mobile-DevTools aus.
 

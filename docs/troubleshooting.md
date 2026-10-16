@@ -89,13 +89,19 @@ Each entry starts with what you see — the wording is the plugin's own English 
 
 **Cause:** the import ended with an error. The **TBC triage** tab shows the message.
 
-**Fix:** read the message and press **Try again**. **Copy terminal command** gives you the full importer command, including the `FINANCE_VAULT` variables — useful for the reports (see below), not needed for the import itself.
+**Fix:** read the message and press **Try again**. **Copy terminal command** gives you the full importer command, including the `FINANCE_VAULT` variables — useful for the dimension notes (see below), not needed for the import itself.
 
-## Reports and dimension notes are missing
+## Dimension notes are missing
 
-**Cause:** monthly, quarterly and yearly reports plus the category, payee, transaction-type and mandate notes do not come from the plugin. It writes the journal, the chart of accounts, the opening balances and the account and contract notes; the rest is produced by the companion Python importer.
+**Cause:** the category, payee, transaction-type and mandate notes do not come from the plugin. It writes the journal, the chart of accounts, the opening balances, the account and contract notes and the monthly, quarterly and yearly reports; the rest is produced by the companion Python importer.
 
-**Fix:** press **Copy terminal command** in the import-error dialog or the TBC triage tab and run it in a terminal. The command already contains the report flags and the vault variables. Set **Importer repo path** first so the command points at your checkout.
+**Fix:** press **Copy terminal command** in the import-error dialog or the TBC triage tab and run it in a terminal. The command already contains the note flags and the vault variables. Set **Importer repo path** first so the command points at your checkout.
+
+## Reports are missing
+
+**Cause:** the reports are written for every month, quarter and year that has transactions, on every import and every journal rebuild. If a period is missing, the CSVs hold no transaction for it, or the import did not run to the end (an error notice names the reason).
+
+**Fix:** run **Rebuild journal from CSVs (built-in)** once more. A report whose content did not change is not rewritten, and your own notes below the generated block stay.
 
 ## Snapshots before a rule is written
 

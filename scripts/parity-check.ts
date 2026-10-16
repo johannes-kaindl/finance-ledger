@@ -10,9 +10,11 @@
  * Ablauf:
  *   1. `python3 scripts/parity-export.py <konten.yaml> <rules-dir> <config.json>`
  *      schreibt Konten und Regel-Frontmatter als JSON heraus.
- *   2. Der Python-Importer läuft mit `FINANCE_VAULT=<referenz-vault>`.
+ *   2. Der Python-Importer läuft mit `FINANCE_VAULT=<referenz-vault>`, bei E5 zusätzlich mit
+ *      `--all-aggregates --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
  *   3. Dieses Skript läuft über denselben Umsatzordner.
- *   4. `diff` über die erzeugten `.ledger`-Dateien.
+ *   4. Vergleich der erzeugten `.ledger`-Dateien und, seit E5, aller Berichte (`40-Monatsberichte`,
+ *      `70-Quartalsberichte`, `80-Jahresberichte`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
  *
  * Aufruf:
  *   npm run parity -- <config.json> <ziel-vault> [referenz-vault]
@@ -22,7 +24,7 @@
 
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile, rm } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { createImporterContext } from "../src/core/config/context";
 import { parseKontenConfig } from "../src/core/config/konten";
 import { deriveOwnerNames } from "../src/core/import/categorize";
@@ -39,34 +41,37 @@ if (!configPath || !targetVault) {
 	process.exit(2);
 }
 
+/** Vault-relative Pfade (die Berichte) liegen unter dem Ziel-Vault, absolute (Journal, Umsätze) bleiben. */
+const abs = (path: string): string => (isAbsolute(path) ? path : join(targetVault, path));
+
 /** VaultPort über das Dateisystem — der Kern merkt vom Unterschied nichts. */
 const fsVault: VaultPort = {
-	read: (path) => readFile(path, "utf-8"),
+	read: (path) => readFile(abs(path), "utf-8"),
 	readBinary: async (path) => {
-		const buf = await readFile(path);
+		const buf = await readFile(abs(path));
 		return buf.buffer.slice(
 			buf.byteOffset,
 			buf.byteOffset + buf.byteLength,
 		) as ArrayBuffer;
 	},
 	write: async (path, content) => {
-		await mkdir(dirname(path), { recursive: true });
-		await writeFile(path, content, "utf-8");
+		await mkdir(dirname(abs(path)), { recursive: true });
+		await writeFile(abs(path), content, "utf-8");
 	},
 	writeBinary: async () => undefined,
-	exists: async (path) => existsSync(path),
+	exists: async (path) => existsSync(abs(path)),
 	mkdir: async (path) => {
-		await mkdir(path, { recursive: true });
+		await mkdir(abs(path), { recursive: true });
 	},
 	remove: async (path) => {
-		await rm(path, { force: true });
+		await rm(abs(path), { force: true });
 	},
 	list: async (folder) => {
-		if (!existsSync(folder)) return [];
-		return (await readdir(folder)).map((name) => join(folder, name)).sort();
+		if (!existsSync(abs(folder))) return [];
+		return (await readdir(abs(folder))).map((name) => join(folder, name)).sort();
 	},
 	stat: async (path) =>
-		existsSync(path) ? { mtime: (await stat(path)).mtimeMs } : null,
+		existsSync(abs(path)) ? { mtime: (await stat(abs(path))).mtimeMs } : null,
 };
 
 const raw = JSON.parse(await readFile(configPath, "utf-8")) as {
@@ -86,6 +91,7 @@ const result = await runImport({
 	ownerNames: deriveOwnerNames(ctx),
 	umsatzDir: join(targetVault, "Umsätze"),
 	outDir: join(targetVault, "Ledger"),
+	berichte: true,
 	log: { info: () => undefined, warn: (m) => console.error(`WARN ${m}`) },
 });
 
@@ -108,7 +114,43 @@ for (const name of ["journal.ledger", "accounts.ledger"]) {
 	reportFirstDifferences(mine, theirs);
 }
 
+for (const folder of [ctx.folders.monatsberichte, ctx.folders.quartalsberichte, ctx.folders.jahresberichte]) {
+	differences += await compareFolder(folder);
+}
+
 process.exit(differences === 0 ? 0 : 1);
+
+/**
+ * Vergleicht die Berichte eines Ordners. Der TS-Lauf schreibt unter `<ziel>/<Präfix>/<Ordner>`, der
+ * Python-Lauf unter `<referenz>/<Ordner>`; die Präfix-Ebene ist nur der Projektordner.
+ */
+async function compareFolder(folder: string): Promise<number> {
+	const mineDir = join(targetVault, ctx.notesPrefix, folder);
+	const theirsDir = join(referenceVault, folder);
+	const mine = existsSync(mineDir) ? (await readdir(mineDir)).sort() : [];
+	const theirs = existsSync(theirsDir) ? (await readdir(theirsDir)).sort() : [];
+	let diffs = 0;
+	if (JSON.stringify(mine) !== JSON.stringify(theirs)) {
+		diffs++;
+		console.log(`✗ ${folder}: Dateimenge unterschiedlich — TS ${mine.length}, Python ${theirs.length}`);
+		console.log(`  nur TS: ${mine.filter((n) => !theirs.includes(n)).join(", ") || "—"}`);
+		console.log(`  nur Python: ${theirs.filter((n) => !mine.includes(n)).join(", ") || "—"}`);
+	}
+	let gleich = 0;
+	for (const name of mine.filter((n) => theirs.includes(n))) {
+		const a = await readFile(join(mineDir, name), "utf-8");
+		const b = await readFile(join(theirsDir, name), "utf-8");
+		if (a === b) {
+			gleich++;
+			continue;
+		}
+		diffs++;
+		console.log(`✗ ${folder}/${name}: unterschiedlich`);
+		reportFirstDifferences(a, b);
+	}
+	console.log(`${diffs === 0 ? "✓" : "·"} ${folder}: ${gleich} von ${theirs.length} Berichten byte-gleich`);
+	return diffs;
+}
 
 /** Zeigt die ersten abweichenden Zeilen — mehr braucht die Fehlersuche selten. */
 function reportFirstDifferences(mine: string, theirs: string): void {

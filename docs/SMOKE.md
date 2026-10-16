@@ -38,6 +38,7 @@ gepflegte.
 | 9 | `opening_balances.ledger` trägt Eröffnungsbuchungen, keine „fehlt"-Zeilen | beweist, dass die Komma-Schreibweise gelesen wurde |
 | 10 | Eine Vertrags-Notiz hat Stichprobe und Vertragsdaten (das Diagramm braucht zwei Monate, das Fixture hat einen) | Rendering-nahe Struktur |
 | 11 | **Zweiter Lauf erzeugt byte-gleiche Dateien** | Idempotenz ist die Kernzusage von E3 — und der Grund, warum dieser Smoke schreiben darf |
+| 11a | **Berichte entstehen im Import:** je Periode mit Buchungen ein Monats-, Quartals- und Jahresbericht (Soll-Zahl aus dem geschriebenen Journal), jeder mit Kategorie-Feld, Marker-Block und Gesamt-Sicht; ein zweiter Lauf lässt sie byte-gleich. Gegenprobe: mit abgeschaltetem `berichte` beide Punkte rot (2026-10-16, 26/28) | E5; der Treiber leert die Berichtsordner vor dem Lauf, damit „entstehen“ nichts Altes liest |
 | 12 | Das Import-Modal liest die Konten aus `konten.yaml` — Gegenprobe: ohne die Datei zeigt es den Ladefehler | Die Konten-Quelle ist ein Vault-Lesevorgang im echten Modal |
 | 13 | Die CSV-Vorschau zählt neu und Duplikate — Gegenprobe: dieselbe CSV unter anderem Namen ist komplett Duplikat | Datei-Feld, `DataTransfer` und Vergleich gegen den Umsatzordner |
 | 14 | Ein Regel-Schreibvorgang legt einen Schnappschuss mit dem Stand **vorher** an und rotiert den Bestand; Dateien mit fremdem Namen bleiben liegen | echter Mausklick im Regel-Modal, GFS-Aufbewahrung über die Vault-API |
