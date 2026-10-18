@@ -11,11 +11,11 @@
  *   1. `python3 scripts/parity-export.py <konten.yaml> <rules-dir> <config.json>`
  *      schreibt Konten und Regel-Frontmatter als JSON heraus.
  *   2. Der Python-Importer läuft mit `FINANCE_VAULT=<referenz-vault>`, bei E5 zusätzlich mit
- *      `--all-aggregates --all-kategorie-notes --all-empfaenger-notes --all-tx-typ-notes --all-mandate-notes --all-categorizer-rule-bodies --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
+ *      `--all-aggregates --all-kategorie-notes --all-empfaenger-notes --all-tx-typ-notes --all-mandate-notes --all-sparziele --all-categorizer-rule-bodies --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
  *   3. Dieses Skript läuft über denselben Umsatzordner.
  *   4. Vergleich der erzeugten `.ledger`-Dateien und, seit E5, aller Berichte (`40-Monatsberichte`,
  *      `70-Quartalsberichte`, `80-Jahresberichte`), seit E6 der Dimensions-Notizen (`45-Kategorien`, `60-Empfänger`,
- *      `50-Tx-Typen`), seit E7 der Mandate (`50-Mandate`) und der Regel-Rümpfe (`55-Categorizer-Rules`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
+ *      `50-Tx-Typen`), seit E7 der Mandate (`50-Mandate`), der Sparziele (`30-Sparziele`, `FINANCE_SPARZIELE` beim Python-Lauf, `parity-export.py` bekommt die Datei als vierten Parameter) und der Regel-Rümpfe (`55-Categorizer-Rules`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
  *
  * Aufruf:
  *   npm run parity -- <config.json> <ziel-vault> [referenz-vault]
@@ -27,6 +27,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile, rm } from "node:fs/promises";
 import { dirname, isAbsolute, join } from "node:path";
 import { createImporterContext } from "../src/core/config/context";
+import { parseSparzieleConfig } from "../src/core/config/sparziele";
 import { parseKontenConfig } from "../src/core/config/konten";
 import { deriveOwnerNames } from "../src/core/import/categorize";
 import { runImport } from "../src/core/import/pipeline";
@@ -78,6 +79,7 @@ const fsVault: VaultPort = {
 const raw = JSON.parse(await readFile(configPath, "utf-8")) as {
 	konten: unknown;
 	notes: RuleNote[];
+	sparziele?: unknown;
 };
 
 const ctx = createImporterContext({
@@ -95,6 +97,7 @@ const result = await runImport({
 	berichte: true,
 	dimensionen: true,
 	mandate: true,
+	sparziele: parseSparzieleConfig(raw.sparziele).sparziele,
 	regelRuempfe: { folder: "55-Categorizer-Rules" },
 	log: { info: () => undefined, warn: (m) => console.error(`WARN ${m}`) },
 });
@@ -142,6 +145,7 @@ differences += await compareFolder(ctx.folders.txTypen);
 // Mandate (E7) und Regel-Rümpfe (E7). Die Regel-Notizen liegen im Ziel-Vault direkt unter dem Ordner, nicht unter dem
 // Notizen-Präfix: dort hat der Vergleich sie hineinkopiert.
 differences += await compareFolder(ctx.folders.mandate);
+differences += await compareFolder(ctx.folders.sparziele);
 differences += await compareFolder(ctx.folders.rules, (t) => t, targetVault);
 
 process.exit(differences === 0 ? 0 : 1);

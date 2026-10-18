@@ -1,0 +1,13 @@
+# Sparziele des Beispiel-Vaults. `gespart_auf_konto` ist eine `id` aus konten.yaml.
+sparziele:
+  - filename: Notgroschen.md
+    title: Notgroschen
+    sparziel_typ: notgroschen
+    zielbetrag_eur: 6500
+    sparrate_monatlich_eur: 200
+    geplantes_ziel_datum: '2029-06-30'
+    gespart_auf_konto: pool
+    ledger_kategorie: Aktiva:Sparzweck:Notgroschen
+    aliases:
+      - Sicherheitsreserve
+    sticker: lucide//life-buoy

@@ -13,6 +13,7 @@
 import { parseYaml, type App } from "obsidian";
 import { loadCategorizerRules } from "../categorizer-rules/loader";
 import { createImporterContext } from "../core/config/context";
+import { parseSparzieleConfig, type SparzielSpec } from "../core/config/sparziele";
 import { parseVertraegeConfig, type VertragSpec } from "../core/config/vertraege";
 import { ConfigError } from "../core/errors";
 import { deriveOwnerNames } from "../core/import/categorize";
@@ -68,6 +69,7 @@ export async function runNativeImport(
 		berichte: true,
 		dimensionen: true,
 		mandate: true,
+		sparziele: await loadSparzieleFromVault(vault, paths.sparzieleFile),
 		regelRuempfe: { folder: paths.rulesFolder },
 		log: options.log,
 	});
@@ -80,29 +82,27 @@ export interface NativeImportResult extends ImportResult {
 }
 
 /**
- * Liest `vertraege.yaml`, wenn es sie gibt.
+ * Liest eine optionale YAML-Konfiguration (`vertraege.yaml`, `sparziele.yaml`), wenn es sie gibt.
  *
- * Anders als `konten.yaml` ist die Datei optional: wer keine Verträge pflegt,
- * bekommt keine Vertrags-Notizen und keinen Fehler. Ein **kaputtes** YAML wird
- * dagegen gemeldet — das ist ein Tippfehler, kein Verzicht.
+ * Anders als `konten.yaml` sind diese Dateien optional: wer keine Verträge oder Sparziele pflegt, bekommt keine Notizen
+ * und keinen Fehler. Ein **kaputtes** YAML wird dagegen gemeldet — das ist ein Tippfehler, kein Verzicht.
  */
-async function loadVertraegeFromVault(
-	vault: ObsidianVaultPort,
-	vertraegeFile: string,
-): Promise<VertragSpec[]> {
-	if (vertraegeFile === "" || !(await vault.exists(vertraegeFile))) {
-		return [];
-	}
-	const text = await vault.read(vertraegeFile);
-	let data: unknown;
+async function loadOptionalYaml(vault: ObsidianVaultPort, file: string): Promise<unknown> {
+	if (file === "" || !(await vault.exists(file))) return null;
+	const text = await vault.read(file);
 	try {
-		data = parseYaml(text);
+		return parseYaml(text);
 	} catch (e) {
-		throw new ConfigError(
-			`${vertraegeFile} ist kein gültiges YAML: ${(e as Error).message}`,
-		);
+		throw new ConfigError(`${file} ist kein gültiges YAML: ${(e as Error).message}`);
 	}
-	return parseVertraegeConfig(data).vertraege;
+}
+
+async function loadVertraegeFromVault(vault: ObsidianVaultPort, vertraegeFile: string): Promise<VertragSpec[]> {
+	return parseVertraegeConfig(await loadOptionalYaml(vault, vertraegeFile)).vertraege;
+}
+
+async function loadSparzieleFromVault(vault: ObsidianVaultPort, sparzieleFile: string): Promise<SparzielSpec[]> {
+	return parseSparzieleConfig(await loadOptionalYaml(vault, sparzieleFile)).sparziele;
 }
 
 /**

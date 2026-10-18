@@ -72,6 +72,15 @@ describe("splitBody", () => {
 	});
 });
 
+describe("assembleBody — Marker im Inhalt", () => {
+	it("entschärft Marker im Auto-Block, damit der nächste Lauf ihn nicht als Zonengrenze liest", () => {
+		const text = assembleBody("# Kopf\n", `Zweck: ${AUTO_BEGIN} und ${AUTO_END}\n`, "");
+		expect(text.split(AUTO_BEGIN)).toHaveLength(2);
+		expect(text.split(AUTO_END)).toHaveLength(2);
+		expect(() => splitBody(text)).not.toThrow();
+	});
+});
+
 describe("assembleBody", () => {
 	it("setzt Kopf, Marker-Block und Zeilenende ohne Benutzerteil", () => {
 		expect(assembleBody("# Kopf\n", "auto\n", "")).toBe(

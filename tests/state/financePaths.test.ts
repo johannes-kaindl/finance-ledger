@@ -36,6 +36,7 @@ describe('resolveFinancePaths', () => {
     expect(p.umsatzDir).toBe('Finance/Umsätze');
     expect(p.kontenFile).toBe('Finance/konten.yaml');
     expect(p.vertraegeFile).toBe('Finance/vertraege.yaml');
+    expect(p.sparzieleFile).toBe('Finance/sparziele.yaml');
   });
 
   it('respects an override for the contracts file', () => {

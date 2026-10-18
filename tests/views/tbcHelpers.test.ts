@@ -182,7 +182,7 @@ describe('buildImporterCommand', () => {
     // erzeugt das Plugin nicht (Port-Etappe E7). Berichte (E5) und Dimensions-Notizen (E6) schreibt es selbst.
     expect(cmd).not.toContain('--all-aggregates');
     expect(cmd).not.toContain('--all-empfaenger-notes');
-    expect(cmd).toContain('--all-sparziele');
+    expect(cmd).not.toContain('--all-sparziele');
   });
 
   it('quotet Pfade mit Leerzeichen shell-sicher', () => {

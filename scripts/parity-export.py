@@ -14,6 +14,7 @@ import yaml
 konten_path = Path(sys.argv[1])
 rules_dir = Path(sys.argv[2])
 out_path = Path(sys.argv[3])
+sparziele_path = Path(sys.argv[4]) if len(sys.argv) > 4 else None
 
 konten = yaml.safe_load(konten_path.read_text(encoding="utf-8"))
 
@@ -56,7 +57,7 @@ for md in sorted(rules_dir.glob("*.md")):
     )
 
 out_path.write_text(
-    json.dumps({"konten": konten, "notes": notes}, ensure_ascii=False, indent=1),
+    json.dumps({"konten": konten, "notes": notes, "sparziele": yaml.safe_load(sparziele_path.read_text(encoding="utf-8")) if sparziele_path else None}, ensure_ascii=False, indent=1),
     encoding="utf-8",
 )
 print(f"{len(notes)} Regel-Notizen, {len(konten.get('konten', []))} Konten exportiert")

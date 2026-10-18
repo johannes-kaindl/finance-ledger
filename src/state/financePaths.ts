@@ -16,6 +16,8 @@ export interface FinancePathSettings {
   kontenFile: string;
   /** Vertrags-Konfiguration, relativ zum Finanzordner. Optional — fehlt sie, entstehen keine Vertrags-Notizen. */
   vertraegeFile: string;
+  /** Sparziel-Konfiguration, relativ zum Finanzordner. Optional — fehlt sie, entstehen keine Sparziel-Notizen. */
+  sparzieleFile: string;
 }
 
 export interface ResolvedFinancePaths {
@@ -31,6 +33,7 @@ export interface ResolvedFinancePaths {
   umsatzDir: string;
   kontenFile: string;
   vertraegeFile: string;
+  sparzieleFile: string;
   /**
    * Schnappschüsse vor Schreibvorgängen (GFS-rotiert).
    *
@@ -61,12 +64,13 @@ export const DEFAULT_PATH_SETTINGS: FinancePathSettings = {
   umsatzSubdir: 'Umsätze',
   kontenFile: 'konten.yaml',
   vertraegeFile: 'vertraege.yaml',
+  sparzieleFile: 'sparziele.yaml',
 };
 
 const EMPTY: ResolvedFinancePaths = {
   isConfigured: false, root: '', journal: '', openingBalances: '', accounts: '',
   rulesFolder: '', basesFolder: '', kategorienFolder: '', empfaengerFolder: '', umsatzDir: '',
-  kontenFile: '', vertraegeFile: '', snapshotsFolder: '',
+  kontenFile: '', vertraegeFile: '', sparzieleFile: '', snapshotsFolder: '',
 };
 
 export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePaths {
@@ -88,6 +92,7 @@ export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePath
     umsatzDir: join(root, s.umsatzSubdir),
     kontenFile: join(root, s.kontenFile),
     vertraegeFile: join(root, s.vertraegeFile),
+    sparzieleFile: join(root, s.sparzieleFile),
   };
 }
 

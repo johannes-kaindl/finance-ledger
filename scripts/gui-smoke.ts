@@ -103,6 +103,9 @@ const DIMENSION_ORDNER = [
   { ordner: "50-Tx-Typen", art: "tx-typ-note" },
 ] as const;
 
+/** Ordner der Sparziel-Notizen (E7); wie die übrigen erzeugten Notizen vor dem Lauf geleert. */
+const SPARZIEL_ORDNER = [{ ordner: "30-Sparziele" }] as const;
+
 /** Alle Prüfpunkte (Nenner der Bilanz). Zweig-Alternativen tragen einen Namen, nie zwei. */
 const PUNKTE = [
   "Plugin ist geladen",
@@ -127,11 +130,13 @@ const PUNKTE = [
   "Berichte entstehen im Import: ein Monat, Quartal und Jahr je Periode mit Buchungen",
   "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
   "Regel-Notizen bekommen im Import ihren Rumpf: Regel-Übersicht im Marker-Block, Frontmatter unberührt",
+  "Sparziel-Notiz entsteht aus sparziele.yaml: Frontmatter, Kalkulation und Konto-Verweis",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
   "…und die Berichte ebenso",
   "…und die Dimensions-Notizen ebenso",
   "…und die Regel-Notizen ebenso",
+  "…und die Sparziel-Notizen ebenso",
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
@@ -373,7 +378,7 @@ async function schliesseModale(cdp: Cdp): Promise<void> {
 /** Notizen, die der Import angelegt hat (Berichte, Dimensions-Notizen), entfernen — sie sind erzeugt, nie Nutzer-Besitz dieses Vaults. */
 async function raeumeErzeugte(cdp: Cdp, root: string): Promise<number> {
   let n = 0;
-  for (const { ordner } of [...BERICHT_ORDNER, ...DIMENSION_ORDNER]) {
+  for (const { ordner } of [...BERICHT_ORDNER, ...DIMENSION_ORDNER, ...SPARZIEL_ORDNER]) {
     for (const pfad of (await listeDateien(cdp, `${root}/${ordner}`)).filter((f) => f.endsWith(".md"))) {
       await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
       n++;
@@ -1160,6 +1165,22 @@ async function main(): Promise<void> {
     );
     console.log("");
 
+    // Sparziele (E7): das Fixture trägt `sparziele.yaml` mit einem Ziel auf dem Konto `pool`.
+    const sparzieleNach = await leseOrdner(cdp, root, SPARZIEL_ORDNER);
+    const ziel = [...sparzieleNach.entries()].find(([p]) => p.endsWith("/Notgroschen.md"))?.[1] ?? "";
+    const sparzielOk =
+      ziel.includes("kategorie: sparziel") &&
+      ziel.includes("aktueller_stand_eur: null") &&
+      ziel.includes("<!-- BEGIN: AUTO-GENERATED -->") &&
+      ziel.includes("| ETA bei aktueller Sparrate | 2.8 J |") &&
+      /gespart_auf:\n  - \[\[[^\]]*\/10-Konten\/[^\]]+\]\]/.test(ziel);
+    record(
+      "Sparziel-Notiz entsteht aus sparziele.yaml: Frontmatter, Kalkulation und Konto-Verweis",
+      sparzielOk,
+      sparzielOk ? "Notgroschen.md: Typ, ETA 2.8 J, Konto-Verweis" : ziel === "" ? "keine Notiz Notgroschen.md" : "Gerüst unvollständig",
+    );
+    console.log("");
+
     console.log("── Idempotenz (der Grund, warum dieser Smoke schreiben darf)");
     const vorZweitem = new Map<string, string>();
     for (const pfad of kontoPfade) vorZweitem.set(pfad, (await readNote(cdp, pfad)) ?? "");
@@ -1198,6 +1219,13 @@ async function main(): Promise<void> {
       "…und die Regel-Notizen ebenso",
       regelnNach.size > 0 && regelnDrift.length === 0,
       regelnDrift.length === 0 ? `${regelnNach.size} Notizen byte-gleich` : `Drift in: ${regelnDrift.join(", ")}`,
+    );
+    const sparzieleZweiter = await leseOrdner(cdp, root, SPARZIEL_ORDNER);
+    const sparzielDrift = [...sparzieleNach.entries()].filter(([pfad, text]) => sparzieleZweiter.get(pfad) !== text).map(([pfad]) => pfad.split("/").pop() ?? pfad);
+    record(
+      "…und die Sparziel-Notizen ebenso",
+      sparzieleNach.size > 0 && sparzielDrift.length === 0,
+      sparzielDrift.length === 0 ? `${sparzieleNach.size} Notiz(en) byte-gleich` : `Drift in: ${sparzielDrift.join(", ")}`,
     );
     const dimensionenZweiter = await leseDimensionen(cdp, root);
     const dimDrift = [...dimensionenNach.entries()]

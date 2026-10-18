@@ -14,14 +14,17 @@ All notable changes to the Finance Ledger plugin. Format after
 - **Mandate notes are written by the plugin.** One note per SEPA mandate reference (`50-Mandate/<reference>.md`) with the overview, the ten latest transactions, an active/inactive flag (last transaction at most 35 days ago) and a link to the contract note whose `mandats_id` matches; the link is refreshed when a contract appears later.
 - **Rule notes get their body from the plugin.** Under the generated block of each categorizer rule note (`kategorie: categorizer-rule`) the import writes the rule overview and up to five matching transactions; the rule's frontmatter and everything below the block stay untouched. The notice names the numbers ("2 mandate note(s) written", "19 rule note(s) updated").
 
+- **Savings goal notes are written by the plugin.** A new file `sparziele.yaml` in your finance folder (optional; `gespart_auf_konto` is an `id` from `konten.yaml`) lists your goals; each one gets `30-Sparziele/<file>.md` with target, rate, time to goal and four rate scenarios. An existing note with a generated block only has that block replaced — your frontmatter (including `aktueller_stand_eur`) and everything below the block stay; an existing note **without** a generated block is left alone and named in the notice. The old one-time conversion of such notes (`--all-sparziele-bodies`) is not part of the plugin.
+
 ### Changed
 
+- **Text from bank data can no longer open or close the generated block of a note:** a marker inside it is replaced by "(marker removed)", so the next import does not trip over it.
 - **Generated notes: a quoted marker no longer stops the import.** The search for the generated block now comes from the shared kit (`marker-zone`). An `END` marker without a `BEGIN` before it, also in front of a complete block, is read as your own text (a quotation) instead of aborting; an `END` after the block belongs to your part. Still refused with a readable message: a `BEGIN` without an `END`, and a second `BEGIN` inside the block (it would have swallowed your text up to the real block on the next run).
 - Internal: obsidian-kit 0.63.0 and code-kit 0.31.0. The releases in between (Claude API, copy button on thinking blocks, slash menu, path and folder helpers, Daily Notes reader) touch modules this plugin does not use.
 - **A note that already exists is updated in place**, like the reports: figures, the account list of a category, `updated` and `generated` are rewritten and the generated block is replaced; your own tags, fields, the `created` date and everything you wrote below the block stay. The Python importer rewrote the whole frontmatter and set `created` to today on every run.
 - A category note's info box carries the category name ("Wohnen — all-time aggregate"). The Python importer titled it with the name of the last top-10 payee.
 - Text from bank data (payee names, purposes) can no longer break a table or inject markup: line breaks become spaces, brackets and backticks are dropped, `<`/`>` become entities, the pipe is escaped.
-- **"Copy terminal command" no longer asks the Python importer for these notes** (`--all-kategorie-notes`, `--all-empfaenger-notes` and `--all-tx-typ-notes` and the mandate and rule-body flags are gone from the command); it still builds the savings goals.
+- **"Copy terminal command" no longer asks the Python importer for these notes** (`--all-kategorie-notes`, `--all-empfaenger-notes` and `--all-tx-typ-notes` and the mandate and rule-body flags are gone from the command); it no longer builds any note type; the Python importer is not needed for notes any more.
 
 ## [0.5.0] — 2026-10-16
 

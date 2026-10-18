@@ -13,6 +13,8 @@ import { InputFormatError } from "../errors";
 import { alleBerichtePerioden, berichtPath, planBerichte } from "../notes/berichtNotes";
 import { dimensionPaths, planDimensionNotes } from "../notes/dimensionNotes";
 import { mandatPaths, planMandatNotes, type VertragNotiz } from "../notes/mandatNotes";
+import type { SparzielSpec } from "../config/sparziele";
+import { planSparziele } from "../notes/sparzielNotes";
 import { planRuleBodies, type RegelNotiz } from "../notes/ruleBodies";
 import { kontoNotePath, planKontoNotes, type NotePlan } from "../notes/kontoNotes";
 import { planVertragNotes } from "../notes/vertragNotes";
@@ -74,6 +76,8 @@ export interface ImportOptions {
 	 * unter dem Marker-Block. Der Ordner kommt von außen, weil die Regel-Verwaltung ihn frei wählen lässt.
 	 */
 	regelRuempfe?: { folder: string };
+	/** Sparziel-Notizen aus `sparziele.yaml` mitschreiben (E7). Fehlt das Feld, entstehen keine. */
+	sparziele?: readonly SparzielSpec[];
 	log?: LogPort;
 }
 
@@ -98,6 +102,9 @@ export interface ImportResult {
 	/** Neu angelegte oder geänderte Mandats-Notizen und Regel-Rümpfe (E7); unveränderte zählen nicht. */
 	mandatNotesWritten: number;
 	ruleBodiesWritten: number;
+	/** Angelegte oder geänderte Sparziel-Notizen und die, die unangetastet blieben (Nutzer-Notiz ohne Marker-Block). */
+	sparzielNotesWritten: number;
+	sparzielSkipped: string[];
 	/** Frühester und spätester Buchungstag, `null` bei leerem Ergebnis. */
 	dateRange: { first: string; last: string } | null;
 }
@@ -147,6 +154,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 	const berichte = options.berichte ? await writeBerichte(options, categorized, transactions) : [];
 	const dimensionen = options.dimensionen ? await writeDimensionen(options, categorized, transactions) : [];
 	const mandate = options.mandate ? await writeMandate(options, categorized, transactions) : [];
+	const sparziele = options.sparziele ? await writeSparziele(options, options.sparziele, log) : { written: [], skipped: [] };
 	const regeln = options.regelRuempfe ? await writeRegelRuempfe(options, transactions, options.regelRuempfe.folder) : [];
 
 	const kontenNotes = await readKontoNotes(options);
@@ -163,12 +171,14 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		duplicatesSkipped,
 		vorgemerktSkipped: parsed.reduce((sum, p) => sum + p.vorgemerkt, 0),
 		unkategorisiert: countUnkategorisiert(categorized),
-		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen, ...mandate, ...regeln],
+		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen, ...mandate, ...regeln, ...sparziele.written],
 		notesWritten: notes.length,
 		reportsWritten: berichte.length,
 		dimensionNotesWritten: dimensionen.length,
 		mandatNotesWritten: mandate.length,
 		ruleBodiesWritten: regeln.length,
+		sparzielNotesWritten: sparziele.written.length,
+		sparzielSkipped: sparziele.skipped,
 		dateRange: dateRange(transactions),
 	};
 }
@@ -445,6 +455,26 @@ async function readVertragNotizen(options: ImportOptions): Promise<VertragNotiz[
 		out.push({ filename: path.slice(path.lastIndexOf("/") + 1), text: await options.vault.read(path) });
 	}
 	return out;
+}
+
+/** Schreibt die Sparziel-Notizen (E7); Nutzer-Notizen ohne Marker-Block bleiben liegen und werden gemeldet. */
+async function writeSparziele(
+	options: ImportOptions,
+	specs: readonly SparzielSpec[],
+	log: LogPort,
+): Promise<{ written: string[]; skipped: string[] }> {
+	const existing: Record<string, string> = {};
+	for (const spec of specs) {
+		const path = `${options.ctx.notesPrefix}/${options.ctx.folders.sparziele}/${spec.filename}`;
+		if (await options.vault.exists(path)) existing[path] = await options.vault.read(path);
+	}
+	const { plans, skipped } = planSparziele(options.ctx, specs, existing);
+	for (const reason of skipped) log.info(`Sparziel übersprungen: ${reason}`);
+	const written = await writePlans(
+		options,
+		plans.filter((plan) => existing[plan.path] !== plan.content),
+	);
+	return { written, skipped };
 }
 
 /** Schreibt die Rümpfe der Regel-Notizen im Ordner und liefert die Pfade, die sich geändert haben. */

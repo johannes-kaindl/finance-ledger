@@ -14,7 +14,7 @@
  */
 
 import { MarkerError } from "../errors";
-import { splitZone } from "../../vendor/kit/marker-zone";
+import { neutralizeMarkers, splitZone } from "../../vendor/kit/marker-zone";
 
 export const AUTO_BEGIN = "<!-- BEGIN: AUTO-GENERATED -->";
 export const AUTO_END = "<!-- END: AUTO-GENERATED -->";
@@ -78,7 +78,9 @@ export function assembleBody(
 		header.replace(/\s+$/, ""),
 		"",
 		AUTO_BEGIN,
-		trimBlankLines(auto),
+		// Text aus Bankdaten oder Regeln darf den Block nicht selbst schließen oder öffnen: ein Marker darin würde beim
+		// nächsten Lauf als Zonengrenze gelesen (`nestedBegins`) und der Import wäre für diese Notiz blockiert.
+		trimBlankLines(neutralizeMarkers(auto, MARKERS)),
 		AUTO_END,
 	];
 	if (user.trim() !== "") {

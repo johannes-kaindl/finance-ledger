@@ -76,6 +76,7 @@ export interface NoteFolders {
 	konten: string;
 	vertraege: string;
 	mandate: string;
+	sparziele: string;
 	/** Ordner der Tx-Typ-Notizen (`50-Tx-Typen`, nicht zu verwechseln mit `50-Mandate`). */
 	txTypen: string;
 	monatsberichte: string;
@@ -93,6 +94,7 @@ export const DEFAULT_NOTE_FOLDERS: NoteFolders = {
 	konten: "10-Konten",
 	vertraege: "20-Verträge",
 	mandate: "50-Mandate",
+	sparziele: "30-Sparziele",
 	txTypen: "50-Tx-Typen",
 	monatsberichte: "40-Monatsberichte",
 	quartalsberichte: "70-Quartalsberichte",

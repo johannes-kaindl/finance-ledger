@@ -152,8 +152,8 @@ export default class FinancePlugin extends Plugin {
    * — neue Buchungen, alte Kontostände.
    *
    * Berichte (E5) und Kategorie-, Empfänger- und Tx-Typ-Notizen (E6) schreibt der
-   * Lauf ebenfalls; Mandate, Sparziele und Regel-Rümpfe (E7) erzeugt weiterhin
-   * der Importer-Subprozess.
+   * Lauf ebenfalls, dazu Mandate, Sparziele und Regel-Rümpfe (E7);
+   * nur den Import-Report erzeugt noch der Importer-Subprozess.
    */
   private async rebuildJournal(): Promise<void> {
     const paths = this.resolvePaths();
@@ -188,6 +188,14 @@ export default class FinancePlugin extends Plugin {
       }
       if (result.mandatNotesWritten > 0) {
         lines.push(t('notice.rebuildMandates', String(result.mandatNotesWritten)));
+      }
+      if (result.sparzielNotesWritten > 0) {
+        lines.push(t('notice.rebuildSavingsGoals', String(result.sparzielNotesWritten)));
+      }
+      if (result.sparzielSkipped.length > 0) {
+        lines.push(
+          t('notice.rebuildSavingsGoalsSkipped', String(result.sparzielSkipped.length), result.sparzielSkipped.join('; ')),
+        );
       }
       if (result.ruleBodiesWritten > 0) {
         lines.push(t('notice.rebuildRuleBodies', String(result.ruleBodiesWritten)));

@@ -8,7 +8,7 @@ export interface PluginData extends FinancePathSettings {
    * Pfad zum Importer-Repo — nur noch für den kopierbaren CLI-Befehl.
    *
    * Der Importlauf selbst findet im Plugin statt (`runNativeImport`); das CLI
-   * braucht es für Mandate, Sparziele und Regel-Rümpfe (Port-Etappe E7).
+   * braucht es nur noch für den Import-Report.
    */
   importerCwd: string;
   // F1 — Vorzeichen- & Farb-Darstellung (Default intuitiv/klassisch dreht die

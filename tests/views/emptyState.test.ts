@@ -61,7 +61,7 @@ describe('renderEmptyState', () => {
 const PATHS = {
   isConfigured: true, root: 'R', journal: 'R/Ledger/journal.ledger', openingBalances: 'R/o', accounts: 'R/a',
   rulesFolder: 'R/55', basesFolder: 'R/05', kategorienFolder: 'R/45', empfaengerFolder: 'R/60', umsatzDir: 'R/U',
-  kontenFile: 'R/k.yaml', vertraegeFile: 'R/v.yaml', snapshotsFolder: 'R/.s',
+  kontenFile: 'R/k.yaml', vertraegeFile: 'R/v.yaml', sparzieleFile: '', snapshotsFolder: 'R/.s',
 };
 const DISPLAY = () => ({ signMode: 'intuitive' as const, colorScheme: 'classic' as const });
 
