@@ -36,6 +36,13 @@ function tabellenText(text: string): string {
 
 const FOUNDATION = "_Foundation – Konten-Plan und Kategorien";
 
+/**
+ * Mandats- und Gläubiger-ID stammen aus Bankdaten Dritter und landen in Frontmatter, Titel, Callout und
+ * Tabellenzellen. Erlaubt ist der Zeichensatz der SEPA-Referenzen (Buchstaben, Ziffern und `+?/-:().,' `); alles andere
+ * wird zum Unterstrich. Gewöhnliche Referenzen bleiben dabei unverändert.
+ */
+const SEPA_UNERLAUBT = /[^A-Za-z0-9+?/\-:().,' ]/g;
+
 /** Eine Vertrags-Notiz, wie sie im Vault liegt. */
 export interface VertragNotiz {
 	/** Dateiname mit `.md`. */
@@ -61,14 +68,14 @@ export function mandatPath(ctx: ImporterContext, mandatsId: string): string {
 function aggregiere(transactions: readonly BankTransaction[]): MandatAggregat[] {
 	const agg = new Map<string, MandatAggregat>();
 	for (const tx of transactions) {
-		const ref = (tx.mandatsreferenz ?? "").trim();
+		const ref = (tx.mandatsreferenz ?? "").trim().replace(SEPA_UNERLAUBT, "_");
 		if (ref === "") continue;
 		let m = agg.get(ref);
 		if (m === undefined) {
 			m = { mandatsId: ref, glaeubigerId: "", erstes: tx.buchungstag, letztes: tx.buchungstag, anzahl: 0, volumen: ZERO, txs: [] };
 			agg.set(ref, m);
 		}
-		if (m.glaeubigerId === "" && tx.glaeubigerId) m.glaeubigerId = tx.glaeubigerId;
+		if (m.glaeubigerId === "" && tx.glaeubigerId) m.glaeubigerId = tx.glaeubigerId.replace(SEPA_UNERLAUBT, "_");
 		m.anzahl += 1;
 		m.volumen = m.volumen.plus(zweiStellen(tx.betrag.abs()));
 		if (tx.buchungstag < m.erstes) m.erstes = tx.buchungstag;

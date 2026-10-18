@@ -95,6 +95,16 @@ describe("Mandate", () => {
 		expect(mit?.content).not.toContain("vertrag_link: null");
 	});
 
+	it("macht aus Zeichen außerhalb des SEPA-Zeichensatzes in Mandats- und Gläubiger-ID einen Unterstrich", () => {
+		const t = tx("2026-10-01", 'M"1\nx: `y` |z|', { glaeubigerId: "G]\n--- evil: 1" });
+		const plan = planMandatNotes(ctx, [t], cat, [], {})[0];
+		const inhalt = plan?.content ?? "";
+		const kopf = inhalt.split("\n---\n")[0] ?? "";
+		expect(kopf.split("\n")).toContain('mandats_id: "M_1_x: _y_ _z_"');
+		expect(kopf.split("\n")).toContain('glaeubiger_id: "G]_--- evil: 1"'.replace("]", "_"));
+		expect(inhalt.split("\n").filter((l) => l.startsWith("evil"))).toEqual([]);
+	});
+
 	it("hält Zeilenumbruch, Pipe und Klammern des Verwendungszwecks aus der Tabelle", () => {
 		const t = tx("2026-10-01", "M1", { verwendungszweck: "Zeile eins\nZeile |zwei| [[x]] <b>`c`" });
 		const inhalt = planMandatNotes(ctx, [t], cat, [], {})[0]?.content ?? "";
