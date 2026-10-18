@@ -16,6 +16,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Changed
 
+- **Generated notes: a quoted marker no longer stops the import.** The search for the generated block now comes from the shared kit (`marker-zone`). An `END` marker without a `BEGIN` before it, also in front of a complete block, is read as your own text (a quotation) instead of aborting; an `END` after the block belongs to your part. Still refused with a readable message: a `BEGIN` without an `END`, and a second `BEGIN` inside the block (it would have swallowed your text up to the real block on the next run).
+- Internal: obsidian-kit 0.63.0 and code-kit 0.31.0. The releases in between (Claude API, copy button on thinking blocks, slash menu, path and folder helpers, Daily Notes reader) touch modules this plugin does not use.
 - **A note that already exists is updated in place**, like the reports: figures, the account list of a category, `updated` and `generated` are rewritten and the generated block is replaced; your own tags, fields, the `created` date and everything you wrote below the block stay. The Python importer rewrote the whole frontmatter and set `created` to today on every run.
 - A category note's info box carries the category name ("Wohnen — all-time aggregate"). The Python importer titled it with the name of the last top-10 payee.
 - Text from bank data (payee names, purposes) can no longer break a table or inject markup: line breaks become spaces, brackets and backticks are dropped, `<`/`>` become entities, the pipe is escaped.

@@ -31,7 +31,7 @@ describe("splitBody", () => {
 
 		expect(splitBody(text)).toEqual({
 			header: "# Titel\n\nEigener Kopf\n\n",
-			auto: "\nAuto-Inhalt\nMehr Auto\n",
+			auto: "Auto-Inhalt\nMehr Auto",
 			user: "\n## Eigener Abschnitt\nEigenes\n",
 		});
 	});
@@ -42,14 +42,33 @@ describe("splitBody", () => {
 		);
 	});
 
-	it("wirft, wenn nur der END-Marker dasteht", () => {
-		expect(() => splitBody(`# Titel\n${AUTO_END}\nText\n`)).toThrow(MarkerError);
+	// Seit der Übernahme von `splitZone` (code-kit 0.31.0): ein END ohne BEGIN davor ist Text des Nutzers, kein Bruch.
+	it("liest ein END ohne BEGIN als Kopf (Zitat), statt zu werfen", () => {
+		const text = `# Titel\n${AUTO_END}\nText\n`;
+		expect(splitBody(text)).toEqual({ header: text, auto: null, user: "" });
 	});
 
-	it("wirft, wenn END vor BEGIN steht", () => {
-		expect(() => splitBody(`${AUTO_END}\nText\n${AUTO_BEGIN}\n`)).toThrow(
-			/vor dem BEGIN-Marker/,
-		);
+	it("liest ein zitiertes END vor einem vollständigen Paar als Kopf", () => {
+		const text = `Zitat: ${AUTO_END}\n${AUTO_BEGIN}\nAuto\n${AUTO_END}\nEigenes\n`;
+		expect(splitBody(text)).toEqual({
+			header: `Zitat: ${AUTO_END}\n`,
+			auto: "Auto",
+			user: "\nEigenes\n",
+		});
+	});
+
+	it("wirft, wenn END nur vor dem einzigen BEGIN steht (BEGIN ohne END dahinter)", () => {
+		expect(() => splitBody(`${AUTO_END}\nText\n${AUTO_BEGIN}\n`)).toThrow(MarkerError);
+	});
+
+	it("wirft, wenn ein zweites BEGIN im Block steht, statt Text zu verschlucken", () => {
+		const text = `Zitat: ${AUTO_BEGIN}\nEigener Text\n${AUTO_BEGIN}\nAuto\n${AUTO_END}\n`;
+		expect(() => splitBody(text)).toThrow(/zweiter BEGIN-Marker/);
+	});
+
+	it("rechnet ein END nach dem Block zum Benutzerteil", () => {
+		const text = `${AUTO_BEGIN}\nAuto\n${AUTO_END}\nMein Zitat: ${AUTO_END}\n`;
+		expect(splitBody(text).user).toBe(`\nMein Zitat: ${AUTO_END}\n`);
 	});
 });
 

@@ -14,16 +14,19 @@
  */
 
 import { MarkerError } from "../errors";
+import { splitZone } from "../../vendor/kit/marker-zone";
 
 export const AUTO_BEGIN = "<!-- BEGIN: AUTO-GENERATED -->";
 export const AUTO_END = "<!-- END: AUTO-GENERATED -->";
+
+const MARKERS = { begin: AUTO_BEGIN, end: AUTO_END };
 
 export interface SplitBody {
 	/** Alles vor dem BEGIN-Marker. Bei markerloser Notiz der ganze Text. */
 	header: string;
 	/**
-	 * Inhalt zwischen den Markern, ohne die Marker selbst — `null`, wenn die
-	 * Notiz noch keine hat. `null` und `""` sind verschiedene Aussagen:
+	 * Inhalt zwischen den Markern, ohne die Marker selbst und ohne je einen Zeilenumbruch an den Enden (so
+	 * liefert ihn das Kit) — `null`, wenn die Notiz noch keine hat. `null` und `""` sind verschiedene Aussagen:
 	 * „nie generiert" gegen „generiert, aber leer".
 	 */
 	auto: string | null;
@@ -32,33 +35,30 @@ export interface SplitBody {
 }
 
 /**
- * Zerlegt einen Notiz-Körper in seine drei Zonen.
+ * Zerlegt einen Notiz-Körper in seine drei Zonen. Die Suche nach den Markern macht `splitZone` aus code-kit
+ * (`marker-zone`); hier bleibt, was dieses Plugin daraus macht.
  *
- * Wirft `MarkerError`, wenn nur einer der beiden Marker dasteht oder sie
- * verdreht sind — siehe die Begründung an der Fehlerklasse.
+ * Wirft `MarkerError`, wo das Kit sagt, ein Aufrufer dürfe nicht schreiben:
+ * - ein BEGIN ohne END dahinter (`broken`) — ein zweiter Block würde den Text des Nutzers dazwischen einschließen;
+ * - ein zweites BEGIN innerhalb des Blocks (`nestedBegins`) — ein zitierter Marker im Kopf machte das erste BEGIN zum
+ *   falschen, und beim nächsten Lauf ginge alles bis zum echten Block verloren.
+ *
+ * Wirft **nicht** mehr, wo bis 0.5.0 geworfen wurde und das Kit anders urteilt: ein END ohne BEGIN davor, auch vor
+ * einem vollständigen Paar, ist Text des Nutzers (ein Zitat); ein später angehängter Block wird danach richtig gelesen.
+ * Ein END nach dem Block (`strayEnds`) gehört zum Benutzerteil.
  */
 export function splitBody(text: string): SplitBody {
-	const beginIdx = text.indexOf(AUTO_BEGIN);
-	const endIdx = text.indexOf(AUTO_END);
-
-	if (beginIdx === -1 && endIdx === -1) {
+	const zone = splitZone(text, MARKERS);
+	if (zone.kind === "none") {
 		return { header: text, auto: null, user: "" };
 	}
-	if (beginIdx === -1 || endIdx === -1) {
-		throw new MarkerError(
-			`Marker-Asymmetrie: BEGIN=${beginIdx === -1 ? "fehlt" : "gefunden"}, ` +
-				`END=${endIdx === -1 ? "fehlt" : "gefunden"}`,
-		);
+	if (zone.kind === "broken") {
+		throw new MarkerError("Marker-Asymmetrie: BEGIN gefunden, END fehlt");
 	}
-	if (endIdx < beginIdx) {
-		throw new MarkerError("Der END-Marker steht vor dem BEGIN-Marker");
+	if (zone.nestedBegins > 0) {
+		throw new MarkerError("Ein zweiter BEGIN-Marker steht innerhalb des Blocks");
 	}
-
-	return {
-		header: text.slice(0, beginIdx),
-		auto: text.slice(beginIdx + AUTO_BEGIN.length, endIdx),
-		user: text.slice(endIdx + AUTO_END.length),
-	};
+	return { header: zone.before, auto: zone.block, user: zone.after };
 }
 
 /**

@@ -1,11 +1,11 @@
 {
   "sources": {
-    "obsidian-kit": { "ref": "0.60.1" },
-    "code-kit": { "ref": "0.27.1" }
+    "obsidian-kit": { "ref": "0.63.0" },
+    "code-kit": { "ref": "0.31.0" }
   },
   "targets": [
     { "dir": "src/vendor/kit", "source": "obsidian-kit", "from": "src/pure", "modules": ["callout", "frontmatter"] },
-    { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/pure", "modules": ["i18n", "local-stamp", "rotation", "sha256"] },
+    { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/pure", "modules": ["i18n", "local-stamp", "marker-zone", "rotation", "sha256"] },
     { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/web", "modules": ["clipboard"] },
     { "dir": "tests/vendor/kit", "source": "obsidian-kit", "from": "src/testing", "modules": ["window-timers"] },
     {
