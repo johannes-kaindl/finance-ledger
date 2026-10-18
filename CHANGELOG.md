@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-10-18
+
 ### Fixed
 
 - 0.6.0 was tagged but never published on GitHub: the release build ran the tests before building `main.js`, and one test needs the built file. The build now runs first. 0.6.1 contains everything listed under 0.6.0.
