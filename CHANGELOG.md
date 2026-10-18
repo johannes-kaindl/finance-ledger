@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-10-18
+
 ### Added
 
 - **Category, payee and transaction-type notes are written by the plugin.** Every import and journal rebuild now writes `45-Kategorien/<category>.md` (one per main category with transactions), `60-Empfänger/<payee-account>.md` (every payee with at least 5 transactions or 200 €, bank-internal items and self-transfers left out) and `50-Tx-Typen/<class>.md` (one per transaction type), each with all-time figures, a quarterly or monthly trend, the top 10 and the links to the reports. No Python needed. On a 293-transaction test set all 41 notes match the Python importer byte for byte.
