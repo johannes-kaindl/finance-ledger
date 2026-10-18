@@ -258,6 +258,8 @@ export const EN: Record<string, string> = {
   'notice.rebuildNotes': '{0} account/contract note(s) updated',
   'notice.rebuildReports': '{0} report(s) written',
   'notice.rebuildDimensionNotes': '{0} category/payee/transaction-type note(s) written',
+  'notice.rebuildMandates': '{0} mandate note(s) written',
+  'notice.rebuildRuleBodies': '{0} rule note(s) updated',
   'settings.kontenFile.desc':
     'YAML file with your account configuration, relative to the finance folder. Used by the built-in import.',
 };
@@ -506,6 +508,8 @@ export const DE: Record<string, string> = {
   'notice.rebuildNotes': '{0} Konto-/Vertrags-Notiz(en) nachgezogen',
   'notice.rebuildReports': '{0} Bericht(e) geschrieben',
   'notice.rebuildDimensionNotes': '{0} Kategorie-/Empfänger-/Tx-Typ-Notiz(en) geschrieben',
+  'notice.rebuildMandates': '{0} Mandats-Notiz(en) geschrieben',
+  'notice.rebuildRuleBodies': '{0} Regel-Notiz(en) aktualisiert',
   'settings.kontenFile.desc':
     'YAML-Datei mit deiner Konten-Konfiguration, relativ zum Finanzordner. Wird vom eingebauten Import genutzt.',
 };

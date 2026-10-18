@@ -12,6 +12,8 @@ import type { VertragSpec } from "../config/vertraege";
 import { InputFormatError } from "../errors";
 import { alleBerichtePerioden, berichtPath, planBerichte } from "../notes/berichtNotes";
 import { dimensionPaths, planDimensionNotes } from "../notes/dimensionNotes";
+import { mandatPaths, planMandatNotes, type VertragNotiz } from "../notes/mandatNotes";
+import { planRuleBodies, type RegelNotiz } from "../notes/ruleBodies";
 import { kontoNotePath, planKontoNotes, type NotePlan } from "../notes/kontoNotes";
 import { planVertragNotes } from "../notes/vertragNotes";
 import { formatOpeningBalances } from "./openingBalances";
@@ -65,6 +67,13 @@ export interface ImportOptions {
 	 * bei einem Bestand mit hunderten Empfängern sind das hunderte Notizen.
 	 */
 	dimensionen?: boolean;
+	/** Mandats-Notizen mitschreiben (E7). Opt-in wie die übrigen Notizen. */
+	mandate?: boolean;
+	/**
+	 * Rümpfe der Regel-Notizen im angegebenen Vault-Ordner mitschreiben (E7): Regel-Übersicht und Beispiel-Buchungen
+	 * unter dem Marker-Block. Der Ordner kommt von außen, weil die Regel-Verwaltung ihn frei wählen lässt.
+	 */
+	regelRuempfe?: { folder: string };
 	log?: LogPort;
 }
 
@@ -86,6 +95,9 @@ export interface ImportResult {
 	reportsWritten: number;
 	/** Neu angelegte oder geänderte Dimensions-Notizen (Kategorie, Empfänger, Tx-Typ); unveränderte zählen nicht. */
 	dimensionNotesWritten: number;
+	/** Neu angelegte oder geänderte Mandats-Notizen und Regel-Rümpfe (E7); unveränderte zählen nicht. */
+	mandatNotesWritten: number;
+	ruleBodiesWritten: number;
 	/** Frühester und spätester Buchungstag, `null` bei leerem Ergebnis. */
 	dateRange: { first: string; last: string } | null;
 }
@@ -134,6 +146,8 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 
 	const berichte = options.berichte ? await writeBerichte(options, categorized, transactions) : [];
 	const dimensionen = options.dimensionen ? await writeDimensionen(options, categorized, transactions) : [];
+	const mandate = options.mandate ? await writeMandate(options, categorized, transactions) : [];
+	const regeln = options.regelRuempfe ? await writeRegelRuempfe(options, transactions, options.regelRuempfe.folder) : [];
 
 	const kontenNotes = await readKontoNotes(options);
 	const openingPath = join(options.outDir, OPENING_BALANCES_FILENAME);
@@ -149,10 +163,12 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		duplicatesSkipped,
 		vorgemerktSkipped: parsed.reduce((sum, p) => sum + p.vorgemerkt, 0),
 		unkategorisiert: countUnkategorisiert(categorized),
-		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen],
+		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen, ...mandate, ...regeln],
 		notesWritten: notes.length,
 		reportsWritten: berichte.length,
 		dimensionNotesWritten: dimensionen.length,
+		mandatNotesWritten: mandate.length,
+		ruleBodiesWritten: regeln.length,
 		dateRange: dateRange(transactions),
 	};
 }
@@ -395,6 +411,54 @@ async function writeDimensionen(
 		if (await options.vault.exists(path)) existing[path] = await options.vault.read(path);
 	}
 	const plans = planDimensionNotes(options.ctx, transactions, categorizer, existing);
+	return writePlans(
+		options,
+		plans.filter((plan) => existing[plan.path] !== plan.content),
+	);
+}
+
+/** Schreibt die Mandats-Notizen (E7) und liefert die Pfade, die sich geändert haben. */
+async function writeMandate(
+	options: ImportOptions,
+	categorized: readonly CategorizedTx[],
+	transactions: readonly BankTransaction[],
+): Promise<string[]> {
+	const categorizer = ergebnisTabelle(categorized);
+	const existing: Record<string, string> = {};
+	for (const path of mandatPaths(options.ctx, transactions)) {
+		if (await options.vault.exists(path)) existing[path] = await options.vault.read(path);
+	}
+	const vertraege = await readVertragNotizen(options);
+	const plans = planMandatNotes(options.ctx, transactions, categorizer, vertraege, existing);
+	return writePlans(
+		options,
+		plans.filter((plan) => existing[plan.path] !== plan.content),
+	);
+}
+
+/** Vertrags-Notizen im Vault, für den Verweis von einem Mandat auf seinen Vertrag. */
+async function readVertragNotizen(options: ImportOptions): Promise<VertragNotiz[]> {
+	const folder = `${options.ctx.notesPrefix}/${options.ctx.folders.vertraege}`;
+	const out: VertragNotiz[] = [];
+	for (const path of await options.vault.list(folder)) {
+		if (!path.endsWith(".md")) continue;
+		out.push({ filename: path.slice(path.lastIndexOf("/") + 1), text: await options.vault.read(path) });
+	}
+	return out;
+}
+
+/** Schreibt die Rümpfe der Regel-Notizen im Ordner und liefert die Pfade, die sich geändert haben. */
+async function writeRegelRuempfe(
+	options: ImportOptions,
+	transactions: readonly BankTransaction[],
+	folder: string,
+): Promise<string[]> {
+	const notizen: RegelNotiz[] = [];
+	for (const path of await options.vault.list(folder)) {
+		if (path.endsWith(".md")) notizen.push({ path, text: await options.vault.read(path) });
+	}
+	const existing = Object.fromEntries(notizen.map((n) => [n.path, n.text]));
+	const plans = planRuleBodies(options.ctx, transactions, notizen);
 	return writePlans(
 		options,
 		plans.filter((plan) => existing[plan.path] !== plan.content),

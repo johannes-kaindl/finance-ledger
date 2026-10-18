@@ -11,11 +11,11 @@
  *   1. `python3 scripts/parity-export.py <konten.yaml> <rules-dir> <config.json>`
  *      schreibt Konten und Regel-Frontmatter als JSON heraus.
  *   2. Der Python-Importer läuft mit `FINANCE_VAULT=<referenz-vault>`, bei E5 zusätzlich mit
- *      `--all-aggregates --all-kategorie-notes --all-empfaenger-notes --all-tx-typ-notes --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
+ *      `--all-aggregates --all-kategorie-notes --all-empfaenger-notes --all-tx-typ-notes --all-mandate-notes --all-categorizer-rule-bodies --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
  *   3. Dieses Skript läuft über denselben Umsatzordner.
  *   4. Vergleich der erzeugten `.ledger`-Dateien und, seit E5, aller Berichte (`40-Monatsberichte`,
  *      `70-Quartalsberichte`, `80-Jahresberichte`), seit E6 der Dimensions-Notizen (`45-Kategorien`, `60-Empfänger`,
- *      `50-Tx-Typen`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
+ *      `50-Tx-Typen`), seit E7 der Mandate (`50-Mandate`) und der Regel-Rümpfe (`55-Categorizer-Rules`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
  *
  * Aufruf:
  *   npm run parity -- <config.json> <ziel-vault> [referenz-vault]
@@ -94,6 +94,8 @@ const result = await runImport({
 	outDir: join(targetVault, "Ledger"),
 	berichte: true,
 	dimensionen: true,
+	mandate: true,
+	regelRuempfe: { folder: "55-Categorizer-Rules" },
 	log: { info: () => undefined, warn: (m) => console.error(`WARN ${m}`) },
 });
 
@@ -137,6 +139,10 @@ const calloutTitel = (text: string): string => text.replace(/^> \[!info\] .* —
 differences += await compareFolder(ctx.folders.kategorien, calloutTitel);
 differences += await compareFolder(ctx.folders.empfaenger);
 differences += await compareFolder(ctx.folders.txTypen);
+// Mandate (E7) und Regel-Rümpfe (E7). Die Regel-Notizen liegen im Ziel-Vault direkt unter dem Ordner, nicht unter dem
+// Notizen-Präfix: dort hat der Vergleich sie hineinkopiert.
+differences += await compareFolder(ctx.folders.mandate);
+differences += await compareFolder(ctx.folders.rules, (t) => t, targetVault);
 
 process.exit(differences === 0 ? 0 : 1);
 
@@ -150,8 +156,12 @@ function onlyKnownExtraAccounts(mine: string, theirs: string): boolean {
  * Vergleicht die Notizen eines Ordners. Der TS-Lauf schreibt unter `<ziel>/<Präfix>/<Ordner>`, der
  * Python-Lauf unter `<referenz>/<Ordner>`; die Präfix-Ebene ist nur der Projektordner.
  */
-async function compareFolder(folder: string, normalize: (text: string) => string = (t) => t): Promise<number> {
-	const mineDir = join(targetVault, ctx.notesPrefix, folder);
+async function compareFolder(
+	folder: string,
+	normalize: (text: string) => string = (t) => t,
+	mineBase: string = join(targetVault, ctx.notesPrefix),
+): Promise<number> {
+	const mineDir = join(mineBase, folder);
 	const theirsDir = join(referenceVault, folder);
 	const mine = existsSync(mineDir) ? (await readdir(mineDir)).sort() : [];
 	const theirs = existsSync(theirsDir) ? (await readdir(theirsDir)).sort() : [];

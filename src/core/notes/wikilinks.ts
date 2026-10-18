@@ -163,12 +163,16 @@ function link(
 
 /**
  * Der Anzeigetext kann aus Bankdaten Dritter stammen (Empfängername): in einer Tabellenzelle zerrisse ein `|` die
- * Tabelle, `[[`/`]]` zerrissen den Link. Eckige Klammern entfallen, in Tabellen wird das Pipe escaped. Python
+ * Tabelle, `[[`/`]]` zerrissen den Link. Zeilenumbrüche werden zu Leerzeichen, Klammern und Backticks entfallen, `<`/`>` werden zu Entities, in Tabellen wird das Pipe escaped. Python
  * schreibt den Namen roh; auf gewöhnlichen Namen ist das Ergebnis identisch.
  */
 function anzeigeSicher(name: string, forTable: boolean): string {
-	const ohneKlammern = name.replace(/[[\]]/g, "");
-	return forTable ? ohneKlammern.replace(/\|/g, "\\|") : ohneKlammern;
+	const sicher = name
+		.replace(/[\p{Cc}\u2028\u2029]+/gu, " ")
+		.replace(/[[\]`]/g, "")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
+	return forTable ? sicher.replace(/\|/g, "\\|") : sicher;
 }
 
 /** Jedes Wort groß — die Entsprechung zu Pythons `str.title()`. */

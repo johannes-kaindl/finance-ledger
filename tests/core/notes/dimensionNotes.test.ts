@@ -138,11 +138,11 @@ describe("Auswahl", () => {
 		expect(planDimensionNotes(ctx, [], makeCat("Ausgaben:Wohnen:X"), {})).toEqual([]);
 	});
 
-	it("hält Pipe und Klammern aus Bankdaten aus der Tabelle", () => {
+	it("hält Pipe, Klammern, Zeilenumbruch und HTML aus Bankdaten aus der Tabelle", () => {
 		const cat = makeCat("Ausgaben:Sonstiges:Haendler");
-		const plans = planDimensionNotes(ctx, [tx("-250.00", "A|B [[x]]")], cat, {});
+		const plans = planDimensionNotes(ctx, [tx("-250.00", "A|B [[x]]\nzwei <b>`c`")], cat, {});
 		const empf = plans.find((p) => p.path.endsWith("/ausgaben-sonstiges-haendler.md"))?.content ?? "";
-		expect(empf).toContain("| A\\|B x |");
+		expect(empf).toContain("| A\\|B x zwei &lt;b&gt;c |");
 		expect(empf).not.toContain("[[x]]");
 	});
 });

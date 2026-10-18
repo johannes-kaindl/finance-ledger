@@ -11,12 +11,15 @@ All notable changes to the Finance Ledger plugin. Format after
 - **Category, payee and transaction-type notes are written by the plugin.** Every import and journal rebuild now writes `45-Kategorien/<category>.md` (one per main category with transactions), `60-Empfänger/<payee-account>.md` (every payee with at least 5 transactions or 200 €, bank-internal items and self-transfers left out) and `50-Tx-Typen/<class>.md` (one per transaction type), each with all-time figures, a quarterly or monthly trend, the top 10 and the links to the reports. No Python needed. On a 293-transaction test set all 41 notes match the Python importer byte for byte.
 - The "Rebuild journal" notice names the number of these notes ("41 category/payee/transaction-type note(s) written"); nothing is listed when no note changed.
 
+- **Mandate notes are written by the plugin.** One note per SEPA mandate reference (`50-Mandate/<reference>.md`) with the overview, the ten latest transactions, an active/inactive flag (last transaction at most 35 days ago) and a link to the contract note whose `mandats_id` matches; the link is refreshed when a contract appears later.
+- **Rule notes get their body from the plugin.** Under the generated block of each categorizer rule note (`kategorie: categorizer-rule`) the import writes the rule overview and up to five matching transactions; the rule's frontmatter and everything below the block stay untouched. The notice names the numbers ("2 mandate note(s) written", "19 rule note(s) updated").
+
 ### Changed
 
 - **A note that already exists is updated in place**, like the reports: figures, the account list of a category, `updated` and `generated` are rewritten and the generated block is replaced; your own tags, fields, the `created` date and everything you wrote below the block stay. The Python importer rewrote the whole frontmatter and set `created` to today on every run.
 - A category note's info box carries the category name ("Wohnen — all-time aggregate"). The Python importer titled it with the name of the last top-10 payee.
-- A payee name with `|`, `[` or `]` no longer breaks the table of a payee note.
-- **"Copy terminal command" no longer asks the Python importer for these notes** (`--all-kategorie-notes`, `--all-empfaenger-notes` and `--all-tx-typ-notes` are gone from the command); it still builds the mandate notes, savings goals and rule bodies.
+- Text from bank data (payee names, purposes) can no longer break a table or inject markup: line breaks become spaces, brackets and backticks are dropped, `<`/`>` become entities, the pipe is escaped.
+- **"Copy terminal command" no longer asks the Python importer for these notes** (`--all-kategorie-notes`, `--all-empfaenger-notes` and `--all-tx-typ-notes` and the mandate and rule-body flags are gone from the command); it still builds the savings goals.
 
 ## [0.5.0] — 2026-10-16
 

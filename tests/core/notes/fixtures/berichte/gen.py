@@ -29,8 +29,8 @@ RULES = [("acme power","Ausgaben:Wohnen:Strom"),("hausverwaltung","Ausgaben:Wohn
 for p,a in RULES:
     (root/"55-Categorizer-Rules"/f"{p}.md").write_text(f'---\nkategorie: categorizer-rule\npattern: {p}\npattern_type: substring\nledger_account: "{a}"\npriority: 50\ntags: []\n---\n\n# Rule: {p}\n', encoding="utf-8")
 def de(v): return f"{v:.2f}".replace(".",",")
-def rowcamt(iban,d,text,zweck,partner,betrag):
-    return f"{iban};{d};{d};{text};{zweck};;;;;;;{partner};;;{de(betrag)};EUR;Umsatz gebucht"
+def rowcamt(iban,d,text,zweck,partner,betrag,gl="",mandat=""):
+    return f"{iban};{d};{d};{text};{zweck};{gl};{mandat};;;;;{partner};;;{de(betrag)};EUR;Umsatz gebucht"
 HDR="Auftragskonto;Buchungstag;Valutadatum;Buchungstext;Verwendungszweck;Glaeubiger ID;Mandatsreferenz;Kundenreferenz (End-to-End);Sammlerreferenz;Lastschrift Ursprungsbetrag;Auslagenersatz Ruecklastschrift;Beguenstigter/Zahlungspflichtiger;Kontonummer/IBAN;BIC (SWIFT-Code);Betrag;Waehrung;Info"
 VHDR="Umsatz getaetigt von;Belegdatum;Buchungsdatum;Originalbetrag;Original Waehrung;Umrechnungskurs;Betrag;Waehrung;Beschreibung;Stadt;Referenznummer;MCC;Laenderkennzeichen;Kartennummer;Buchungstext;Zusatz"
 months=[(2025,m) for m in range(10,13)]+[(2026,m) for m in range(1,11)]
@@ -38,13 +38,13 @@ k1=[HDR];k2=[HDR];k4=[HDR];vis=[VHDR]
 for (yy,m) in months:
     ds=lambda d:f"{d:02d}.{m:02d}.{yy%100:02d}"
     k1.append(rowcamt(KONTEN[0][0],ds(1),"GUTSCHRIFT","Gehalt","Globex Corporation",3200+R.randint(0,5)*50))
-    k1.append(rowcamt(KONTEN[0][0],ds(2),"LASTSCHRIFT","Strom","Acme Power",-(80+R.randint(0,40))))
+    k1.append(rowcamt(KONTEN[0][0],ds(2),"LASTSCHRIFT","Strom","Acme Power",-(80+R.randint(0,40)),"DE98ZZZ00000000001","MANDAT-ACME-001"))
     k1.append(rowcamt(KONTEN[0][0],ds(3),"ONLINE-UEBERWEISUNG","Miete","Hausverwaltung Nord",-950))
     k1.append(rowcamt(KONTEN[0][0],ds(4),"LASTSCHRIFT","Handy","Telco One",-29.99))
     for d in (5,12,19,26):
         k1.append(rowcamt(KONTEN[0][0],ds(d),"KARTENZAHLUNG","Einkauf","Northwind Grocers",-(30+R.randint(0,5000)/100)))
     k1.append(rowcamt(KONTEN[0][0],ds(8),"KARTENZAHLUNG","Metro Ticket","Metro Transit",-49.0))
-    k1.append(rowcamt(KONTEN[0][0],ds(10),"LASTSCHRIFT","Versicherung","Insure AG",-(55.5 if m%2 else 12.25)))
+    k1.append(rowcamt(KONTEN[0][0],ds(10),"LASTSCHRIFT","Versicherung","Insure AG",-(55.5 if m%2 else 12.25),"DE98ZZZ00000000002","MANDAT-INSURE-7"))
     k1.append(rowcamt(KONTEN[0][0],ds(15),"ENTGELT","Kontofuehrung","Acme Bank Kontofuehrung",-4.9))
     k1.append(rowcamt(KONTEN[0][0],ds(16),"KARTENZAHLUNG","Kino","Cinema City",-(R.randint(900,2500)/100)))
     k1.append(rowcamt(KONTEN[0][0],ds(17),"ONLINE-UEBERWEISUNG","Unbekannt","Zufallsfirma "+str(R.randint(1,9)),-(R.randint(500,9000)/100)))

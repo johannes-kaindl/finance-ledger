@@ -197,7 +197,7 @@ function eintraege(ctx: ImporterContext, transactions: readonly BankTransaction[
 
 // --- Gemeinsamer Rumpf ---
 
-interface NoteSpec {
+export interface NoteSpec {
 	/** Frontmatter-Zeilen zwischen den Zäunen, in Schreibreihenfolge. */
 	frontmatter: string[];
 	/** Die Felder, die ein Lauf auf eine bestehende Notiz nachzieht. */
@@ -208,7 +208,7 @@ interface NoteSpec {
 	userDefault: string;
 }
 
-function renderNote(spec: NoteSpec, existing: string | undefined, today: string): string {
+export function renderNote(spec: NoteSpec, existing: string | undefined, today: string): string {
 	if (existing === undefined) {
 		return ["---", ...spec.frontmatter, "---"].join("\n") + assembleBody("", spec.auto, spec.userDefault);
 	}
@@ -220,14 +220,18 @@ function renderNote(spec: NoteSpec, existing: string | undefined, today: string)
 	return Object.entries(spec.lists ?? {}).reduce((text, [key, items]) => ersetzeListe(text, key, items), nachgezogen);
 }
 
-/** Ersetzt die Blockliste `key:` in der Frontmatter; fehlt sie, bleibt die Notiz unverändert. */
+/**
+ * Ersetzt die Blockliste `key:` in der Frontmatter (auch eine `key: null`-Zeile); eine leere Liste schreibt
+ * `key: null`. Fehlt das Feld, bleibt die Notiz unverändert.
+ */
 function ersetzeListe(text: string, key: string, items: readonly string[]): string {
 	const fm = /^(---\r?\n)([\s\S]*?)(\r?\n---)/.exec(text);
 	if (fm === null) return text;
 	const block = fm[2] ?? "";
-	const neu = block.replace(new RegExp(`^${key}:[ \\t]*\\r?\\n(?:[ \\t]+- .*(?:\\r?\\n|$))*`, "m"), (alt) => {
+	const neu = block.replace(new RegExp(`^${key}:[ \\t]*(?:null)?[ \\t]*\\r?\\n?(?:[ \\t]+- .*(?:\\r?\\n|$))*`, "m"), (alt) => {
 		const eol = alt.includes("\r\n") ? "\r\n" : "\n";
-		return `${key}:${eol}${items.map((i) => `  - ${i}`).join(eol)}${alt.endsWith(eol) ? eol : ""}`;
+		const kopf = items.length === 0 ? `${key}: null` : `${key}:${eol}${items.map((i) => `  - ${i}`).join(eol)}`;
+		return alt.endsWith(eol) ? kopf + eol : kopf;
 	});
 	return text.slice(0, fm.index) + (fm[1] ?? "") + neu + (fm[3] ?? "") + text.slice(fm.index + fm[0].length);
 }
@@ -272,9 +276,17 @@ function frontmatterKopf(titel: string, tag: string, noteType: string, today: st
 	];
 }
 
-/** Namen aus Bankdaten stehen roh in Tabellenzellen: Klammern entfallen, das Pipe wird escaped (wie im Wikilink-Anzeigetext). */
+/**
+ * Namen aus Bankdaten stehen roh in Tabellenzellen: Zeilenumbrüche und Steuerzeichen werden zu Leerzeichen, Klammern
+ * und Backticks entfallen, `<`/`>` werden zu Entities, das Pipe wird escaped (wie im Wikilink-Anzeigetext).
+ */
 function tabellenText(name: string): string {
-	return name.replace(/[[\]]/g, "").replace(/\|/g, "\\|");
+	return name
+		.replace(/[\p{Cc}\u2028\u2029]+/gu, " ")
+		.replace(/[[\]`]/g, "")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/\|/g, "\\|");
 }
 
 function titleCase(text: string): string {

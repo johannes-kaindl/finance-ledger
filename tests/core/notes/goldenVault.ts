@@ -55,7 +55,7 @@ export function vaultMitCsvs(): { port: VaultPort; files: Map<string, string> } 
 
 export async function importMit(
 	ctx: ImporterContext,
-	extra: Pick<ImportOptions, "berichte" | "dimensionen">,
+	extra: Pick<ImportOptions, "berichte" | "dimensionen" | "mandate" | "regelRuempfe">,
 	vault = vaultMitCsvs(),
 ) {
 	const result = await runImport({

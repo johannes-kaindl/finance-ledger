@@ -295,9 +295,7 @@ export function formatMoneyAmount(
  * Schritt, der bei jedem Lauf ungefragt läuft.
  */
 export const IMPORTER_REPORT_ARGS: readonly string[] = [
-  '--all-mandate-notes',
   '--all-sparziele',
-  '--all-categorizer-rule-bodies',
 ];
 
 function shellQuote(value: string): string {

@@ -126,10 +126,12 @@ const PUNKTE = [
   "…mit escaptem Alias-Trenner in der Tabelle",
   "Berichte entstehen im Import: ein Monat, Quartal und Jahr je Periode mit Buchungen",
   "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
+  "Regel-Notizen bekommen im Import ihren Rumpf: Regel-Übersicht im Marker-Block, Frontmatter unberührt",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
   "…und die Berichte ebenso",
   "…und die Dimensions-Notizen ebenso",
+  "…und die Regel-Notizen ebenso",
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
@@ -1143,6 +1145,21 @@ async function main(): Promise<void> {
     );
     console.log("");
 
+    // Regel-Rümpfe (E7): jede Regel-Notiz des Vaults trägt nach dem Import den Marker-Block mit der Übersicht. Die
+    // Frontmatter liest der Treiber vorher nicht gesondert; er prüft, dass `kategorie: categorizer-rule` oben noch steht.
+    const regelnNach = await leseOrdner(cdp, root, [{ ordner: "55-Categorizer-Rules" }]);
+    const regelNotizen = [...regelnNach.entries()].filter(([, text]) => text.startsWith("---\n") && text.includes("kategorie: categorizer-rule"));
+    const ohneRumpf = regelNotizen.filter(([, text]) => !(text.includes("<!-- BEGIN: AUTO-GENERATED -->") && text.includes("## 🏷️ Rule-Übersicht")));
+    const regelnOk = regelNotizen.length > 0 && ohneRumpf.length === 0;
+    record(
+      "Regel-Notizen bekommen im Import ihren Rumpf: Regel-Übersicht im Marker-Block, Frontmatter unberührt",
+      regelnOk,
+      regelnOk
+        ? `${regelNotizen.length} Regel-Notiz(en) mit Rumpf`
+        : regelNotizen.length === 0 ? "keine Regel-Notiz gefunden" : `ohne Rumpf: ${ohneRumpf.map(([p]) => p.split("/").pop()).join(", ")}`,
+    );
+    console.log("");
+
     console.log("── Idempotenz (der Grund, warum dieser Smoke schreiben darf)");
     const vorZweitem = new Map<string, string>();
     for (const pfad of kontoPfade) vorZweitem.set(pfad, (await readNote(cdp, pfad)) ?? "");
@@ -1174,6 +1191,13 @@ async function main(): Promise<void> {
       "…und die Berichte ebenso",
       berichteIdem,
       berichteIdem ? `${berichteNach.size} Berichte byte-gleich` : `Drift in: ${berichteDrift.join(", ") || "Dateimenge"}`,
+    );
+    const regelnZweiter = await leseOrdner(cdp, root, [{ ordner: "55-Categorizer-Rules" }]);
+    const regelnDrift = [...regelnNach.entries()].filter(([pfad, text]) => regelnZweiter.get(pfad) !== text).map(([pfad]) => pfad.split("/").pop() ?? pfad);
+    record(
+      "…und die Regel-Notizen ebenso",
+      regelnNach.size > 0 && regelnDrift.length === 0,
+      regelnDrift.length === 0 ? `${regelnNach.size} Notizen byte-gleich` : `Drift in: ${regelnDrift.join(", ")}`,
     );
     const dimensionenZweiter = await leseDimensionen(cdp, root);
     const dimDrift = [...dimensionenNach.entries()]

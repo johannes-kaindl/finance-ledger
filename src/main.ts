@@ -186,6 +186,12 @@ export default class FinancePlugin extends Plugin {
       if (result.dimensionNotesWritten > 0) {
         lines.push(t('notice.rebuildDimensionNotes', String(result.dimensionNotesWritten)));
       }
+      if (result.mandatNotesWritten > 0) {
+        lines.push(t('notice.rebuildMandates', String(result.mandatNotesWritten)));
+      }
+      if (result.ruleBodiesWritten > 0) {
+        lines.push(t('notice.rebuildRuleBodies', String(result.ruleBodiesWritten)));
+      }
       // Eine halbfertige Regel-Notiz sieht im Vault vollständig aus und wirkt
       // einfach nicht — deshalb hier benennen statt still verwerfen.
       if (result.incompleteRules.length > 0) {

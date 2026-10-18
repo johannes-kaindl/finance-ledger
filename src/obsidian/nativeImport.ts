@@ -67,6 +67,8 @@ export async function runNativeImport(
 		},
 		berichte: true,
 		dimensionen: true,
+		mandate: true,
+		regelRuempfe: { folder: paths.rulesFolder },
 		log: options.log,
 	});
 	return { ...result, incompleteRules: incomplete };
