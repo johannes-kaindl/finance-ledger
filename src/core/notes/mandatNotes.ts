@@ -14,6 +14,7 @@ import { daysBetween } from "../dates";
 import { zweiStellen, type Categorizer } from "../aggregate/aggregate";
 import type { BankTransaction } from "../import/transaction";
 import { ZERO, formatGermanEuro, type MoneyValue } from "../money";
+import { neutralizeCellText } from "../../vendor/kit/markdown-table";
 import { parseFrontmatter } from "../../vendor/kit/frontmatter";
 import { renderNote } from "./dimensionNotes";
 import type { NotePlan } from "./kontoNotes";
@@ -23,16 +24,6 @@ import { canonicalFromAccount, mandatsSlug } from "./slug";
 export const TOP_N_TX = 10;
 /** Ein Mandat gilt als aktiv, wenn die letzte Buchung höchstens so viele Tage zurückliegt (Monatsrhythmus plus Puffer). */
 export const AKTIV_SCHWELLE_TAGE = 35;
-
-/** Verwendungszweck stammt aus Bankdaten Dritter: wie in `dimensionNotes.ts` entschärft, bevor er in eine Tabellenzelle kommt. */
-function tabellenText(text: string): string {
-	return text
-		.replace(/[\p{Cc}\u2028\u2029]+/gu, " ")
-		.replace(/[[\]`]/g, "")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/\|/g, "\\|");
-}
 
 const FOUNDATION = "_Foundation – Konten-Plan und Kategorien";
 
@@ -154,7 +145,7 @@ function renderMandat(
 			});
 			const gegen = categorizer(tx).gegenAccount;
 			const empf = empfaengerWikilink(ctx, gegen, { display: canonicalFromAccount(gegen), forTable: true });
-			const zweck = tabellenText((tx.verwendungszweck ?? "").trim().slice(0, 60));
+			const zweck = neutralizeCellText((tx.verwendungszweck ?? "").trim().slice(0, 60));
 			rows.push(`| ${datum} | ${tx.betrag.abs().toFixed(2)} € | ${empf} | ${zweck || "—"} |`);
 		}
 		sektionen.push(`## 🔍 Top-${Math.min(TOP_N_TX, jung.length)}-Tx\n\n` + rows.join("\n"));

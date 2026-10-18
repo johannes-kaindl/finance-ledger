@@ -14,7 +14,7 @@
  * - Eine bestehende Notiz bekommt nur die Felder nachgezogen, die der Import besitzt (Kennzahlen, `ledger_accounts`,
  *   `updated`, `generated`). Python schrieb die ganze Frontmatter neu und setzte `created` bei jedem Lauf auf heute.
  * - Der Name der Gegenseite stammt aus Bankdaten Dritter; ein Pipe oder eckige Klammern darin zerrissen die Tabelle
- *   (`tabellenText`, und der Anzeigetext der Wikilinks, siehe `wikilinks.ts`).
+ *   (`neutralizeCellText` aus code-kit, auch für den Anzeigetext der Wikilinks).
  */
 
 import type { ImporterContext } from "../config/context";
@@ -29,6 +29,7 @@ import {
 import { zweiStellen, type Categorizer } from "../aggregate/aggregate";
 import type { BankTransaction } from "../import/transaction";
 import { Money, ZERO, formatGermanEuro, type MoneyValue } from "../money";
+import { neutralizeCellText } from "../../vendor/kit/markdown-table";
 import { updateAutoNote } from "./autoNote";
 import { empfaengerWikilink, monatsberichtWikilink, quartalsberichtWikilink } from "./wikilinks";
 import type { NotePlan } from "./kontoNotes";
@@ -276,19 +277,6 @@ function frontmatterKopf(titel: string, tag: string, noteType: string, today: st
 	];
 }
 
-/**
- * Namen aus Bankdaten stehen roh in Tabellenzellen: Zeilenumbrüche und Steuerzeichen werden zu Leerzeichen, Klammern
- * und Backticks entfallen, `<`/`>` werden zu Entities, das Pipe wird escaped (wie im Wikilink-Anzeigetext).
- */
-function tabellenText(name: string): string {
-	return name
-		.replace(/[\p{Cc}\u2028\u2029]+/gu, " ")
-		.replace(/[[\]`]/g, "")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/\|/g, "\\|");
-}
-
 function titleCase(text: string): string {
 	return text.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
@@ -436,7 +424,7 @@ function renderEmpfaenger(
 			display: p.day,
 			forTable: true,
 		});
-		topRows.push(`| ${datum} | ${formatGermanEuro(p.betrag)} | ${tabellenText(p.beguenstigter)} |`);
+		topRows.push(`| ${datum} | ${formatGermanEuro(p.betrag)} | ${neutralizeCellText(p.beguenstigter)} |`);
 	}
 
 	const auto = [
