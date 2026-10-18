@@ -22,7 +22,6 @@
 import type { ImporterContext } from "../config/context";
 import { splitIsoDate } from "../dates";
 import { wrapCallout } from "../../vendor/kit/callout";
-import { parseFrontmatter } from "../../vendor/kit/frontmatter";
 import {
 	aggregateTransactions,
 	kategorienTabelle,
@@ -38,7 +37,7 @@ import { computeBudgetForMonth, type BudgetState } from "../aggregate/budget";
 import { MONAT_NAMEN_DE } from "../aggregate/kategorien";
 import type { BankTransaction } from "../import/transaction";
 import { formatGermanEuro, type MoneyValue } from "../money";
-import { patchFrontmatter } from "./frontmatter";
+import { updateAutoNote } from "./autoNote";
 import {
 	empfaengerWikilink,
 	kategorieWikilink,
@@ -47,7 +46,7 @@ import {
 	quartalsberichtWikilink,
 } from "./wikilinks";
 import type { NotePlan } from "./kontoNotes";
-import { assembleBody, replaceAutoSection } from "./markers";
+import { assembleBody } from "./markers";
 import { renderBasesEmbed, renderMermaidPie } from "./render";
 
 /** Q1 = Jan–Mär, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Okt–Dez. */
@@ -192,15 +191,11 @@ export function renderBericht(
 	if (existing === undefined) {
 		return renderFrontmatter(ctx, periode, info, felder, today) + assembleBody("", auto, USER_DEFAULT);
 	}
-	const patched = patchFrontmatter(existing, {
+	return updateAutoNote(existing, {
 		set: { ...Object.fromEntries(felder), updated: `${today} 00:00:00` },
+		auto,
+		userDefault: USER_DEFAULT,
 	});
-	// Der Zeilenumbruch hinter dem schließenden Zaun gehört zum Rumpf: `assembleBody` setzt ihn selbst, und
-	// bliebe er im Kopf stehen, wüchse bei jedem Lauf eine Leerzeile nach.
-	let cut = patched.length - parseFrontmatter(patched).body.length;
-	if (cut > 0 && patched[cut - 1] === "\n") cut -= 1;
-	if (cut > 0 && patched[cut - 1] === "\r") cut -= 1;
-	return patched.slice(0, cut) + replaceAutoSection(patched.slice(cut), auto, USER_DEFAULT);
 }
 
 function periodeInfo(ctx: ImporterContext, periode: Periode): PeriodeInfo {
@@ -480,19 +475,10 @@ function budgetSektion(ctx: ImporterContext, budget: readonly BudgetState[]): st
 	return text;
 }
 
-/**
- * Der Empfängername stammt aus Bankdaten Dritter und steht als Anzeigetext in einer Wikilink-Tabellenzelle: ein `|`
- * zerrisse die Tabelle, `[[`/`]]` den Link. Eckige Klammern entfallen, das Pipe wird escaped. Python schreibt den
- * Namen roh; auf gewöhnlichen Namen ist das Ergebnis identisch.
- */
-function anzeigeSicher(name: string): string {
-	return name.replace(/[[\]]/g, "").replace(/\|/g, "\\|");
-}
-
 function topEmpfaengerSektion(ctx: ImporterContext, top: readonly TopEmpfaenger[]): string {
 	const rows = ["| Empfänger | Volumen | Buchungen |", "|---|---:|---:|"];
 	for (const t of top) {
-		const cell = empfaengerWikilink(ctx, t.ledgerAccount, { display: anzeigeSicher(t.counterparty), forTable: true });
+		const cell = empfaengerWikilink(ctx, t.ledgerAccount, { display: t.counterparty, forTable: true });
 		rows.push(`| ${cell} | ${formatGermanEuro(t.volumen)} | ${t.anzahl} |`);
 	}
 	return "## 🏆 Top-Empfänger\n\n" + rows.join("\n");

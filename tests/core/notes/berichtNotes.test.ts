@@ -1,11 +1,11 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createImporterContext, fixedClock, type ImporterContext } from "../../../src/core/config/context";
 import { parseKontenConfig } from "../../../src/core/config/konten";
 import { deriveOwnerNames } from "../../../src/core/import/categorize";
 import { runImport } from "../../../src/core/import/pipeline";
-import { buildRules, type RuleNote } from "../../../src/core/import/rules";
+import { buildRules } from "../../../src/core/import/rules";
 import {
 	alleBerichtePerioden,
 	berichtPath,
@@ -14,68 +14,17 @@ import {
 	detectQuartale,
 	renderBericht,
 } from "../../../src/core/notes/berichtNotes";
-import type { VaultPort } from "../../../src/core/ports";
 import { fixedCat, IBAN_K1, makeTx } from "../aggregate/helpers";
+import { FIX, config, importMit, makeCtx as makeGoldenCtx, vaultMitCsvs } from "./goldenVault";
 
 /**
  * Goldmuster: ein Lauf des Python-Importers (`--all-aggregates`) auf den synthetischen Eingaben unter
  * `fixtures/berichte/` am 2026-10-16. Der TS-Lauf muss dieselben Berichte Byte für Byte liefern — das ist die
  * Abnahme von Etappe E5. Die Eingaben erzeugt `fixtures/berichte/gen.py`, alles ist erfunden.
  */
-const FIX = join(__dirname, "fixtures", "berichte");
 const TODAY = "2026-10-16";
-
-const config = JSON.parse(readFileSync(join(FIX, "config.json"), "utf-8")) as { konten: unknown; notes: RuleNote[] };
-
-function makeCtx(today = TODAY): ImporterContext {
-	return createImporterContext({
-		konten: parseKontenConfig(config.konten),
-		notesPrefix: "Finanzplan",
-		clock: fixedClock(today),
-	});
-}
-
-/** Vault im Speicher mit den CSVs der Goldmuster-Eingaben. */
-function vaultMitCsvs(): { port: VaultPort; files: Map<string, string> } {
-	const csvs = new Map<string, Buffer>();
-	for (const name of readdirSync(join(FIX, "umsaetze"))) {
-		csvs.set(`Finanzplan/Umsätze/${name}`, readFileSync(join(FIX, "umsaetze", name)));
-	}
-	const files = new Map<string, string>();
-	const port: VaultPort = {
-		read: async (p) => {
-			const v = files.get(p);
-			if (v === undefined) throw new Error(`nicht gefunden: ${p}`);
-			return v;
-		},
-		readBinary: async (p) => {
-			const b = csvs.get(p);
-			if (!b) throw new Error(`nicht gefunden: ${p}`);
-			return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
-		},
-		write: async (p, c) => void files.set(p, c),
-		writeBinary: async () => undefined,
-		exists: async (p) => files.has(p) || csvs.has(p),
-		mkdir: async () => undefined,
-		list: async (f) => [...csvs.keys(), ...files.keys()].filter((p) => p.startsWith(`${f}/`)).sort(),
-		remove: async (p) => void files.delete(p),
-		stat: async (p) => (csvs.has(p) ? { mtime: 1 } : files.has(p) ? { mtime: 2 } : null),
-	};
-	return { port, files };
-}
-
-async function importMitBerichten(ctx: ImporterContext, vault = vaultMitCsvs()) {
-	const result = await runImport({
-		vault: vault.port,
-		ctx,
-		rules: buildRules(config.notes),
-		ownerNames: deriveOwnerNames(ctx),
-		umsatzDir: "Finanzplan/Umsätze",
-		outDir: "Finanzplan/Ledger",
-		berichte: true,
-	});
-	return { result, ...vault };
-}
+const makeCtx = (today = TODAY): ImporterContext => makeGoldenCtx(today);
+const importMitBerichten = (ctx: ImporterContext, vault = vaultMitCsvs()) => importMit(ctx, { berichte: true }, vault);
 
 describe("Berichte gegen den Python-Importer (Goldmuster)", () => {
 	const golden: Array<[string, string]> = [

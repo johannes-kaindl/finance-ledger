@@ -66,6 +66,7 @@ export async function runNativeImport(
 			vertraege: await loadVertraegeFromVault(vault, paths.vertraegeFile),
 		},
 		berichte: true,
+		dimensionen: true,
 		log: options.log,
 	});
 	return { ...result, incompleteRules: incomplete };

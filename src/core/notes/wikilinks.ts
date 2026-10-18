@@ -158,7 +158,17 @@ function link(
 	opts: LinkOptions,
 ): string {
 	const separator = opts.forTable === true ? "\\|" : "|";
-	return `[[${ctx.notesPrefix}/${folder}/${name}${separator}${display}]]`;
+	return `[[${ctx.notesPrefix}/${folder}/${name}${separator}${anzeigeSicher(display, opts.forTable === true)}]]`;
+}
+
+/**
+ * Der Anzeigetext kann aus Bankdaten Dritter stammen (Empfängername): in einer Tabellenzelle zerrisse ein `|` die
+ * Tabelle, `[[`/`]]` zerrissen den Link. Eckige Klammern entfallen, in Tabellen wird das Pipe escaped. Python
+ * schreibt den Namen roh; auf gewöhnlichen Namen ist das Ergebnis identisch.
+ */
+function anzeigeSicher(name: string, forTable: boolean): string {
+	const ohneKlammern = name.replace(/[[\]]/g, "");
+	return forTable ? ohneKlammern.replace(/\|/g, "\\|") : ohneKlammern;
 }
 
 /** Jedes Wort groß — die Entsprechung zu Pythons `str.title()`. */

@@ -282,21 +282,19 @@ export function formatMoneyAmount(
  * Ohne Flags schreibt der Importer nur Journal, Kontenplan, Eröffnungsbilanz,
  * Konto- und Vertrags-Notizen — also genau das, was das Plugin seit 2026-10-03
  * selbst erzeugt (`runNativeImport`), seit E5 (2026-10-16) auch die Monats-,
- * Quartals- und Jahresberichte. Deshalb fehlt `--all-aggregates` hier: ein
- * Lauf des Importers danach schriebe die Frontmatter der Berichte komplett neu
- * und setzte `created` auf heute. Übrig sind die Kategorie-, Empfänger-,
- * Tx-Typ- und Mandats-Notizen; sie entstehen ausschließlich auf Anforderung und
- * sind der Grund, warum dieser Befehl noch existiert: das Plugin kann sie bis
- * zum Abschluss der Port-Etappen E6 und E7 nicht.
+ * Quartals- und Jahresberichte, seit E6 die Kategorie-, Empfänger- und
+ * Tx-Typ-Notizen. Deshalb fehlen `--all-aggregates` und die drei E6-Flags hier:
+ * ein Lauf des Importers danach schriebe die Frontmatter dieser Notizen
+ * komplett neu und setzte `created` auf heute. Übrig sind die Mandats- und
+ * Sparziel-Notizen und die Regel-Rümpfe; sie entstehen ausschließlich auf
+ * Anforderung und sind der Grund, warum dieser Befehl noch existiert: das
+ * Plugin kann sie bis zum Abschluss der Port-Etappe E7 nicht.
  *
  * Bewusst NICHT enthalten: `--all-sparziele-bodies` und `--all-vertraege-bodies`
  * schreiben Notizen ohne Marker um — das ist eine einmalige Migration, kein
  * Schritt, der bei jedem Lauf ungefragt läuft.
  */
 export const IMPORTER_REPORT_ARGS: readonly string[] = [
-  '--all-kategorie-notes',
-  '--all-empfaenger-notes',
-  '--all-tx-typ-notes',
   '--all-mandate-notes',
   '--all-sparziele',
   '--all-categorizer-rule-bodies',

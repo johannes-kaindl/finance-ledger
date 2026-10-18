@@ -11,10 +11,11 @@
  *   1. `python3 scripts/parity-export.py <konten.yaml> <rules-dir> <config.json>`
  *      schreibt Konten und Regel-Frontmatter als JSON heraus.
  *   2. Der Python-Importer läuft mit `FINANCE_VAULT=<referenz-vault>`, bei E5 zusätzlich mit
- *      `--all-aggregates --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
+ *      `--all-aggregates --all-kategorie-notes --all-empfaenger-notes --all-tx-typ-notes --no-vertraege --no-konten --no-report --vault-dir <referenz-vault>`.
  *   3. Dieses Skript läuft über denselben Umsatzordner.
  *   4. Vergleich der erzeugten `.ledger`-Dateien und, seit E5, aller Berichte (`40-Monatsberichte`,
- *      `70-Quartalsberichte`, `80-Jahresberichte`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
+ *      `70-Quartalsberichte`, `80-Jahresberichte`), seit E6 der Dimensions-Notizen (`45-Kategorien`, `60-Empfänger`,
+ *      `50-Tx-Typen`): gleiche Dateimenge, gleicher Inhalt Byte für Byte.
  *
  * Aufruf:
  *   npm run parity -- <config.json> <ziel-vault> [referenz-vault]
@@ -92,6 +93,7 @@ const result = await runImport({
 	umsatzDir: join(targetVault, "Umsätze"),
 	outDir: join(targetVault, "Ledger"),
 	berichte: true,
+	dimensionen: true,
 	log: { info: () => undefined, warn: (m) => console.error(`WARN ${m}`) },
 });
 
@@ -129,6 +131,12 @@ for (const name of ["journal.ledger", "accounts.ledger"]) {
 for (const folder of [ctx.folders.monatsberichte, ctx.folders.quartalsberichte, ctx.folders.jahresberichte]) {
 	differences += await compareFolder(folder);
 }
+// Dimensions-Notizen (E6). Pythons Kategorie-Notiz titelt ihren Callout mit dem Namen des letzten Top-Empfängers
+// (Variablen-Schatten in `_render_body`); die Überschrift wird deshalb vor dem Vergleich vereinheitlicht.
+const calloutTitel = (text: string): string => text.replace(/^> \[!info\] .* — alltime Aggregat$/m, "> [!info] … — alltime Aggregat");
+differences += await compareFolder(ctx.folders.kategorien, calloutTitel);
+differences += await compareFolder(ctx.folders.empfaenger);
+differences += await compareFolder(ctx.folders.txTypen);
 
 process.exit(differences === 0 ? 0 : 1);
 
@@ -139,10 +147,10 @@ function onlyKnownExtraAccounts(mine: string, theirs: string): boolean {
 }
 
 /**
- * Vergleicht die Berichte eines Ordners. Der TS-Lauf schreibt unter `<ziel>/<Präfix>/<Ordner>`, der
+ * Vergleicht die Notizen eines Ordners. Der TS-Lauf schreibt unter `<ziel>/<Präfix>/<Ordner>`, der
  * Python-Lauf unter `<referenz>/<Ordner>`; die Präfix-Ebene ist nur der Projektordner.
  */
-async function compareFolder(folder: string): Promise<number> {
+async function compareFolder(folder: string, normalize: (text: string) => string = (t) => t): Promise<number> {
 	const mineDir = join(targetVault, ctx.notesPrefix, folder);
 	const theirsDir = join(referenceVault, folder);
 	const mine = existsSync(mineDir) ? (await readdir(mineDir)).sort() : [];
@@ -156,8 +164,8 @@ async function compareFolder(folder: string): Promise<number> {
 	}
 	let gleich = 0;
 	for (const name of mine.filter((n) => theirs.includes(n))) {
-		const a = await readFile(join(mineDir, name), "utf-8");
-		const b = await readFile(join(theirsDir, name), "utf-8");
+		const a = normalize(await readFile(join(mineDir, name), "utf-8"));
+		const b = normalize(await readFile(join(theirsDir, name), "utf-8"));
 		if (a === b) {
 			gleich++;
 			continue;
@@ -166,7 +174,7 @@ async function compareFolder(folder: string): Promise<number> {
 		console.log(`✗ ${folder}/${name}: unterschiedlich`);
 		reportFirstDifferences(a, b);
 	}
-	console.log(`${diffs === 0 ? "✓" : "·"} ${folder}: ${gleich} von ${theirs.length} Berichten byte-gleich`);
+	console.log(`${diffs === 0 ? "✓" : "·"} ${folder}: ${gleich} von ${theirs.length} Notizen byte-gleich`);
 	return diffs;
 }
 

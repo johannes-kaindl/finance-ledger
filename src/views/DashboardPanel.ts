@@ -276,8 +276,9 @@ export class DashboardPanel implements FinancePanel {
     const startedAt = Date.now();
     try {
       // Der Lauf im Plugin, nicht mehr der Python-Subprozess: er schreibt Journal,
-      // Kontenplan, Eröffnungsbilanz und die Stammdaten-Notizen. Berichte und
-      // Dimensions-Notizen entstehen weiterhin im Importer-CLI (Port-Etappen E4–E7).
+      // Kontenplan, Eröffnungsbilanz, die Stammdaten-Notizen, die Berichte und
+      // die Kategorie-, Empfänger- und Tx-Typ-Notizen. Mandate, Sparziele und Regel-Rümpfe entstehen
+      // weiterhin im Importer-CLI (Port-Etappe E7).
       await runNativeImport({ app: this.app, paths: this.getPaths() });
       data.lastReimportTimestamp = new Date().toISOString();
       data.rulesAddedSinceReimport = 0;

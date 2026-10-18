@@ -11,6 +11,7 @@ import type { ImporterContext } from "../config/context";
 import type { VertragSpec } from "../config/vertraege";
 import { InputFormatError } from "../errors";
 import { alleBerichtePerioden, berichtPath, planBerichte } from "../notes/berichtNotes";
+import { dimensionPaths, planDimensionNotes } from "../notes/dimensionNotes";
 import { kontoNotePath, planKontoNotes, type NotePlan } from "../notes/kontoNotes";
 import { planVertragNotes } from "../notes/vertragNotes";
 import { formatOpeningBalances } from "./openingBalances";
@@ -59,6 +60,11 @@ export interface ImportOptions {
 	 * Journal erneuern soll, legt nicht unangekündigt Dutzende Notizen an.
 	 */
 	berichte?: boolean;
+	/**
+	 * Kategorie-, Empfänger- und Tx-Typ-Notizen mitschreiben (E6). Opt-in aus demselben Grund wie die Berichte:
+	 * bei einem Bestand mit hunderten Empfängern sind das hunderte Notizen.
+	 */
+	dimensionen?: boolean;
 	log?: LogPort;
 }
 
@@ -78,6 +84,8 @@ export interface ImportResult {
 	notesWritten: number;
 	/** Neu angelegte oder geänderte Berichte; unveränderte werden nicht angefasst und zählen nicht. */
 	reportsWritten: number;
+	/** Neu angelegte oder geänderte Dimensions-Notizen (Kategorie, Empfänger, Tx-Typ); unveränderte zählen nicht. */
+	dimensionNotesWritten: number;
 	/** Frühester und spätester Buchungstag, `null` bei leerem Ergebnis. */
 	dateRange: { first: string; last: string } | null;
 }
@@ -125,6 +133,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		: [];
 
 	const berichte = options.berichte ? await writeBerichte(options, categorized, transactions) : [];
+	const dimensionen = options.dimensionen ? await writeDimensionen(options, categorized, transactions) : [];
 
 	const kontenNotes = await readKontoNotes(options);
 	const openingPath = join(options.outDir, OPENING_BALANCES_FILENAME);
@@ -140,9 +149,10 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		duplicatesSkipped,
 		vorgemerktSkipped: parsed.reduce((sum, p) => sum + p.vorgemerkt, 0),
 		unkategorisiert: countUnkategorisiert(categorized),
-		writtenFiles: [...writtenFiles, ...notes, ...berichte],
+		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen],
 		notesWritten: notes.length,
 		reportsWritten: berichte.length,
+		dimensionNotesWritten: dimensionen.length,
 		dateRange: dateRange(transactions),
 	};
 }
@@ -353,21 +363,13 @@ async function writePlans(
 
 /**
  * Schreibt die Berichte aller Perioden mit Buchungen und liefert die Pfade, die sich geändert haben.
- *
- * Der Kategorisierer ist hier eine Nachschlagetabelle über das Ergebnis des Laufs: Python kategorisiert jede
- * Buchung für jeden Bericht neu, das wären hunderte Läufe über denselben Bestand.
  */
 async function writeBerichte(
 	options: ImportOptions,
 	categorized: readonly CategorizedTx[],
 	transactions: readonly BankTransaction[],
 ): Promise<string[]> {
-	const byTx = new Map(categorized.map((c) => [c.tx, c.result]));
-	const categorizer = (tx: BankTransaction): CategorizationResult => {
-		const result = byTx.get(tx);
-		if (result === undefined) throw new Error("Buchung ohne Kategorisierung im Berichtslauf");
-		return result;
-	};
+	const categorizer = ergebnisTabelle(categorized);
 	const perioden = alleBerichtePerioden(transactions);
 	const existing: Record<string, string> = {};
 	for (const periode of perioden) {
@@ -379,6 +381,37 @@ async function writeBerichte(
 		options,
 		plans.filter((plan) => existing[plan.path] !== plan.content),
 	);
+}
+
+/** Schreibt die Dimensions-Notizen (Kategorie, Empfänger, Tx-Typ) und liefert die Pfade, die sich geändert haben. */
+async function writeDimensionen(
+	options: ImportOptions,
+	categorized: readonly CategorizedTx[],
+	transactions: readonly BankTransaction[],
+): Promise<string[]> {
+	const categorizer = ergebnisTabelle(categorized);
+	const existing: Record<string, string> = {};
+	for (const path of dimensionPaths(options.ctx, transactions, categorizer)) {
+		if (await options.vault.exists(path)) existing[path] = await options.vault.read(path);
+	}
+	const plans = planDimensionNotes(options.ctx, transactions, categorizer, existing);
+	return writePlans(
+		options,
+		plans.filter((plan) => existing[plan.path] !== plan.content),
+	);
+}
+
+/**
+ * Der Kategorisierer ist hier eine Nachschlagetabelle über das Ergebnis des Laufs: Python kategorisiert jede
+ * Buchung für jeden Bericht und jede Notiz neu, das wären hunderte Läufe über denselben Bestand.
+ */
+function ergebnisTabelle(categorized: readonly CategorizedTx[]): (tx: BankTransaction) => CategorizationResult {
+	const byTx = new Map(categorized.map((c) => [c.tx, c.result]));
+	return (tx) => {
+		const result = byTx.get(tx);
+		if (result === undefined) throw new Error("Buchung ohne Kategorisierung im Notizlauf");
+		return result;
+	};
 }
 
 /** Vorhandene Konto- und Vertrags-Notizen, nach Pfad. */

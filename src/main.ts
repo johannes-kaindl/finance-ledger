@@ -151,8 +151,9 @@ export default class FinancePlugin extends Plugin {
    * ausließe, hinterließe genau den Zustand, den Jay am 2026-08-01 gemeldet hat
    * — neue Buchungen, alte Kontostände.
    *
-   * Berichte und Dimensions-Notizen erzeugt weiterhin der Importer-Subprozess
-   * (Etappen E4–E7 des Ports).
+   * Berichte (E5) und Kategorie-, Empfänger- und Tx-Typ-Notizen (E6) schreibt der
+   * Lauf ebenfalls; Mandate, Sparziele und Regel-Rümpfe (E7) erzeugt weiterhin
+   * der Importer-Subprozess.
    */
   private async rebuildJournal(): Promise<void> {
     const paths = this.resolvePaths();
@@ -181,6 +182,9 @@ export default class FinancePlugin extends Plugin {
       }
       if (result.reportsWritten > 0) {
         lines.push(t('notice.rebuildReports', String(result.reportsWritten)));
+      }
+      if (result.dimensionNotesWritten > 0) {
+        lines.push(t('notice.rebuildDimensionNotes', String(result.dimensionNotesWritten)));
       }
       // Eine halbfertige Regel-Notiz sieht im Vault vollständig aus und wirkt
       // einfach nicht — deshalb hier benennen statt still verwerfen.

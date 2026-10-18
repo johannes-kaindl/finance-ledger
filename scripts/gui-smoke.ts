@@ -57,6 +57,7 @@ import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { cwd } from "node:process";
 
+import { KATEGORIE_MAPPING } from "../src/core/aggregate/kategorien.js";
 import { Vorbedingung, createBilanz, parseArgs, runDriver } from "../../tools/obsidian-cdp/bilanz.js";
 import {
   attachTo,
@@ -95,6 +96,13 @@ const BERICHT_ORDNER = [
   { ordner: "80-Jahresberichte", art: "jahresbericht" },
 ] as const;
 
+/** Ordner und Notiz-Art der Dimensions-Notizen (E6); wie die Berichte erzeugt und vor dem Lauf geleert. */
+const DIMENSION_ORDNER = [
+  { ordner: "45-Kategorien", art: "kategorie-note" },
+  { ordner: "60-Empfänger", art: "empfaenger-note" },
+  { ordner: "50-Tx-Typen", art: "tx-typ-note" },
+] as const;
+
 /** Alle Prüfpunkte (Nenner der Bilanz). Zweig-Alternativen tragen einen Namen, nie zwei. */
 const PUNKTE = [
   "Plugin ist geladen",
@@ -117,9 +125,11 @@ const PUNKTE = [
   "Vertrags-Notiz hat Stichprobe und Vertragsdaten",
   "…mit escaptem Alias-Trenner in der Tabelle",
   "Berichte entstehen im Import: ein Monat, Quartal und Jahr je Periode mit Buchungen",
+  "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
   "…und die Berichte ebenso",
+  "…und die Dimensions-Notizen ebenso",
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
@@ -358,10 +368,10 @@ async function schliesseModale(cdp: Cdp): Promise<void> {
   if (!zu) throw new Error("Ein Modal ließ sich nicht schließen (.modal-header-button).");
 }
 
-/** Berichte, die der Import angelegt hat, entfernen — sie sind erzeugt, nie Nutzer-Besitz dieses Vaults. */
-async function raeumeBerichte(cdp: Cdp, root: string): Promise<number> {
+/** Notizen, die der Import angelegt hat (Berichte, Dimensions-Notizen), entfernen — sie sind erzeugt, nie Nutzer-Besitz dieses Vaults. */
+async function raeumeErzeugte(cdp: Cdp, root: string): Promise<number> {
   let n = 0;
-  for (const { ordner } of BERICHT_ORDNER) {
+  for (const { ordner } of [...BERICHT_ORDNER, ...DIMENSION_ORDNER]) {
     for (const pfad of (await listeDateien(cdp, `${root}/${ordner}`)).filter((f) => f.endsWith(".md"))) {
       await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
       n++;
@@ -370,10 +380,10 @@ async function raeumeBerichte(cdp: Cdp, root: string): Promise<number> {
   return n;
 }
 
-/** Alle Berichte samt Text, nach Pfad. */
-async function leseBerichte(cdp: Cdp, root: string): Promise<Map<string, string>> {
+/** Alle Notizen der genannten Ordner samt Text, nach Pfad. */
+async function leseOrdner(cdp: Cdp, root: string, ordnerListe: ReadonlyArray<{ ordner: string }>): Promise<Map<string, string>> {
   const out = new Map<string, string>();
-  for (const { ordner } of BERICHT_ORDNER) {
+  for (const { ordner } of ordnerListe) {
     for (const pfad of (await listeDateien(cdp, `${root}/${ordner}`)).filter((f) => f.endsWith(".md"))) {
       out.set(pfad, (await cdp.evaluate<string>(`return await app.vault.adapter.read(${JSON.stringify(pfad)});`)));
     }
@@ -381,12 +391,15 @@ async function leseBerichte(cdp: Cdp, root: string): Promise<Map<string, string>
   return out;
 }
 
+const leseBerichte = (cdp: Cdp, root: string): Promise<Map<string, string>> => leseOrdner(cdp, root, BERICHT_ORDNER);
+const leseDimensionen = (cdp: Cdp, root: string): Promise<Map<string, string>> => leseOrdner(cdp, root, DIMENSION_ORDNER);
+
 async function raeumeAuf(cdp: Cdp, root: string): Promise<string[]> {
   const log: string[] = [];
   await schliesseModale(cdp);
   await stelleKontenWiederHer(cdp, root);
-  const berichte = await raeumeBerichte(cdp, root);
-  if (berichte > 0) log.push(`${berichte} Bericht(e) entfernt`);
+  const erzeugte = await raeumeErzeugte(cdp, root);
+  if (erzeugte > 0) log.push(`${erzeugte} erzeugte Notiz(en) entfernt`);
   const regeln = await smokeRegeln(cdp, root);
   for (const pfad of regeln) {
     await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
@@ -1106,6 +1119,30 @@ async function main(): Promise<void> {
     );
     console.log("");
 
+    // Dimensions-Notizen (E6): je Hauptkategorie mit Buchungen eine Notiz. Die Soll-Menge stammt aus den Konten
+    // der Buchungen im geschriebenen Journal und der Kategorie-Tabelle des Kerns, nicht aus einer Konstante.
+    const dimensionenNach = await leseDimensionen(cdp, root);
+    const sollKategorien = KATEGORIE_MAPPING.filter(([, prefix]) =>
+      (journal ?? "").split("\n").some((zeile) => zeile.trimStart().startsWith(prefix)),
+    ).map(([suffix]) => suffix);
+    const istOrdner = (ordner: string): string[] =>
+      [...dimensionenNach.keys()].filter((p) => p.startsWith(`${root}/${ordner}/`)).map((p) => p.split("/").pop() ?? p);
+    const istKategorien = istOrdner("45-Kategorien").map((n) => n.replace(/\.md$/, "")).sort();
+    const schlechtD = [...dimensionenNach.entries()].filter(([pfad, text]) => {
+      const art = DIMENSION_ORDNER.find(({ ordner }) => pfad.startsWith(`${root}/${ordner}/`))?.art;
+      return !(text.includes(`note_type: ${art}`) && text.includes("<!-- BEGIN: AUTO-GENERATED -->") && text.includes("## 📊 Aggregat-Übersicht"));
+    });
+    const kategorienOk = sollKategorien.length > 0 && JSON.stringify(istKategorien) === JSON.stringify([...sollKategorien].sort());
+    const dimOk = kategorienOk && istOrdner("50-Tx-Typen").length > 0 && schlechtD.length === 0;
+    record(
+      "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
+      dimOk,
+      dimOk
+        ? `${istKategorien.length} Kategorie(n), ${istOrdner("60-Empfänger").length} Empfänger, ${istOrdner("50-Tx-Typen").length} Tx-Typ(en)`
+        : `Soll Kategorien ${sollKategorien.join(",")} ist ${istKategorien.join(",")}${schlechtD.length > 0 ? `, ohne Gerüst: ${schlechtD.map(([p]) => p.split("/").pop()).join(", ")}` : ""}`,
+    );
+    console.log("");
+
     console.log("── Idempotenz (der Grund, warum dieser Smoke schreiben darf)");
     const vorZweitem = new Map<string, string>();
     for (const pfad of kontoPfade) vorZweitem.set(pfad, (await readNote(cdp, pfad)) ?? "");
@@ -1137,6 +1174,16 @@ async function main(): Promise<void> {
       "…und die Berichte ebenso",
       berichteIdem,
       berichteIdem ? `${berichteNach.size} Berichte byte-gleich` : `Drift in: ${berichteDrift.join(", ") || "Dateimenge"}`,
+    );
+    const dimensionenZweiter = await leseDimensionen(cdp, root);
+    const dimDrift = [...dimensionenNach.entries()]
+      .filter(([pfad, text]) => dimensionenZweiter.get(pfad) !== text)
+      .map(([pfad]) => pfad.split("/").pop() ?? pfad);
+    const dimIdem = dimensionenNach.size > 0 && dimDrift.length === 0 && dimensionenZweiter.size === dimensionenNach.size;
+    record(
+      "…und die Dimensions-Notizen ebenso",
+      dimIdem,
+      dimIdem ? `${dimensionenNach.size} Notizen byte-gleich` : `Drift in: ${dimDrift.join(", ") || "Dateimenge"}`,
     );
     console.log("");
 
