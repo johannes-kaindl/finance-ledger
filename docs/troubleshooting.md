@@ -89,13 +89,13 @@ Each entry starts with what you see — the wording is the plugin's own English 
 
 **Cause:** the import ended with an error. The **TBC triage** tab shows the message.
 
-**Fix:** read the message and press **Try again**. **Copy terminal command** gives you the full importer command, including the `FINANCE_VAULT` variables — useful for the dimension notes (see below), not needed for the import itself.
+**Fix:** read the message and press **Try again**. **Copy terminal command** gives you the full importer command, including the `FINANCE_VAULT` variables — not needed for the import itself: the plugin writes every note on its own.
 
-## Dimension notes are missing
+## Category, payee, mandate or savings goal notes are missing
 
-**Cause:** the category, payee, transaction-type and mandate notes do not come from the plugin. It writes the journal, the chart of accounts, the opening balances, the account and contract notes and the monthly, quarterly and yearly reports; the rest is produced by the companion Python importer.
+**Cause:** the plugin writes them on every import and every journal rebuild, from the bookings. A payee note exists only for a payee with at least 5 transactions or 200 € in total; a mandate note needs a mandate reference in the CSV; a savings goal note needs an entry in `sparziele.yaml` (next to `konten.yaml`, `gespart_auf_konto` is an `id` from `konten.yaml`). A savings goal note you wrote yourself, without a generated block, is left alone and named in the notice.
 
-**Fix:** press **Copy terminal command** in the import-error dialog or the TBC triage tab and run it in a terminal. The command already contains the note flags and the vault variables. Set **Importer repo path** first so the command points at your checkout.
+**Fix:** run **Rebuild journal from CSVs (built-in)** once more and read the notice; it counts the notes written. The Python importer is not needed.
 
 ## Reports are missing
 

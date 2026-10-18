@@ -70,10 +70,7 @@ Wer eine Node-API wieder einführt, nimmt der Einreichung die Bestnote — **und
 `builtinModules`-Liste prüft (inklusive Gegenprobe, dass das Suchmuster trifft). Was ein
 Nachbarplugin in dieser Lage tut, steht in der Dach-`AGENTS.md` § Store-Einreichung.
 
-**Was dadurch wegfällt:** Die Dimensions-Notizen (Kategorie, Empfänger, Tx-Typ, Mandate, `--all-kategorie-notes` und die übrigen Flags) entstehen nur noch im Importer-CLI. Die Monats-, Quartals- und Jahresberichte schreibt das Plugin seit E5 (2026-10-16) selbst. `buildImporterCommand` in
-`views/helpers.ts` baut den vollständigen Befehl samt `FINANCE_VAULT`-Umgebung als
-Kopier-Knopf — ohne die Variablen schreibt der Importer in seinen Fallback-Ordner, mit
-Exit-Code 0. Die Ablösung ist der Roadmap-Task „Importer-Port", Etappen E6–E7.
+**Was daraus folgt:** Das Plugin schreibt alle Notiz-Arten des Python-Importers selbst; er wird für keine Notiz mehr gebraucht. Der Kopier-Knopf (`buildImporterCommand`, Einstellung `importerCwd`) ist ein Rückstand, den der Master entscheidet.
 
 ### Geld-Arithmetik
 
@@ -121,9 +118,9 @@ npm run smoke:gui       # GUI-Smoke gegen laufendes Obsidian (maintainer-lokal, 
 Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
 bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
 
-## Importer-Port (Stand Welle 23)
+## Importer-Port (Stand Welle 24: E0–E7 fertig)
 
-Der eingebaute Kern (`src/core/`) deckt E0–E5 ab: Journal und Stammdaten (E0–E3), den Aggregations-Kern samt Budget (E4, `src/core/aggregate/`) und seit Welle 23 die Monats-, Quartals- und Jahresberichte (E5, `src/core/notes/berichtNotes.ts`, im Import verdrahtet über `berichte: true`). Die Berichte stimmen mit dem Python-Importer Byte für Byte überein (`npm run parity`, Goldmuster in `tests/core/notes/fixtures/berichte/`). Ein vorhandener Bericht wird nachgezogen (nur Kennzahlen, `updated` und `generiert_aus_ledger_am`), nicht ersetzt. Dimensions-Notizen (E6) und der Rest (E7) erzeugt weiterhin der Python-Importer (Referenz lokal unter `~/Archive/repos/26-011-finanzplan-importer`).
+`src/core/notes/` schreibt alle Notiz-Arten (Berichte, `dimensionNotes`, `mandatNotes`, `sparzielNotes` mit `sparziele.yaml`, `ruleBodies`, `reportNotes`); `runImport` verdrahtet sie über opt-in-Optionen, `nativeImport.ts` setzt alle. Bestehende Notizen zieht `autoNote.ts` nach (nur Felder des Imports und der Marker-Block; `created` und Eigenes bleiben). `npm run parity -- <config.json> <ziel> <referenz>` vergleicht alle Ordner und den Report mit dem Python-Importer (lokal unter `~/Archive/repos/26-011-finanzplan-importer`; `parity-export.py` nimmt `sparziele.yaml` und `vertraege.yaml` als Parameter 4 und 5); bekannte Unterschiede stehen im Kopf von `parity-check.ts`. Goldmuster: `tests/core/notes/fixtures/` (Eingaben `berichte/gen.py`). Fremdtext aus Bankdaten geht nur über `neutralizeCellText` (code-kit) in Tabellenzellen.
 
 ## Test-Konventionen
 

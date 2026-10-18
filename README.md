@@ -17,7 +17,9 @@ companion Python importer.
 
 ## Status
 
-**As of 2026-10-16 — importer port, stage E5:** the built-in import now also writes the monthly, quarterly and yearly reports (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`) — without Python. They match the Python importer byte for byte on a 293-transaction test set (13 months, 5 quarters, 2 years; `npm run parity`). Unlike the Python importer, a report that already exists is updated in place: your own tags, fields and notes survive, `created` stays. Category, payee, transaction-type and mandate notes (E6/E7) still come from the Python importer.
+**As of 2026-10-18 — importer port complete (E6, E7):** the built-in import now writes every note the Python importer wrote: category (`45-Kategorien`), payee (`60-Empfänger`) and transaction-type (`50-Tx-Typen`) notes, mandate notes (`50-Mandate`), savings goals (`30-Sparziele`, from an optional `sparziele.yaml`), the bodies of the categorizer rule notes and the import report (`Ledger/import_report.md`). On a 293-transaction test set all 11 note folders, the journal and the report match the Python importer (`npm run parity`; known, intended differences are listed in the changelog). Notes that already exist are updated in place and never lose your own text. The Python importer is no longer needed for anything.
+
+**As of 2026-10-16 — importer port, stage E5:** the built-in import now also writes the monthly, quarterly and yearly reports (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`) — without Python. They match the Python importer byte for byte on a 293-transaction test set (13 months, 5 quarters, 2 years; `npm run parity`). Unlike the Python importer, a report that already exists is updated in place: your own tags, fields and notes survive, `created` stays.
 
 **As of 2026-08-17 — importer port, stages E0–E3:** the built-in import now writes
 `journal.ledger`, `accounts.ledger`, `opening_balances.ledger` **and** the account and
@@ -117,8 +119,8 @@ into `opening_balances.ledger`. The plugin then filters out transactions before 
   `opening_balances.ledger`. Without a journal the views show nothing.
 - For the **built-in** journal rebuild from CSVs: a `konten.yaml` in the vault. No Python,
   no `uv` — this path works on mobile as well.
-- Only for the **re-import through the companion repository** (dimension notes and the remaining
-  note generators): desktop, `uv`, and a checkout of the Python importer.
+- Optional `vertraege.yaml` (contract notes) and `sparziele.yaml` (savings goals) next to `konten.yaml`.
+  The Python importer is not needed.
 
 ## Install
 
@@ -213,9 +215,8 @@ and [`docs/design/README.md`](https://github.com/johannes-kaindl/finance-ledger/
   access are gone, so the platform guards that went with them are gone too.
   ⚠️ Not yet verified on a physical phone or tablet — the code path is free of Node APIs and
   covered by tests, but the file picker on mobile has not been exercised.
-- **Still desktop-bound:** the dimension notes (category, payee, transaction-type and mandate
-  notes). Those come from the Python importer, run from a terminal — the plugin offers the full
-  command as a copy button. The monthly, quarterly and yearly reports are written by the plugin itself.
+- **Nothing is desktop-bound any more:** the journal, the account, contract, savings goal, report, category, payee,
+  transaction-type, mandate and rule notes and the import report are all written by the plugin.
 - **Mobile icons:** on iPhone and iPad some placeholder icons are still visible after the
   last icon fix — diagnosis is pending on a desktop with mobile dev tools.
 

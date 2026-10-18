@@ -17,7 +17,9 @@ gespeist von einem begleitenden Python-Importer.
 
 ## Status
 
-**Stand 2026-10-16 — Importer-Port, Etappe E5:** Der eingebaute Import schreibt jetzt auch die Monats-, Quartals- und Jahresberichte (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`) — ohne Python. Sie stimmen auf einem Testbestand mit 293 Buchungen (13 Monate, 5 Quartale, 2 Jahre; `npm run parity`) Byte für Byte mit dem Python-Importer überein. Anders als der Python-Importer zieht das Plugin einen vorhandenen Bericht nach, statt ihn zu ersetzen: eigene Tags, Felder und Notizen bleiben, `created` bleibt. Kategorie-, Empfänger-, Tx-Typ- und Mandats-Notizen (E6/E7) kommen weiterhin aus dem Python-Importer.
+**Stand 2026-10-18 — Importer-Port abgeschlossen (E6, E7):** Der eingebaute Import schreibt jetzt jede Notiz, die der Python-Importer geschrieben hat: Kategorie- (`45-Kategorien`), Empfänger- (`60-Empfänger`) und Tx-Typ-Notizen (`50-Tx-Typen`), Mandats-Notizen (`50-Mandate`), Sparziele (`30-Sparziele`, aus einer optionalen `sparziele.yaml`), die Rümpfe der Categorizer-Regel-Notizen und den Import-Report (`Ledger/import_report.md`). Auf einem Testbestand mit 293 Buchungen stimmen alle 11 Notiz-Ordner, das Journal und der Report mit dem Python-Importer überein (`npm run parity`; bekannte, gewollte Unterschiede stehen im Changelog). Vorhandene Notizen werden nachgezogen und verlieren nie eigenen Text. Der Python-Importer wird für nichts mehr gebraucht.
+
+**Stand 2026-10-16 — Importer-Port, Etappe E5:** Der eingebaute Import schreibt jetzt auch die Monats-, Quartals- und Jahresberichte (`40-Monatsberichte`, `70-Quartalsberichte`, `80-Jahresberichte`) — ohne Python. Sie stimmen auf einem Testbestand mit 293 Buchungen (13 Monate, 5 Quartale, 2 Jahre; `npm run parity`) Byte für Byte mit dem Python-Importer überein. Anders als der Python-Importer zieht das Plugin einen vorhandenen Bericht nach, statt ihn zu ersetzen: eigene Tags, Felder und Notizen bleiben, `created` bleibt.
 
 **Stand 2026-08-17 — Importer-Port, Etappen E0–E3:** Der eingebaute Import erzeugt
 `journal.ledger`, `accounts.ledger`, `opening_balances.ledger` **und** die Konto- und
@@ -119,8 +121,8 @@ daraus `opening_balances.ledger`. Das Plugin filtert dann die Buchungen vor dem 
   `opening_balances.ledger`. Ohne Journal zeigen die Ansichten nichts an.
 - Für den **eingebauten** Journal-Aufbau aus CSVs: eine `konten.yaml` im Vault. Kein Python,
   kein `uv` — dieser Weg läuft auch mobil.
-- Nur für den **Re-Import über das Begleit-Repo** (Dimensions-Notizen und die übrigen
-  Notiz-Generatoren): Desktop, `uv` und ein Checkout des Python-Importers.
+- Optional `vertraege.yaml` (Vertrags-Notizen) und `sparziele.yaml` (Sparziele) neben der `konten.yaml`.
+  Der Python-Importer wird nicht gebraucht.
 
 ## Installation
 
@@ -215,9 +217,8 @@ Ausführliche Doku: [`docs/design.md`](https://github.com/johannes-kaindl/financ
   und damit auch die Plattform-Sperren, die an ihnen hingen.
   ⚠️ Auf einem echten Telefon oder Tablet noch **nicht** nachgemessen — der Codeweg ist
   node-frei und durch Tests gedeckt, die Dateiauswahl auf Mobilgeräten ist ungeprüft.
-- **Weiter desktop-gebunden:** die Dimensions-Notizen (Kategorie-, Empfänger-, Tx-Typ- und
-  Mandats-Notizen). Die kommen aus dem Python-Importer, gefahren im Terminal — das Plugin gibt den
-  vollständigen Befehl als Kopier-Knopf heraus. Die Monats-, Quartals- und Jahresberichte schreibt das Plugin selbst.
+- **Nichts ist mehr desktop-gebunden:** Journal, Konto-, Vertrags-, Sparziel-, Bericht-, Kategorie-, Empfänger-,
+  Tx-Typ-, Mandats- und Regel-Notizen sowie der Import-Report schreibt das Plugin selbst.
 - **Mobile Icons:** Auf iPhone und iPad sind nach dem letzten Icon-Fix teils noch Platzhalter
   sichtbar — die Diagnose steht am Desktop mit Mobile-DevTools aus.
 
