@@ -260,6 +260,7 @@ export const EN: Record<string, string> = {
   'notice.rebuildDimensionNotes': '{0} category/payee/transaction-type note(s) written',
   'notice.rebuildMandates': '{0} mandate note(s) written',
   'notice.rebuildRuleBodies': '{0} rule note(s) updated',
+  'notice.rebuildImportReport': 'Import report updated',
   'notice.rebuildSavingsGoals': '{0} savings goal note(s) written',
   'notice.rebuildSavingsGoalsSkipped': '{0} savings goal note(s) left alone because they have no generated block: {1}',
   'settings.kontenFile.desc':
@@ -512,6 +513,7 @@ export const DE: Record<string, string> = {
   'notice.rebuildDimensionNotes': '{0} Kategorie-/Empfänger-/Tx-Typ-Notiz(en) geschrieben',
   'notice.rebuildMandates': '{0} Mandats-Notiz(en) geschrieben',
   'notice.rebuildRuleBodies': '{0} Regel-Notiz(en) aktualisiert',
+  'notice.rebuildImportReport': 'Import-Report aktualisiert',
   'notice.rebuildSavingsGoals': '{0} Sparziel-Notiz(en) geschrieben',
   'notice.rebuildSavingsGoalsSkipped': '{0} Sparziel-Notiz(en) nicht angefasst, weil sie keinen generierten Block haben: {1}',
   'settings.kontenFile.desc':

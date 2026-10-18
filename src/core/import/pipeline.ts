@@ -14,6 +14,7 @@ import { alleBerichtePerioden, berichtPath, planBerichte } from "../notes/berich
 import { dimensionPaths, planDimensionNotes } from "../notes/dimensionNotes";
 import { mandatPaths, planMandatNotes, type VertragNotiz } from "../notes/mandatNotes";
 import type { SparzielSpec } from "../config/sparziele";
+import { REPORT_FILENAME, renderReport } from "../notes/reportNotes";
 import { planSparziele } from "../notes/sparzielNotes";
 import { planRuleBodies, type RegelNotiz } from "../notes/ruleBodies";
 import { kontoNotePath, planKontoNotes, type NotePlan } from "../notes/kontoNotes";
@@ -78,6 +79,8 @@ export interface ImportOptions {
 	regelRuempfe?: { folder: string };
 	/** Sparziel-Notizen aus `sparziele.yaml` mitschreiben (E7). Fehlt das Feld, entstehen keine. */
 	sparziele?: readonly SparzielSpec[];
+	/** `import_report.md` neben dem Journal mitschreiben (E7). */
+	report?: boolean;
 	log?: LogPort;
 }
 
@@ -105,6 +108,8 @@ export interface ImportResult {
 	/** Angelegte oder geänderte Sparziel-Notizen und die, die unangetastet blieben (Nutzer-Notiz ohne Marker-Block). */
 	sparzielNotesWritten: number;
 	sparzielSkipped: string[];
+	/** `true`, wenn der Import-Report neu entstand oder sich änderte. */
+	importReportWritten: boolean;
 	/** Frühester und spätester Buchungstag, `null` bei leerem Ergebnis. */
 	dateRange: { first: string; last: string } | null;
 }
@@ -155,6 +160,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 	const dimensionen = options.dimensionen ? await writeDimensionen(options, categorized, transactions) : [];
 	const mandate = options.mandate ? await writeMandate(options, categorized, transactions) : [];
 	const sparziele = options.sparziele ? await writeSparziele(options, options.sparziele, log) : { written: [], skipped: [] };
+	const importReport = options.report ? await writeImportReport(options, categorized) : [];
 	const regeln = options.regelRuempfe ? await writeRegelRuempfe(options, transactions, options.regelRuempfe.folder) : [];
 
 	const kontenNotes = await readKontoNotes(options);
@@ -171,7 +177,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		duplicatesSkipped,
 		vorgemerktSkipped: parsed.reduce((sum, p) => sum + p.vorgemerkt, 0),
 		unkategorisiert: countUnkategorisiert(categorized),
-		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen, ...mandate, ...regeln, ...sparziele.written],
+		writtenFiles: [...writtenFiles, ...notes, ...berichte, ...dimensionen, ...mandate, ...regeln, ...sparziele.written, ...importReport],
 		notesWritten: notes.length,
 		reportsWritten: berichte.length,
 		dimensionNotesWritten: dimensionen.length,
@@ -179,6 +185,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 		ruleBodiesWritten: regeln.length,
 		sparzielNotesWritten: sparziele.written.length,
 		sparzielSkipped: sparziele.skipped,
+		importReportWritten: importReport.length > 0,
 		dateRange: dateRange(transactions),
 	};
 }
@@ -455,6 +462,24 @@ async function readVertragNotizen(options: ImportOptions): Promise<VertragNotiz[
 		out.push({ filename: path.slice(path.lastIndexOf("/") + 1), text: await options.vault.read(path) });
 	}
 	return out;
+}
+
+/** Schreibt den Import-Report (E7) und liefert seinen Pfad, wenn er sich geändert hat. */
+async function writeImportReport(options: ImportOptions, categorized: readonly CategorizedTx[]): Promise<string[]> {
+	const path = `${options.outDir}/${REPORT_FILENAME}`;
+	const existing = (await options.vault.exists(path)) ? await options.vault.read(path) : undefined;
+	// Der Wikilink auf das Journal braucht einen Vault-Pfad; ein absoluter Ausgabeordner (Vergleichslauf) fällt auf den
+	// Standard `<Präfix>/Ledger` zurück.
+	const prefix = options.ctx.notesPrefix;
+	const journalLinkPath = options.outDir.startsWith(`${prefix}/`) ? options.outDir : `${prefix}/Ledger`;
+	const content = renderReport(
+		options.ctx,
+		{ categorized, vertraege: options.stammdaten?.vertraege ?? [], journalLinkPath },
+		existing,
+	);
+	if (content === existing) return [];
+	await options.vault.write(path, content);
+	return [path];
 }
 
 /** Schreibt die Sparziel-Notizen (E7); Nutzer-Notizen ohne Marker-Block bleiben liegen und werden gemeldet. */

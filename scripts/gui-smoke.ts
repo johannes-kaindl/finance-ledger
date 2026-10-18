@@ -131,12 +131,14 @@ const PUNKTE = [
   "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
   "Regel-Notizen bekommen im Import ihren Rumpf: Regel-Übersicht im Marker-Block, Frontmatter unberührt",
   "Sparziel-Notiz entsteht aus sparziele.yaml: Frontmatter, Kalkulation und Konto-Verweis",
+  "Import-Report entsteht neben dem Journal: Zusammenfassung, Validierung und Konto-Notes",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
   "…und die Berichte ebenso",
   "…und die Dimensions-Notizen ebenso",
   "…und die Regel-Notizen ebenso",
   "…und die Sparziel-Notizen ebenso",
+  "…und der Import-Report ebenso",
   "Import-Modal liest die Konten aus konten.yaml",
   "CSV-Vorschau zählt neu und Duplikate",
   "Regel-Schreibvorgang legt Schnappschuss mit Vorzustand an und rotiert",
@@ -383,6 +385,11 @@ async function raeumeErzeugte(cdp: Cdp, root: string): Promise<number> {
       await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(pfad)}); return true;`);
       n++;
     }
+  }
+  const report = `${root}/Ledger/import_report.md`;
+  if (await cdp.evaluate<boolean>(`return await app.vault.adapter.exists(${JSON.stringify(report)});`)) {
+    await cdp.evaluate(`await app.vault.adapter.remove(${JSON.stringify(report)}); return true;`);
+    n++;
   }
   return n;
 }
@@ -1181,6 +1188,22 @@ async function main(): Promise<void> {
     );
     console.log("");
 
+    // Import-Report (E7): liegt neben dem Journal und trägt die Abschnitte, die jedem Bestand gehören.
+    const reportPfad = `${root}/Ledger/import_report.md`;
+    const reportNach = (await readNote(cdp, reportPfad)) ?? "";
+    const reportOk =
+      reportNach.includes("kategorie: report") &&
+      reportNach.includes("## 1. Zusammenfassung") &&
+      reportNach.includes("✓ Alle Konten Cent-genau validiert.") &&
+      reportNach.includes("## 8. Generierte/aktualisierte Konto-Notes") &&
+      reportNach.includes("<!-- BEGIN: AUTO-GENERATED -->");
+    record(
+      "Import-Report entsteht neben dem Journal: Zusammenfassung, Validierung und Konto-Notes",
+      reportOk,
+      reportOk ? `import_report.md (${reportNach.length} Zeichen)` : reportNach === "" ? "keine import_report.md" : "Gerüst unvollständig",
+    );
+    console.log("");
+
     console.log("── Idempotenz (der Grund, warum dieser Smoke schreiben darf)");
     const vorZweitem = new Map<string, string>();
     for (const pfad of kontoPfade) vorZweitem.set(pfad, (await readNote(cdp, pfad)) ?? "");
@@ -1220,6 +1243,8 @@ async function main(): Promise<void> {
       regelnNach.size > 0 && regelnDrift.length === 0,
       regelnDrift.length === 0 ? `${regelnNach.size} Notizen byte-gleich` : `Drift in: ${regelnDrift.join(", ")}`,
     );
+    const reportZweiter = (await readNote(cdp, reportPfad)) ?? "";
+    record("…und der Import-Report ebenso", reportNach !== "" && reportZweiter === reportNach, reportZweiter === reportNach ? "byte-gleich" : "ABWEICHUNG");
     const sparzieleZweiter = await leseOrdner(cdp, root, SPARZIEL_ORDNER);
     const sparzielDrift = [...sparzieleNach.entries()].filter(([pfad, text]) => sparzieleZweiter.get(pfad) !== text).map(([pfad]) => pfad.split("/").pop() ?? pfad);
     record(

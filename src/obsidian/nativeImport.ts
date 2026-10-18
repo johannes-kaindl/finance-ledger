@@ -69,6 +69,7 @@ export async function runNativeImport(
 		berichte: true,
 		dimensionen: true,
 		mandate: true,
+		report: true,
 		sparziele: await loadSparzieleFromVault(vault, paths.sparzieleFile),
 		regelRuempfe: { folder: paths.rulesFolder },
 		log: options.log,

@@ -189,6 +189,9 @@ export default class FinancePlugin extends Plugin {
       if (result.mandatNotesWritten > 0) {
         lines.push(t('notice.rebuildMandates', String(result.mandatNotesWritten)));
       }
+      if (result.importReportWritten) {
+        lines.push(t('notice.rebuildImportReport'));
+      }
       if (result.sparzielNotesWritten > 0) {
         lines.push(t('notice.rebuildSavingsGoals', String(result.sparzielNotesWritten)));
       }

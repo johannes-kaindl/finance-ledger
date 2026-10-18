@@ -16,6 +16,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 - **Savings goal notes are written by the plugin.** A new file `sparziele.yaml` in your finance folder (optional; `gespart_auf_konto` is an `id` from `konten.yaml`) lists your goals; each one gets `30-Sparziele/<file>.md` with target, rate, time to goal and four rate scenarios. An existing note with a generated block only has that block replaced — your frontmatter (including `aktueller_stand_eur`) and everything below the block stay; an existing note **without** a generated block is left alone and named in the notice. The old one-time conversion of such notes (`--all-sparziele-bodies`) is not part of the plugin.
 
+- **The import report is written by the plugin.** `Ledger/import_report.md` (next to the journal) lists the transactions per account, the per-account check, TBC and uncategorised bookings (with the share of the volume), PayPal and self-transfers, the contract and account notes and data-quality hints measured from your bookings (`NOTPROVIDED`, pending bookings). An existing report keeps `created` and your part below the block. Compared with the Python importer it no longer carries two hints that described the author's data ("opening balances missing for all 5 accounts", "Visa data only from 2026-01"), and its account and contract links no longer break the table row.
+
 ### Changed
 
 - **Text from bank data can no longer open or close the generated block of a note:** a marker inside it is replaced by "(marker removed)", so the next import does not trip over it.

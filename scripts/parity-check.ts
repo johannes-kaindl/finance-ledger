@@ -27,6 +27,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile, rm } from "node:fs/promises";
 import { dirname, isAbsolute, join } from "node:path";
 import { createImporterContext } from "../src/core/config/context";
+import { parseVertraegeConfig } from "../src/core/config/vertraege";
 import { parseSparzieleConfig } from "../src/core/config/sparziele";
 import { parseKontenConfig } from "../src/core/config/konten";
 import { deriveOwnerNames } from "../src/core/import/categorize";
@@ -80,6 +81,7 @@ const raw = JSON.parse(await readFile(configPath, "utf-8")) as {
 	konten: unknown;
 	notes: RuleNote[];
 	sparziele?: unknown;
+	vertraege?: unknown;
 };
 
 const ctx = createImporterContext({
@@ -98,6 +100,8 @@ const result = await runImport({
 	dimensionen: true,
 	mandate: true,
 	sparziele: parseSparzieleConfig(raw.sparziele).sparziele,
+	stammdaten: { vertraege: parseVertraegeConfig(raw.vertraege).vertraege },
+	report: true,
 	regelRuempfe: { folder: "55-Categorizer-Rules" },
 	log: { info: () => undefined, warn: (m) => console.error(`WARN ${m}`) },
 });
@@ -109,6 +113,19 @@ if (!referenceVault) {
 }
 
 /**
+ * Import-Report: bekannte, gewollte Unterschiede zum Python-Importer werden vor dem Vergleich angeglichen. (1) Pipe in
+ * Wikilinks der Tabellen: Python schreibt es roh, TS escaped es. (2) Die zwei fest eingebauten Datenqualitäts-Hinweise des
+ * Python-Autors fehlen in TS, ebenso die Zeile „Keine bekannten Issues“, die dann stehen würde. (3) Der Satz zu den
+ * Vertrags-Notes ist in TS korrigiert.
+ */
+const berichtNormal = (text: string): string =>
+	text
+		.replace(/\\\|/g, "|")
+		.replace(/^- \*\*(Anfangssalden fehlen|Visa-Daten-Lücke):\*\*.*\n/gm, "")
+		.replace(/^_Keine bekannten Issues\._\n/gm, "")
+		.replace(/^_(Existierende|Bestehende) Notes .*_$/gm, "_Satz zu den Vertrags-Notes_");
+
+/**
  * Konten, die der TS-Lauf deklariert und der Python-Importer nicht, obwohl sein Categorizer darauf bucht
  * (`categorizer.py:139`; `ledger.py:156` führt nur `Partnerin:Erika`). Das TS-Ergebnis ist das richtigere:
  * hledger kennt das gebuchte Konto sonst nicht. Der Python-Importer bleibt unverändert (Archiv-Repo, wird
@@ -117,11 +134,11 @@ if (!referenceVault) {
 const KNOWN_EXTRA_ACCOUNTS = ["Ausgaben:Privat_Transfers:Familie:Erika"];
 
 let differences = 0;
-for (const name of ["journal.ledger", "accounts.ledger"]) {
+for (const name of ["journal.ledger", "accounts.ledger", "import_report.md"]) {
 	const mine = await readFile(join(targetVault, "Ledger", name), "utf-8");
 	const theirs = await readFile(join(referenceVault, "Ledger", name), "utf-8");
-	if (mine === theirs) {
-		console.log(`✓ ${name}: byte-gleich (${mine.length} Zeichen)`);
+	if (name === "import_report.md" ? berichtNormal(mine) === berichtNormal(theirs) : mine === theirs) {
+		console.log(`✓ ${name}: ${name === "import_report.md" ? "gleich bis auf bekannte Abweichungen" : "byte-gleich"} (${mine.length} Zeichen)`);
 		continue;
 	}
 	if (name === "accounts.ledger" && onlyKnownExtraAccounts(mine, theirs)) {
