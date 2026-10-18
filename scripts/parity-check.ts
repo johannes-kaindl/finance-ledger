@@ -101,12 +101,24 @@ if (!referenceVault) {
 	process.exit(0);
 }
 
+/**
+ * Konten, die der TS-Lauf deklariert und der Python-Importer nicht, obwohl sein Categorizer darauf bucht
+ * (`categorizer.py:139`; `ledger.py:156` führt nur `Partnerin:Erika`). Das TS-Ergebnis ist das richtigere:
+ * hledger kennt das gebuchte Konto sonst nicht. Der Python-Importer bleibt unverändert (Archiv-Repo, wird
+ * nach E7 gelöscht).
+ */
+const KNOWN_EXTRA_ACCOUNTS = ["Ausgaben:Privat_Transfers:Familie:Erika"];
+
 let differences = 0;
 for (const name of ["journal.ledger", "accounts.ledger"]) {
 	const mine = await readFile(join(targetVault, "Ledger", name), "utf-8");
 	const theirs = await readFile(join(referenceVault, "Ledger", name), "utf-8");
 	if (mine === theirs) {
 		console.log(`✓ ${name}: byte-gleich (${mine.length} Zeichen)`);
+		continue;
+	}
+	if (name === "accounts.ledger" && onlyKnownExtraAccounts(mine, theirs)) {
+		console.log(`✓ ${name}: gleich bis auf bekannte Abweichung (${KNOWN_EXTRA_ACCOUNTS.join(", ")})`);
 		continue;
 	}
 	differences++;
@@ -119,6 +131,12 @@ for (const folder of [ctx.folders.monatsberichte, ctx.folders.quartalsberichte, 
 }
 
 process.exit(differences === 0 ? 0 : 1);
+
+/** Wahr, wenn `mine` genau `theirs` plus bekannte Zusatzkonten ist; jede andere Abweichung bleibt rot. */
+function onlyKnownExtraAccounts(mine: string, theirs: string): boolean {
+	const known = (line: string): boolean => KNOWN_EXTRA_ACCOUNTS.some((a) => line.trim() === `account ${a}`);
+	return mine.split("\n").filter((l) => !known(l)).join("\n") === theirs;
+}
 
 /**
  * Vergleicht die Berichte eines Ordners. Der TS-Lauf schreibt unter `<ziel>/<Präfix>/<Ordner>`, der
