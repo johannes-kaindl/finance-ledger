@@ -9,6 +9,12 @@ All notable changes to the Finance Ledger plugin. Format after
 ### Changed
 
 - Shared building blocks updated (obsidian-kit 0.63.0 → 0.69.1, code-kit 0.31.1 → 0.36.0). Every module this plugin uses is unchanged apart from its origin stamp, so nothing looks or behaves differently. The releases in between changed other modules (model bar, chat window, role `search-only`, `folder-scope`, word diff and CriticMarkup, crop dialog) that the plugin does not use.
+- Writing the import's own fields into existing notes now uses the shared building block of the kit (`frontmatter-patch`) instead of a local copy. Values keep their form in your vault: amounts keep their trailing zeros (`53240.00`), empty opening balances stay `null`, the creditor ID keeps its quotes, and a second import with unchanged data touches no note.
+
+### Fixed
+
+- A field the import appends to a note with Windows line endings (CRLF) now gets CRLF as well. Before, the new line was written with a bare line feed in front and a doubled carriage return behind it, which left that note with mixed line endings after every import that added a field.
+- When the import replaces one of its own fields and the old value runs over several lines (an indented continuation), the continuation lines are replaced with it instead of staying behind as stray lines.
 
 ## [0.6.1] — 2026-10-18
 
@@ -182,7 +188,6 @@ All notable changes to the Finance Ledger plugin. Format after
 - **Four modules from `obsidian-kit` 0.27.0 vendored** (`callout`, `sha256`, `clipboard`, `hub`)
   instead of local re-implementations; three older pins updated. No behavior difference apart from the
   fixes above.
-
 
 ## [0.1.0] — 2026-08-20
 
