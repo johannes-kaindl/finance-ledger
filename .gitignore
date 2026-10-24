@@ -1,6 +1,7 @@
 node_modules/
 main.js
-.claude/
+.claude/*
+!.claude/rules/
 .remember/
 .parity.mjs
 .gui-smoke.mjs

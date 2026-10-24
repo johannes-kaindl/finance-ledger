@@ -1,8 +1,6 @@
 # AGENTS.md — finance-ledger
 
-> **Workspace-Standards:** Die verbindliche Leitkonvention steht in `_docs/CONVENTIONS.md`
-> (am Workspace-Root, maintainer-lokal), Modell comply-or-explain. Offene Punkte für
-> dieses Repo siehe Abschnitt "Offene Konventions-Punkte".
+> **Workspace-Standards:** Die verbindliche Leitkonvention steht in `_docs/CONVENTIONS.md` (am Workspace-Root, maintainer-lokal), Modell comply-or-explain.
 
 Conventions for AI agents (Claude Code, Codex, …) working on this repository.
 
@@ -17,7 +15,7 @@ Saldo-/Kategorie-Übersichten, TBC-Triage mit Categorizer-Rules-Verwaltung
 
 **Plugin-ID:** `finance-ledger` · **Lizenz:** AGPL-3.0-or-later · **minAppVersion:** 1.8.7
 
-## Architektur-Invarianten
+## Architecture principles
 
 ### Obsidian-import-freie Module
 
@@ -51,24 +49,7 @@ existieren.
 
 ### Keine Node-APIs — gar keine (seit 2026-10-03)
 
-Das Plugin lädt **kein** Node-Modul, auch nicht dynamisch und auch nicht hinter einem
-`Platform.isDesktop`-Guard. Vorher taten das drei Stellen: der Importer-Subprozess
-(`child_process`), die Temp-Kopie der CSV-Vorschau (`fs/promises`, weil der Python-Prozess
-einen Pfad brauchte) und das git-Backup (`execFile git`). Alle drei sind abgelöst:
-`runNativeImport` fährt den Import im Plugin, `core/import/preview` parst den Inhalt der
-gewählten Datei, `core/snapshot/ruleSnapshot` sichert über die Vault-API.
-
-**Grund ist der Store-Review:** `child_process` erzeugt dort `[medium] Shell Execution`,
-Node-`fs` erzeugt `[medium] Direct Filesystem Access`, und `medium` drückt die Review-Note.
-Gemessen am 2026-10-03: 25 eigene Store-Plugins stehen auf `Passed` mit bis zu zehn
-Recommendations (`info` kostet nichts), während **alle vier** geprüften fremden Plugins mit
-`child_process` (`obsidian-git`, `obsidian-shellcommands`, `obsidian-pandoc`,
-`obsidian-enhancing-export`) auf `Caution` oder `Risks` liegen.
-
-Wer eine Node-API wieder einführt, nimmt der Einreichung die Bestnote — **und** bricht
-`tests/bundle.test.ts`, der das gebaute `main.js` gegen die vollständige
-`builtinModules`-Liste prüft (inklusive Gegenprobe, dass das Suchmuster trifft). Was ein
-Nachbarplugin in dieser Lage tut, steht in der Dach-`AGENTS.md` § Store-Einreichung.
+Das Plugin lädt **kein** Node-Modul, auch nicht dynamisch und auch nicht hinter einem `Platform.isDesktop`-Guard: `child_process` und Node-`fs` erzeugen im Store-Review `medium`-Befunde und drücken die Note. `tests/bundle.test.ts` prüft das gebaute `main.js` gegen die vollständige `builtinModules`-Liste. Grund, Messung und was ein Nachbarplugin tut: `docs/internal/decisions.md`.
 
 **Was daraus folgt:** Das Plugin schreibt alle Notiz-Arten des Python-Importers selbst; er wird für keine Notiz mehr gebraucht. Der Kopier-Knopf (`buildImporterCommand`, Einstellung `importerCwd`) ist ein Rückstand, den der Master entscheidet.
 
@@ -80,26 +61,7 @@ negative Beträge sind hier die Regel).
 
 ### Schnappschüsse nach Großvater-Vater-Sohn
 
-Vor jedem Schreibvorgang an den Categorizer-Regeln entsteht ein Schnappschuss: eine
-JSON-Datei unter `<financeRoot>/.fl-snapshots/` mit dem Stand **vor** dem Schreiben.
-Aufbewahrt wird nach GFS (Policy 6 heute / 7 Tage / 4 Wochen / 6 Monate), nicht „die letzten N". Die Auswahl ist `selectGfsRetention` aus dem Kit (code-kit `rotation`, vendort nach `src/vendor/kit/rotation.ts`, seit 2026-10-12; vorher eine lokale Fassung, deren Golden-Tabellen in `tests/core/snapshot/rotation.test.ts` weiterleben). Sie ist eine pure Funktion über Zeitstempel, ohne Dateizugriff; den Zeitpunkt liest der Aufrufer aus dem Dateinamen, nicht aus der mtime: ein Sync oder ein Restore setzt mtimes neu und würde die Rotation verfälschen.
-
-Der Schnitt stammt aus der `settings-assistant`-Spec (Entscheidung Johannes 2026-10-03). **Unbekannt heißt erhalten, und zwar strenger als das Kit:** `timeFromStampedName` findet den Stempel irgendwo im Namen, also bekämen `rules-<Stempel>.txt`, `….json.bak` und Sync-Konfliktkopien wie `… (1).json` eine Zeit und würden gelöscht. `rotationTime` in `ruleSnapshot.ts` nimmt deshalb nur Namen in die Aufbewahrung, die den Rundlauf Name → Zeit → Name bestehen (`stampedName(t, { prefix: "rules-", suffix: ".json" }) === name`); `tests/core/snapshot/ruleSnapshot.test.ts` hält das fest. Ein Stempel, der kein echter Zeitpunkt ist (Monat 13), bleibt ebenfalls liegen.
-
-Vorgänger war ein `git commit` im Vault, der **nie lief** — der einzige Weg dorthin war ein
-`options.vaultPath`, das kein Produktiv-Aufrufer setzte. Getestet war die Funktion mit neun
-Tests, aufgerufen wurde sie nicht.
-
-### i18n
-
-UI-Sprache folgt Obsidians `getLanguage()` (EN kanonisch/Fallback, DE vollständig).
-Neue UI-Strings: Key + EN/DE-Eintrag in `src/i18n/strings.ts`, nie hartcodierten Text.
-Ausnahme: Konto-Präfixe (`Ausgaben:`/`Einnahmen:`) in Daten/Matching bleiben hart deutsch.
-
-### Dezimaltrenner & Tag-Format
-
-`journal.ledger` verwendet **Punkt** (hledger-Standard). Tags stehen als `:tag1:tag2:`
-auf **einer** Zeile; Pattern `/^; (:[a-z0-9_-]+)+:$/`.
+Vor jedem Schreibvorgang an den Categorizer-Regeln entsteht ein Schnappschuss unter `<financeRoot>/.fl-snapshots/`, aufbewahrt nach GFS (nicht „die letzten N"), den Zeitpunkt liest der Aufrufer aus dem Dateinamen, nie aus der mtime. Unbekannte Namen bleiben liegen. Regeln und Grund: `.claude/rules/snapshots.md`.
 
 ## Commands
 
@@ -118,11 +80,20 @@ npm run smoke:gui       # GUI-Smoke gegen laufendes Obsidian (maintainer-lokal, 
 Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
 bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
 
-## Importer-Port (Stand Welle 24: E0–E7 fertig)
+## Conventions
 
-`src/core/notes/` schreibt alle Notiz-Arten (Berichte, `dimensionNotes`, `mandatNotes`, `sparzielNotes` mit `sparziele.yaml`, `ruleBodies`, `reportNotes`); `runImport` verdrahtet sie über opt-in-Optionen, `nativeImport.ts` setzt alle. Bestehende Notizen zieht `autoNote.ts` nach (nur Felder des Imports und der Marker-Block; `created` und Eigenes bleiben). `npm run parity -- <config.json> <ziel> <referenz>` vergleicht alle Ordner und den Report mit dem Python-Importer (lokal unter `~/Archive/repos/26-011-finanzplan-importer`; `parity-export.py` nimmt `sparziele.yaml` und `vertraege.yaml` als Parameter 4 und 5); bekannte Unterschiede stehen im Kopf von `parity-check.ts`. Goldmuster: `tests/core/notes/fixtures/` (Eingaben `berichte/gen.py`). Fremdtext aus Bankdaten geht nur über `neutralizeCellText` (code-kit) in Tabellenzellen.
+### i18n
 
-## Test-Konventionen
+UI-Sprache folgt Obsidians `getLanguage()` (EN kanonisch/Fallback, DE vollständig).
+Neue UI-Strings: Key + EN/DE-Eintrag in `src/i18n/strings.ts`, nie hartcodierten Text.
+Ausnahme: Konto-Präfixe (`Ausgaben:`/`Einnahmen:`) in Daten/Matching bleiben hart deutsch.
+
+### Dezimaltrenner & Tag-Format
+
+`journal.ledger` verwendet **Punkt** (hledger-Standard). Tags stehen als `:tag1:tag2:`
+auf **einer** Zeile; Pattern `/^; (:[a-z0-9_-]+)+:$/`.
+
+### Test-Konventionen
 
 - Framework: **vitest**, Environment Node, obsidian-Mock via Alias (`tests/__mocks__/obsidian.ts`)
 - `test.exclude` für `.claude/**` und `node_modules/**` nicht entfernen (Worktree-Schutz)
@@ -132,82 +103,35 @@ bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
 - Alle Tests grün vor `git commit`; `tests/bundle.test.ts` prüft das **gebaute** main.js
   (Regressions-Guard gegen untransformierte Node-Builtin-Imports im Bundle)
 
-## Vault-Daten-Schemas (Kurzreferenz)
+### Release
 
-### journal.ledger-Transaktion
+`npm run release -- <version>` (`release.mjs`) setzt den Tag, erzeugt den Forgejo-Release mit `main.js`, `manifest.json`, `styles.css` **und** `checksums.sha256` (die vier Assets, die `anysource-sideloader` erwartet und prüft) und schiebt Branch und Tag per Dual-Push nach GitHub; nie `git push github` von Hand, nie `--no-github`. Die Arbeitssession meldet release-reif, die koordinierende Session fährt den Release (CORE-AGENT-14). Weg, Store-Rescan und Verlauf: `../.claude/rules/release-und-store.md`, `docs/internal/decisions.md`.
 
-```
-2025-08-01 * Telekom Deutschland GmbH
-    ; verwendungszweck: Festnetz Vertragskonto …
-    ; quelle: <csv-name> row 12
-    ; :recurring:
-    Aktiva:Bank:Sparkasse:Hauptkonto  -39.95 EUR
-    Ausgaben:Kommunikation:Festnetz:Telekom  39.95 EUR
-```
+## Gotchas
 
-### Konto-Note-Frontmatter (Pflichtfelder)
-
-```yaml
-kategorie: konto
-iban: DE…
-ledger_account: "Aktiva:Bank:Sparkasse:Hauptkonto"
-saldo_eur: 280.44
-```
-
-### Vertrags-Note-Frontmatter (Pflichtfelder)
-
-```yaml
-kategorie: vertrag
-ledger_kategorie: "Ausgaben:Kommunikation:Festnetz:Telekom"
-betrag_eur: 39.95
-rhythmus: monatlich
-naechste_zahlung: 2026-06-06
-```
-
-Pfad-Muster: `<vault>/<financeRoot>/20-Verträge/<Name>.md`.
-
-## Was das Plugin NICHT tut
+Was das Plugin **nicht** tut:
 
 - Konto-/Vertrags-Note-Schemas ändern (die besitzt der Importer)
 - Categorizer-**Logik** forken — der eingebaute Import bleibt Parity-gebunden an die Referenz
+
+## Context index
+
+- Bevor du Notizen des Imports (`src/core/notes/`, `src/core/import/`), den Paritätsvergleich oder die Frontmatter- und Ledger-Schemas anfasst: `.claude/rules/notes-importer.md`.
+- Bevor du Schnappschüsse oder ihre Rotation (`src/core/snapshot/`) änderst: `.claude/rules/snapshots.md`.
+- Bevor du eine Altentscheidung (keine Node-APIs, Release-Weg und Store-Verteilung, erledigte Konventions-Punkte) übernimmst: `docs/internal/decisions.md`.
+- Vor einem Release, einer Store-Einreichung oder einem Rescan: `../.claude/rules/release-und-store.md`, Skills `plugin-release-setup` und `store-rescan`.
+- Bevor du den GUI-Smoke änderst oder fährst: `docs/SMOKE.md` (Checkliste); Treiber-Regeln, Instanz und Lock des Dachs: `../.claude/rules/gui-smoke-treiber.md`, `../.claude/rules/obsidian-instanz.md`, `../.claude/rules/cdp-lock.md`, `../.claude/rules/staging-vaults.md`.
+- Vor UI-Arbeit: `docs/design.md` und `docs/design/` (Design-System, Tokens, Previews), `docs/UI-Cookbook.md` (Chart-Strategie, Snippets), `../UI-STANDARD.md`, `../.claude/rules/ui-bausteine.md`; vor Änderungen an `styles.css`: `../.claude/rules/store-css.md`.
+- Für die vollständige Feature-Historie: `CHANGELOG.md` (maßgeblich). Specs und Pläne liegen im Vault-Cockpit im Ordner _SDD (CORE-META-14), nicht im Repo.
+- Bevor du eine Regel-ID (CORE-…, PROF-OBS-…) auslegst: `_docs:CONVENTIONS.md`.
 
 ## Memory
 
 Projekt-Memory unter `~/.claude/projects/<slug>/memory/` (Index: `MEMORY.md`).
 Session-Handoff unter `.remember/` (gitignored).
 
-## Offene Konventions-Punkte
-
-- [x] CORE-META-01/02 — README-Kopf kanonisch + Badge-Zeile
-- [x] CORE-META-05/07/08 — `LICENSE` AGPL-3.0-or-later · `LICENSE-DOCS` CC BY-SA 4.0
-- [x] CORE-META-06 — `CHANGELOG.md` · `CONTRIBUTING.md` · `SECURITY.md`
-- [x] CORE-META-10 — `description`/`keywords`/`author`/`repository` in `package.json`
-- [x] CORE-AGENT-05/06 — `.gitignore` · `.editorconfig`
-- [x] PROF-TS-01/04 — lint + typecheck · `tsconfig.build.json`-Split
-- [x] PROF-OBS-02 — Deploy per `${OBSIDIAN_PLUGIN_DIR:?…}`
-- [x] CORE-GIT-01 — Forgejo-`origin` + GitHub-Mirror eingerichtet, 0.1.0 released
-- [x] CORE-META-09 — `README.md` EN-kanonisch + `README.de.md`, mit Sprach-Toggle-Zeile
-- [x] PROF-OBS-14 — Community-Store: `finance-ledger` steht seit der Rückkehr zu GitHub (2026-09-24) wieder in `community-plugins.json` (gemessen 2026-10-12), Scorecard `Review Passed · Health Excellent`. Ausstieg vom 03. bis 24.09.2026 ist Chronik.
-
-## Verteilung: Release über `release.mjs`, Store und Sideloader
-
-Seit der Rückkehr zu GitHub (2026-09-24, Dach-AGENTS § Store-Einreichung) gelten wieder beide Wege: der Community-Store und der `anysource-sideloader`-Katalog. Ein Release entsteht mit `npm run release -- <version>`: `release.mjs` setzt den Tag, erzeugt den Forgejo-Release mit `main.js`, `manifest.json`, `styles.css` **und** `checksums.sha256` (die vier Assets, die `anysource-sideloader` erwartet und prüft) und schiebt Branch und Tag per Dual-Push nach GitHub, wo `release.yml` das GitHub-Release baut. `--no-github` wird nicht mehr verwendet (das Flag existiert in `release.mjs` weiter, steht aber in keiner `package.json`); GitHub bekommt Branch und Tag nur von `release.mjs`, nie per Hand-Push.
-
-Releases fährt die koordinierende Session nach Freigabe, nicht die Arbeitssession (CORE-AGENT-14). Nach dem Tag steht der Review noch aus: Rescan im Developer Dashboard anstoßen (nur der Maintainer), danach `scorecard.py finance-ledger` prüfen. Die Installationswege für Nutzer stehen in `README.md` und `README.de.md`.
-
 ## Abweichungen von der Leitkonvention
 
 Derzeit keine. *(Die CORE-META-09-Abweichung „README bleibt deutsch" ist am 2026-09-02
 aufgelöst — `README.md` ist jetzt EN-kanonisch, `README.de.md` trägt die deutsche Fassung.
 Beide Fassungen sind inhaltsgleich zu halten; wer eine ändert, ändert die andere mit.)*
-
-## Kontext-Quellen (für tiefere Architektur-Recherche)
-
-| Datei | Inhalt |
-|-------|--------|
-| `CHANGELOG.md` | Vollständige Feature-Historie (maßgeblich) |
-| `docs/design.md` + `docs/design/` | Design-System (Tokens, Previews) |
-| `docs/UI-Cookbook.md` | Chart-Strategie + Code-Snippets für künftige Features |
-| `docs/SMOKE.md` | GUI-Smoke-Checkliste (maintainer-lokal automatisiert) |
-
-Specs und Pläne liegen im Vault-Cockpit unter `_SDD/` (CORE-META-14), nicht im Repo.
