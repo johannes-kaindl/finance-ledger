@@ -1,4 +1,4 @@
-// vendored from obsidian-kit@0.69.1, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
+// vendored from obsidian-kit@0.70.0, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
 // frontmatter-patch.ts — eigene Frontmatter-Felder setzen, fremde Zeilen byte-gleich lassen. Kein obsidian-Import.
 //
 // Zusammengeführt aus zwei unabhängigen Fassungen desselben Vorgangs (Diachronic wäre die dritte):
@@ -26,8 +26,10 @@
 //     die endende Null (`12.50` → `12.5`), ein `string` bekommt Anführungszeichen (`"null"`, `"53240.00"`). Zugelassen sind genau diese
 //     Formen (`null`, `true`, `false`, Dezimalzahl, einzeiliger doppelt gequoteter Text); alles andere ist `invalid-value`, damit kein Umbruch, Kommentar oder Fremd-YAML
 //     durch die Hintertür kommt. Der gequotete Text ist für Aufrufer, deren Wert im Bestand schon so steht (finance-ledger `glaeubiger_id`:
-//     `"DE98ZZZ00000000001"`); `isFmLiteralText` gibt die Prüfung heraus, damit kein Konsument die Regex kopiert. Die Regex ist enger als die in `needsQuoting` (`-.5` und `+.5` liest js-yaml als Text); ob Obsidians
-//     Eigenschaften-Editor `5.`, `+5`, `-0` und `007` als Zahl liest, ist ungemessen (js-yaml 4.2.0 tut es).
+//     `"DE98ZZZ00000000001"`); `isFmLiteralText` gibt die Prüfung heraus, damit kein Konsument die Regex kopiert. Die Regex ist enger als die in `needsQuoting` (`-.5` und `+.5` liest js-yaml als Text, Obsidian als Zahl: die Menge
+//     hier ist die gemeinsame). Gemessen 2026-10-25 in Obsidian 1.14.5 (`pilot/literal-formen.ts`): `parseYaml`, `metadataCache` und der gerenderte
+//     Eigenschaften-Editor (Zahlenfeld) lesen `5.`, `+5`, `-0` und `007` als Zahl mit demselben Wert wie js-yaml 4.2.0 (5, 5, 7); nur `-0` bleibt bei Obsidian
+//     ein `-0` (js-yaml: `0`), das Feld zeigt `0`, aus dem Cache einer unveränderten Notiz liest man `0`. Ungemessen: Bases.
 // Grenzen, bewusst wie im Kit-Parser: ein Schlüssel muss `[A-Za-z0-9_][\w .-]*` sein (ein Schlüssel mit Umlaut wird nicht gefunden,
 // also angehängt, nicht ersetzt — `invalid-key` fängt ihn deshalb schon beim Setzen ab); Kommentare auf der Zeile eines gesetzten
 // Schlüssels gehen mit der Zeile verloren; ein Block-Skalar (`|`, `>`) wird gemeldet, nicht ersetzt.
