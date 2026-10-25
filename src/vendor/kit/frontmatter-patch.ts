@@ -1,4 +1,4 @@
-// vendored from obsidian-kit@0.70.0, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
+// vendored from obsidian-kit@0.71.0, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
 // frontmatter-patch.ts — eigene Frontmatter-Felder setzen, fremde Zeilen byte-gleich lassen. Kein obsidian-Import.
 //
 // Zusammengeführt aus zwei unabhängigen Fassungen desselben Vorgangs (Diachronic wäre die dritte):
@@ -36,7 +36,7 @@
 //
 // Diese Datei muss unter `noUncheckedIndexedAccess` fehlerfrei sein — siehe npm-Skript `check:index-strict`.
 
-import { serializeFrontmatter, type FmValue } from "./frontmatter";
+import { quoteScalar, serializeFrontmatter, type FmValue } from "./frontmatter";
 
 /**
  * Ein fertig geschriebener YAML-Skalar, der unverändert in die Zeile geht (`key: <literal>`). Nur `null`, `true`, `false` (klein
@@ -56,6 +56,11 @@ export interface FrontmatterPatchSpec {
   create?: boolean;
   /** Nur Schlüssel in `set` schreiben, die schon da sind. Default `false`. Betrifft `ensure` nicht. */
   onlyExisting?: boolean;
+  /** Wie eine `string[]` geschrieben wird (seit 0.71.0): `"flow"` (Default) als `key: [a, b]`, `"block"` als Blockliste (`key:` und je Eintrag `  - a`, zwei Leerzeichen eingerückt). Gilt für `set`, `ensure`
+   *  und `create`; die Einträge laufen durch dieselbe Quotierung wie in der Flow-Liste, ein leerer Eintrag steht als `""`. Eine **leere** Liste bleibt `key: []` (es gibt keine leere Blockliste; wer `key: null`
+   *  will, übergibt `{ literal: "null" }`). Skalare und Zahlen betrifft die Option nicht. Für Notizen, deren Bestand Blocklisten trägt (finance-ledger: Parität mit dem Python-Importer); Obsidian liest
+   *  beide Formen gleich (Cache, Eigenschaften-Editor und Bases, gemessen 2026-10-25, `pilot/bases-listen.ts`). */
+  listStyle?: "flow" | "block";
 }
 
 export type FrontmatterPatchResult =
@@ -138,9 +143,10 @@ function isLiteral(v: FmValue | FmLiteral): v is FmLiteral {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-/** Die Zeilen EINES Schlüssels: ein Literal unverändert, alles andere über das Kit serialisiert (ohne die beiden Zäune). */
-function keyLines(key: string, value: FmValue | FmLiteral): string[] {
+/** Die Zeilen EINES Schlüssels: ein Literal unverändert, alles andere über das Kit serialisiert (ohne die beiden Zäune); eine nicht leere Liste mit `listStyle: "block"` als Blockliste. */
+function keyLines(key: string, value: FmValue | FmLiteral, listStyle: "flow" | "block" = "flow"): string[] {
   if (isLiteral(value)) return [`${key}: ${value.literal}`];
+  if (listStyle === "block" && Array.isArray(value) && value.length > 0) return [`${key}:`, ...value.map((item) => `  - ${item === "" ? '""' : quoteScalar(item)}`)];
   const lines = serializeFrontmatter({ [key]: value }, [key]).split("\n");
   return lines.slice(1, lines.length - 2);
 }
@@ -192,7 +198,7 @@ export function patchFrontmatter(text: string, spec: FrontmatterPatchSpec): Fron
     if (writes.length === 0) return { ok: true, content: text, changed: false };
     const eol = text.includes("\r\n") ? "\r\n" : "\n";
     // Jeder Eintrag über `keyLines`, damit ein Literal hier denselben Weg nimmt wie in einem vorhandenen Block.
-    const block = ["---", ...writes.flatMap(([k, v]) => keyLines(k, v)), "---", ""].join(eol);
+    const block = ["---", ...writes.flatMap(([k, v]) => keyLines(k, v, spec.listStyle)), "---", ""].join(eol);
     return { ok: true, content: `${block}${text}`, changed: true };
   }
 
@@ -203,7 +209,7 @@ export function patchFrontmatter(text: string, spec: FrontmatterPatchSpec): Fron
   const dropped = new Set<number>();
   const appended: string[] = [];
   for (const [key, value] of writes) {
-    const lines = keyLines(key, value);
+    const lines = keyLines(key, value, spec.listStyle);
     const e = doc.entries.get(key);
     if (!e) { appended.push(...lines); continue; }
     if (/^[|>]/.test(e.rest)) return { ok: false, reason: "block-scalar", key };

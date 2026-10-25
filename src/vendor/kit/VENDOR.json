@@ -1,7 +1,7 @@
 {
   "source": "obsidian-kit",
-  "version": "0.70.0",
-  "sha": "86a2d2d",
+  "version": "0.71.0",
+  "sha": "8fbc42a",
   "vendored": "callout.ts, frontmatter.ts, frontmatter-patch.ts",
   "note": "Verbatim snapshot. Never hand-edit. Pins in tools/kit-sync.json, re-vendor via tools/sync-kit.sh (zentrales kit-sync im Dach). Bis Welle 12 stand hier ein files-Array mit einem Eintrag je Datei — kit-sync kennt nur die flache VENDOR.json-Form (source/version/sha/vendored, abweichende Pins im vendored-Text und im Datei-Header), deshalb ersetzt.",
   "code_kit_version": "0.37.5",
