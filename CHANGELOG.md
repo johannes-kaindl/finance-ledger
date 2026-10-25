@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.6.2] — 2026-10-25
+
 ### Changed
 
 - Shared building blocks updated (obsidian-kit 0.63.0 → 0.70.0, code-kit 0.31.1 → 0.37.5). Every module this plugin uses is unchanged apart from its origin stamp, so nothing looks or behaves differently. The releases in between changed other modules (model bar, chat window, role `search-only`, `folder-scope`, word diff and CriticMarkup, crop dialog) that the plugin does not use.
