@@ -31,6 +31,7 @@ import type { BankTransaction } from "../import/transaction";
 import { Money, ZERO, formatGermanEuro, type MoneyValue } from "../money";
 import { neutralizeCellText } from "../../vendor/kit/markdown-table";
 import { updateAutoNote } from "./autoNote";
+import { patchFrontmatter } from "./frontmatter";
 import { empfaengerWikilink, monatsberichtWikilink, quartalsberichtWikilink } from "./wikilinks";
 import type { NotePlan } from "./kontoNotes";
 import { assembleBody } from "./markers";
@@ -218,32 +219,7 @@ export function renderNote(spec: NoteSpec, existing: string | undefined, today: 
 		auto: spec.auto,
 		userDefault: spec.userDefault,
 	});
-	return Object.entries(spec.lists ?? {}).reduce((text, [key, items]) => ersetzeListe(text, key, items), nachgezogen);
-}
-
-/**
- * Ersetzt die Blockliste `key:` in der Frontmatter (auch eine `key: null`-Zeile); eine leere Liste schreibt
- * `key: null`. Fehlt das Feld, bleibt die Notiz unverändert.
- *
- * Warum nicht `patchFrontmatter` des Kits (gemessen 2026-10-25, Welle 27): das Kit schreibt eine Liste als Flow-Liste
- * `[a, b]`; die Referenz (der Python-Importer, `kategorie_notes.py:129`) und die Neuanlage (`renderKategorie`, Blockliste aus
- * `spec.frontmatter`) schreiben die Blockliste. Eine Umstellung ließe neue Notizen im selben Vault anders aussehen als
- * nachgezogene, es sei denn, die Neuanlage zöge mit und bräche die Parität mit Python. Die Lesbarkeit ist KEIN Grund dagegen:
- * in der Zweitinstanz (Obsidian 1.14.5) lesen Metadaten-Cache und Eigenschaften-Editor Block- und Flow-Liste gleich (Array mit
- * 2 Einträgen, 2 Pillen, je Form); Bases ist nicht gemessen. Die Form der Referenz trägt im echten Finanzplan-Ordner jede der
- * 17 Notizen mit `ledger_accounts:` (17 von 17 Blocklisten, 0 Flow-Listen). Ablösen erst, wenn die Referenz Flow-Listen
- * schreibt oder ein zweiter Konsument Blocklisten vom Kit braucht.
- */
-function ersetzeListe(text: string, key: string, items: readonly string[]): string {
-	const fm = /^(---\r?\n)([\s\S]*?)(\r?\n---)/.exec(text);
-	if (fm === null) return text;
-	const block = fm[2] ?? "";
-	const neu = block.replace(new RegExp(`^${key}:[ \\t]*(?:null)?[ \\t]*\\r?\\n?(?:[ \\t]+- .*(?:\\r?\\n|$))*`, "m"), (alt) => {
-		const eol = alt.includes("\r\n") ? "\r\n" : "\n";
-		const kopf = items.length === 0 ? `${key}: null` : `${key}:${eol}${items.map((i) => `  - ${i}`).join(eol)}`;
-		return alt.endsWith(eol) ? kopf + eol : kopf;
-	});
-	return text.slice(0, fm.index) + (fm[1] ?? "") + neu + (fm[3] ?? "") + text.slice(fm.index + fm[0].length);
+	return spec.lists === undefined ? nachgezogen : patchFrontmatter(nachgezogen, { lists: spec.lists });
 }
 
 const fmt = (v: MoneyValue): string => v.toFixed(2);

@@ -207,7 +207,7 @@ describe("patchFrontmatter — fertige Skalare des Importers", () => {
 	});
 });
 
-describe("renderNote — Listen bleiben Sache von ersetzeListe", () => {
+describe("renderNote — Blocklisten des Imports (Kit, listStyle block)", () => {
 	const spec = (accounts: string[]) => ({
 		frontmatter: [],
 		owned: { posting_count: "3", volumen_total_eur: "10.00", generated: "2026-10-25" },
@@ -240,5 +240,78 @@ describe("renderNote — Listen bleiben Sache von ersetzeListe", () => {
 	it("schreibt eine leere Liste als `key: null`", () => {
 		const out = renderNote(spec([]), alt, "2026-10-25");
 		expect(out).toContain("\nledger_accounts: null\nposting_count: 3\n");
+	});
+});
+
+describe("patchFrontmatter — lists (Blocklisten, die der Import besitzt)", () => {
+	const mit = (liste: string[]): string =>
+		["---", "title: T", ...liste, "posting_count: 1", "created: 2026-10-01", "---", "Text", ""].join("\n");
+	const lists = (key: string, items: string[]) => ({ lists: { [key]: items } });
+
+	it("ersetzt eine Blockliste samt allen Fortsetzungszeilen, Nachbarfelder bleiben byte-gleich", () => {
+		const alt = mit(["ledger_accounts:", "  - A:1", "  - A:2", "  - A:3"]);
+		expect(patchFrontmatter(alt, lists("ledger_accounts", ["B:1"]))).toBe(mit(["ledger_accounts:", "  - B:1"]));
+	});
+
+	it("verlängert eine Blockliste", () => {
+		const alt = mit(["ledger_accounts:", "  - A:1"]);
+		expect(patchFrontmatter(alt, lists("ledger_accounts", ["B:1", "B:2", "B:3"]))).toBe(
+			mit(["ledger_accounts:", "  - B:1", "  - B:2", "  - B:3"]),
+		);
+	});
+
+	it("schreibt eine leere Liste als `key: null` und macht aus `key: null` wieder eine Liste", () => {
+		const leer = patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", []));
+		expect(leer).toBe(mit(["ledger_accounts: null"]));
+		expect(patchFrontmatter(leer, lists("ledger_accounts", ["A:1"]))).toBe(mit(["ledger_accounts:", "  - A:1"]));
+	});
+
+	it("ersetzt eine Flow-Liste des Nutzers durch die Blockliste", () => {
+		expect(patchFrontmatter(mit(["ledger_accounts: [A:1, A:2]"]), lists("ledger_accounts", ["B:1"]))).toBe(
+			mit(["ledger_accounts:", "  - B:1"]),
+		);
+	});
+
+	it("legt einen fehlenden Schlüssel NICHT an: die Notiz bleibt byte-gleich", () => {
+		const ohne = mit([]);
+		expect(patchFrontmatter(ohne, lists("ledger_accounts", ["B:1"]))).toBe(ohne);
+	});
+
+	it("eine Notiz ohne Frontmatter und ein Zaun ohne Schluss bleiben unverändert", () => {
+		expect(patchFrontmatter("Text\n", lists("ledger_accounts", ["B:1"]))).toBe("Text\n");
+		const offen = "---\nledger_accounts:\n  - A:1\nText ohne Schluss\n";
+		expect(patchFrontmatter(offen, lists("ledger_accounts", ["B:1"]))).toBe(offen);
+	});
+
+	it("CRLF bleibt CRLF, auch bei einer leeren Liste", () => {
+		const alt = mit(["ledger_accounts:", "  - A:1", "  - A:2"]).replace(/\n/g, "\r\n");
+		const neu = patchFrontmatter(alt, lists("ledger_accounts", ["B:1"]));
+		expect(neu).toBe(mit(["ledger_accounts:", "  - B:1"]).replace(/\n/g, "\r\n"));
+		expect(patchFrontmatter(alt, lists("ledger_accounts", []))).toBe(mit(["ledger_accounts: null"]).replace(/\n/g, "\r\n"));
+	});
+
+	it("ist idempotent", () => {
+		const einmal = patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["B:1", "B:2"]));
+		expect(patchFrontmatter(einmal, lists("ledger_accounts", ["B:1", "B:2"]))).toBe(einmal);
+	});
+
+	it("Kontonamen mit Doppelpunkt ohne Leerzeichen stehen roh, wie beim Python-Importer", () => {
+		const neu = patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["Ausgaben:Wohnen:Miete"]));
+		expect(neu).toContain("\n  - Ausgaben:Wohnen:Miete\n");
+	});
+
+	it("BEKANNTE ABWEICHUNG zu Python: ein Eintrag mit Komma oder `: ` steht gequotet (sonst läse YAML etwas anderes)", () => {
+		const neu = patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["Ausgaben:Kfz, Steuer", "Ausgaben: Foo"]));
+		expect(neu).toContain('\n  - "Ausgaben:Kfz, Steuer"\n  - "Ausgaben: Foo"\n');
+	});
+
+	it("läuft neben `set` und ändert die Skalare wie bisher", () => {
+		const alt = mit(["ledger_accounts:", "  - A:1"]);
+		const neu = patchFrontmatter(alt, { set: { posting_count: "7" }, ...lists("ledger_accounts", ["B:1"]) });
+		expect(neu).toBe(["---", "title: T", "ledger_accounts:", "  - B:1", "posting_count: 7", "created: 2026-10-01", "---", "Text", ""].join("\n"));
+	});
+
+	it("ein Eintrag mit Zeilenumbruch wirft mit Schlüssel und Grund", () => {
+		expect(() => patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["a\nb"]))).toThrow(/ledger_accounts.*invalid-value/);
 	});
 });

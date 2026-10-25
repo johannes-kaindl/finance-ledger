@@ -90,9 +90,18 @@ describe("Mandate", () => {
 		expect(ohne?.content).toContain("vertrag_link: null\n");
 		const mit = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, vertraege, { [ohne?.path ?? ""]: ohne?.content ?? "" })[0];
 		// Die erste Datei nach Name gewinnt.
-		expect(mit?.content).toContain("vertrag_link:\n  - [[Finanzplan/20-Verträge/Anderer]]".replace("Anderer", "Erster"));
+		// Gequotet: Obsidian liest `- [[X]]` ungequotet als verschachtelte Liste, also nicht als Link (gemessen 2026-10-25).
+		expect(mit?.content).toContain('vertrag_link:\n  - "[[Finanzplan/20-Verträge/Erster]]"\n');
 		expect(mit?.content).toContain("[[Finanzplan/20-Verträge/Erster|Erster]]");
 		expect(mit?.content).not.toContain("vertrag_link: null");
+	});
+
+	it("schreibt den Verweis schon bei der Neuanlage gequotet: der zweite Lauf ändert die Notiz nicht", () => {
+		const vertraege: VertragNotiz[] = [{ filename: "Erster.md", text: '---\nmandats_id: "M1"\n---\n' }];
+		const neu = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, vertraege, {})[0];
+		expect(neu?.content).toContain('vertrag_link:\n  - "[[Finanzplan/20-Verträge/Erster]]"\n');
+		const nochmal = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, vertraege, { [neu?.path ?? ""]: neu?.content ?? "" })[0];
+		expect(nochmal?.content).toBe(neu?.content);
 	});
 
 	it("macht aus Zeichen außerhalb des SEPA-Zeichensatzes in Mandats- und Gläubiger-ID einen Unterstrich", () => {

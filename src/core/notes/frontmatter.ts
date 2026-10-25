@@ -6,10 +6,10 @@
  * Status, Notizfelder — überlebt jeden Lauf. Das ist dieselbe Grenze wie beim
  * Marker-System, nur eine Etage höher im Dokument.
  *
- * Geschrieben wird zeilenweise vom Kit (`frontmatter-patch`, obsidian-kit 0.69.0), nicht über einen
- * Round-Trip: der Kit-Serializer emittiert Listen in Flow-Form (`tags: [a, b]`), Obsidians
- * Properties-Editor und bestehende Notizen schreiben Blocklisten, und ein Parse-Serialize-Zyklus
- * formatierte bei *jedem* Import den halben Vault um. Diese Datei ist nur der Adapter: sie behält
+ * Geschrieben wird zeilenweise vom Kit (`frontmatter-patch`, obsidian-kit 0.71.0), nicht über einen
+ * Round-Trip: der Kit-Serializer emittiert Listen standardmäßig in Flow-Form (`tags: [a, b]`), Obsidians
+ * Properties-Editor und bestehende Notizen schreiben Blocklisten (`listStyle: "block"`, seit 0.71.0), und ein
+ * Parse-Serialize-Zyklus formatierte bei *jedem* Import den halben Vault um. Diese Datei ist nur der Adapter: sie behält
  * die Form des Aufrufs (Werte sind fertige Skalare als string, Fehler werfen) und bildet jeden Wert
  * auf den Kit-Wert ab.
  */
@@ -29,6 +29,11 @@ export interface FrontmatterPatch {
 	set?: Record<string, string>;
 	/** Felder, die nur beim ersten Mal entstehen und danach dem Nutzer gehören. */
 	ensure?: Record<string, string>;
+	/**
+	 * Blocklisten, die der Import besitzt (`ledger_accounts`): ersetzt eine vorhandene Liste samt Fortsetzungszeilen, legt den
+	 * Schlüssel aber nie an. Eine leere Liste steht als `key: null`.
+	 */
+	lists?: Record<string, readonly string[]>;
 }
 
 /** Frontmatter lesen. Dünne Hülle über den Kit-Parser. */
@@ -60,10 +65,28 @@ export function patchFrontmatter(
 		assertScalar(key, value);
 	}
 
-	const result = patchKit(text, {
-		set: toKit(patch.set),
-		ensure: toKit(patch.ensure),
-	});
+	const scalars = apply(
+		text,
+		patchKit(text, { set: toKit(patch.set), ensure: toKit(patch.ensure) }),
+	);
+	if (patch.lists === undefined) return scalars;
+	return apply(
+		scalars,
+		patchKit(scalars, {
+			set: Object.fromEntries(
+				Object.entries(patch.lists).map(([key, items]) => [
+					key,
+					items.length === 0 ? { literal: "null" } : [...items],
+				]),
+			),
+			onlyExisting: true,
+			listStyle: "block",
+		}),
+	);
+}
+
+/** Das Ergebnis des Kits als Text: ein unlesbarer Block lässt die Notiz stehen, jeder andere Grund ist ein Fehler. */
+function apply(text: string, result: ReturnType<typeof patchKit>): string {
 	if (result.ok) return result.content;
 	if (result.reason === "unparseable") return text;
 	if (result.reason === "protected") {

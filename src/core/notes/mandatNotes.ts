@@ -6,7 +6,11 @@
  * Rein: keine Dateien, kein Vault, keine Uhr. Die Vertrags-Notizen kommen als Text herein.
  *
  * Gegenüber Python bewusst anders: eine bestehende Notiz bekommt nur die Felder nachgezogen, die der Import besitzt
- * (siehe `dimensionNotes.ts`), und der Verweis `vertrag_link` wird mit nachgezogen, wenn er sich geändert hat.
+ * (siehe `dimensionNotes.ts`), und der Verweis `vertrag_link` wird mit nachgezogen, wenn er sich geändert hat. Der Verweis
+ * steht gequotet (`- "[[…]]"`), bei der Neuanlage wie beim Nachziehen: Python schrieb ihn roh, Obsidian liest `- [[X]]` aber als
+ * verschachtelte Liste und damit nicht als Link (gemessen 2026-10-25, Obsidian 1.12.4: kein Eintrag in `frontmatterLinks` und
+ * `resolvedLinks`; gequotet beide da). Das Kit quotet beim Nachziehen von sich aus; die Neuanlage zieht mit, sonst änderte der
+ * zweite Lauf die Notiz.
  */
 
 import type { ImporterContext } from "../config/context";
@@ -15,7 +19,7 @@ import { zweiStellen, type Categorizer } from "../aggregate/aggregate";
 import type { BankTransaction } from "../import/transaction";
 import { ZERO, formatGermanEuro, type MoneyValue } from "../money";
 import { neutralizeCellText } from "../../vendor/kit/markdown-table";
-import { parseFrontmatter } from "../../vendor/kit/frontmatter";
+import { parseFrontmatter, quoteScalar } from "../../vendor/kit/frontmatter";
 import { renderNote } from "./dimensionNotes";
 import type { NotePlan } from "./kontoNotes";
 import { empfaengerWikilink, monatsberichtWikilink } from "./wikilinks";
@@ -191,7 +195,7 @@ function renderMandat(
 				`tx_count: ${m.anzahl}`,
 				`volumen_eur: ${volumen}`,
 				`aktiv: ${aktiv ? "true" : "false"}`,
-				...(vertragStem === null ? ["vertrag_link: null"] : ["vertrag_link:", ...vertragLink.map((l) => `  - ${l}`)]),
+				...(vertragStem === null ? ["vertrag_link: null"] : ["vertrag_link:", ...vertragLink.map((l) => `  - ${quoteScalar(l)}`)]),
 				"aggregat_base: shared",
 				`generated: ${today}`,
 				"projektbezug:",
