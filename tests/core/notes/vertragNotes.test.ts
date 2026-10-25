@@ -144,7 +144,8 @@ describe("planVertragNotes", () => {
 		expect(note).toContain("rhythmus: monatlich");
 		expect(note).toContain("naechste_zahlung: 2026-08-05");
 		expect(note).toContain('vertragsnummer: "ACME-123"');
-		expect(note).toContain("abbucht_von:\n  - [[Finanzplan/10-Konten/Konto 01 – Hauptkonto]]");
+		expect(note).toContain("abbucht_von:\n  - \"[[Finanzplan/10-Konten/Konto 01 – Hauptkonto]]\"\n");
+		expect(note).toContain("projektbezug:\n  - \"[[Finanzplan/");
 	});
 
 	it("nennt Stichprobe und Betragsverlauf im erzeugten Teil", () => {

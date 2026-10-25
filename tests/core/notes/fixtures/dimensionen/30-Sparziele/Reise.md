@@ -10,7 +10,7 @@ aliases:
   - Auszeit
 bereich: 💰 Finanzen
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 status: ✏️ In-Arbeit
 
 sparziel_typ: konkret
@@ -19,7 +19,7 @@ aktueller_stand_eur: null
 sparrate_monatlich_eur: 80
 geplantes_ziel_datum: null
 gespart_auf:
-  - [[Finanzplan/10-Konten/Konto 01 – Everyday Checking]]
+  - "[[Finanzplan/10-Konten/Konto 01 – Everyday Checking]]"
 ledger_kategorie: "Aktiva:Sparzweck:Reise"
 
 aktiv: true

@@ -37,6 +37,7 @@ import type { NotePlan } from "./kontoNotes";
 import { assembleBody } from "./markers";
 import { renderMermaidPie } from "./render";
 import { canonicalFromAccount, ledgerToSlug } from "./slug";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 /** Ab so vielen Buchungen oder so viel Volumen bekommt ein Empfänger eine Notiz. */
 export const MIN_POSTINGS = 5;
@@ -351,7 +352,7 @@ function renderKategorie(
 				"aggregat_base: shared",
 				`generated: ${today}`,
 				"projektbezug:",
-				`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+				`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 			],
 			owned: { posting_count: String(postings.length), volumen_total_eur: fmt(volumen), generated: today },
 			lists: { ledger_accounts: ledgerAccounts },
@@ -441,7 +442,7 @@ function renderEmpfaenger(
 				"aggregat_base: shared",
 				`generated: ${today}`,
 				"projektbezug:",
-				`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+				`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 			],
 			owned: { posting_count: String(postings.length), volumen_total_eur: fmt(volumen), generated: today },
 			auto,
@@ -530,7 +531,7 @@ function renderTxTyp(
 				"aggregat_base: shared",
 				`generated: ${today}`,
 				"projektbezug:",
-				`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+				`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 			],
 			owned: { tx_count: String(betraege.length), volumen_total_eur: fmt(volumen), generated: today },
 			auto: sektionen.join("\n\n"),

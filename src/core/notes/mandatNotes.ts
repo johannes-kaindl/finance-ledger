@@ -199,7 +199,7 @@ function renderMandat(
 				"aggregat_base: shared",
 				`generated: ${today}`,
 				"projektbezug:",
-				`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+				`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 			],
 			owned: {
 				glaeubiger_id: `"${m.glaeubigerId}"`,

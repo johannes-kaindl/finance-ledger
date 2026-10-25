@@ -22,6 +22,7 @@ import type { NotePlan } from "./kontoNotes";
 import { renderMermaidBar } from "./render";
 import { mandatsSlug } from "./slug";
 import { monatsberichtWikilink } from "./wikilinks";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 /** Wie viele Buchungen die Stichprobe höchstens zeigt. */
 export const MAX_SAMPLE_TX = 10;
@@ -212,7 +213,7 @@ aliases:
 ${aliases}
 bereich: 💰 Finanzen
 projektbezug:
-  - [[${ctx.notesPrefix}/${ctx.projectNote}]]
+  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}
 status: 🌿 Evergreen
 priority: 🟡 Mittel
 
@@ -225,7 +226,7 @@ betrag_eur: ${betrag.toFixed(MONEY_SCALE)}
 rhythmus: ${rhythmus}
 naechste_zahlung: ${naechsteZahlung(letzte, rhythmus)}
 abbucht_von:
-  - [[${ctx.notesPrefix}/${ctx.folders.konten}/${kontoName}]]
+  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.folders.konten}/${kontoName}]]`)}
 kuendigungsfrist_tage: null
 vertrag_ende: null
 abgeschlossen_am: null

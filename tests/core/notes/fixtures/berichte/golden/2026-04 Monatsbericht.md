@@ -37,7 +37,7 @@ generiert_aus_ledger_am: 2026-10-16
 kategorie: monatsbericht
 monat: 2026-04
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 saldo_eur: 1342.07
 sparquote_prozent: 32.5
 sticker: lucide//calendar

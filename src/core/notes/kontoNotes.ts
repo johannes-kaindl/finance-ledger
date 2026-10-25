@@ -21,6 +21,7 @@ import { Money, ZERO, type MoneyValue } from "../money";
 import { wrapCallout } from "../../vendor/kit/callout";
 import { replaceAutoSection } from "./markers";
 import { patchFrontmatter } from "./frontmatter";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 /** Was der Import über ein Konto weiß. */
 export interface KontoKennzahlen {
@@ -138,7 +139,7 @@ aliases:
 ${aliases}
 bereich: 💰 Finanzen
 projektbezug:
-  - [[${ctx.notesPrefix}/${ctx.projectNote}]]
+  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}
 status: 🌿 Evergreen
 priority: 🔴 Hoch
 

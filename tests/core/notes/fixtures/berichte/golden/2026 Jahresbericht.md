@@ -37,7 +37,7 @@ generiert_aus_ledger_am: 2026-10-16
 jahr: 2026
 kategorie: jahresbericht
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 saldo_eur: 22595.91
 sparquote_prozent: 55.1
 sticker: lucide//calendar-days

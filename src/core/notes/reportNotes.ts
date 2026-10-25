@@ -25,6 +25,7 @@ import { neutralizeCellText } from "../../vendor/kit/markdown-table";
 import { updateAutoNote } from "./autoNote";
 import { assembleBody } from "./markers";
 import { kontoWikilink } from "./wikilinks";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 /** Dateiname des Reports; er liegt im Ausgabeordner neben dem Journal. */
 export const REPORT_FILENAME = "import_report.md";
@@ -74,7 +75,7 @@ function frontmatter(ctx: ImporterContext, today: string): string {
 		"  - finanzen/report",
 		"bereich: 💰 Finanzen",
 		"projektbezug:",
-		`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		"status: 🌿 Evergreen",
 		`created: ${today}`,
 		`updated: ${today}`,

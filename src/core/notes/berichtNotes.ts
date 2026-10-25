@@ -48,6 +48,7 @@ import {
 import type { NotePlan } from "./kontoNotes";
 import { assembleBody } from "./markers";
 import { renderBasesEmbed, renderMermaidPie } from "./render";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 /** Q1 = Jan–Mär, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Okt–Dez. */
 export const QUARTAL_MONATE: Readonly<Record<number, readonly [number, number, number]>> = {
@@ -331,7 +332,7 @@ function renderFrontmatter(
 		`kategorie: ${slug}`,
 		...nachKategorie,
 		"projektbezug:",
-		`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		...nachProjekt,
 		`saldo_eur: ${get("saldo_eur")}`,
 		`sparquote_prozent: ${get("sparquote_prozent")}`,

@@ -81,6 +81,11 @@ describe("renderKontoNote", () => {
 		expect(note).toContain("aliases:\n  - Hauptkonto");
 	});
 
+	it("schreibt den Projektbezug als gequoteten Wikilink: roh wäre er für Obsidian kein Link", () => {
+		expect(note).toContain('projektbezug:\n  - "[[Finanzplan/');
+		expect(note).not.toMatch(/^ {2}- \[\[/m);
+	});
+
 	it("umschließt den erzeugten Teil mit den Markern", () => {
 		expect(note).toContain(AUTO_BEGIN);
 		expect(note).toContain(AUTO_END);

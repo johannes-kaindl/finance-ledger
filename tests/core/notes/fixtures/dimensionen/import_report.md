@@ -7,7 +7,7 @@ tags:
   - finanzen/report
 bereich: 💰 Finanzen
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 status: 🌿 Evergreen
 created: 2026-10-18
 updated: 2026-10-18

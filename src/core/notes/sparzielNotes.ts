@@ -18,6 +18,7 @@ import { updateAutoNote } from "./autoNote";
 import { AUTO_BEGIN, assembleBody } from "./markers";
 import type { NotePlan } from "./kontoNotes";
 import { kontoWikilink } from "./wikilinks";
+import { quoteScalar } from "../../vendor/kit/frontmatter";
 
 const FOUNDATION = "_Foundation – Konten-Plan und Kategorien";
 
@@ -152,7 +153,7 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		...spec.aliases.map((a) => `  - ${a}`),
 		"bereich: 💰 Finanzen",
 		"projektbezug:",
-		`  - [[${ctx.notesPrefix}/${ctx.projectNote}]]`,
+		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		"status: ✏️ In-Arbeit",
 		"",
 		`sparziel_typ: ${spec.sparzielTyp}`,
@@ -161,7 +162,7 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		`sparrate_monatlich_eur: ${spec.sparrateMonatlichEur}`,
 		`geplantes_ziel_datum: ${spec.geplantesZielDatum ?? "null"}`,
 		"gespart_auf:",
-		`  - [[${ctx.notesPrefix}/${ctx.folders.konten}/${datei}]]`,
+		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.folders.konten}/${datei}]]`)}`,
 		`ledger_kategorie: "${spec.ledgerKategorie}"`,
 		"",
 		"aktiv: true",

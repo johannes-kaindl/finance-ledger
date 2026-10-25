@@ -17,7 +17,7 @@ volumen_total_eur: 3820.58
 aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

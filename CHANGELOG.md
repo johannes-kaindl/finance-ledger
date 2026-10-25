@@ -12,7 +12,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Fixed
 
-- In mandate notes the link to the contract note (`vertrag_link`) is now a real link. It was written as `- [[…]]`, which Obsidian reads as a nested list and not as a link (no entry in the note's links, nothing resolved); it is now written quoted, `- "[[…]]"`, for new notes and for notes the import updates. Notes whose `vertrag_link` is `null` are not touched.
+- Links written into a note's properties are now real links. The import wrote `projektbezug`, the account link of a contract (`abbucht_von`), the account link of a savings goal (`gespart_auf`) and the contract link of a mandate (`vertrag_link`) as `- [[…]]`, which Obsidian reads as a nested list and not as a link (no entry in the note's links, no backlink at the target). They are now written quoted, `- "[[…]]"`. This applies to notes the import creates and to the `vertrag_link` of notes it updates. Notes you already have keep their `projektbezug` as it is; the import does not rewrite it.
 
 ## [0.6.2] — 2026-10-25
 

@@ -37,7 +37,7 @@ einnahmen_gesamt_eur: 12190.00
 generiert_aus_ledger_am: 2026-10-16
 kategorie: quartalsbericht
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 quartal: 2026-Q2
 saldo_eur: 5891.12
 sparquote_prozent: 48.3

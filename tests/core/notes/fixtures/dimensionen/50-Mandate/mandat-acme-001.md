@@ -20,7 +20,7 @@ vertrag_link: null
 aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

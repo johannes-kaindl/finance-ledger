@@ -9,7 +9,7 @@ aliases:
   - Sicherheitsreserve
 bereich: 💰 Finanzen
 projektbezug:
-  - [[Finanzplan/Finanzplan]]
+  - "[[Finanzplan/Finanzplan]]"
 status: ✏️ In-Arbeit
 
 sparziel_typ: notgroschen
@@ -18,7 +18,7 @@ aktueller_stand_eur: null
 sparrate_monatlich_eur: 200
 geplantes_ziel_datum: 2029-06-30
 gespart_auf:
-  - [[Finanzplan/10-Konten/Konto 02 – Household Pool]]
+  - "[[Finanzplan/10-Konten/Konto 02 – Household Pool]]"
 ledger_kategorie: "Aktiva:Sparzweck:Notgroschen"
 
 aktiv: true
