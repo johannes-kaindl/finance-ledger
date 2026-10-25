@@ -67,18 +67,18 @@ Vor jedem Schreibvorgang an den Categorizer-Regeln entsteht ein Schnappschuss un
 
 ```bash
 npm ci                  # install
-npm test                # vitest (Node, obsidian-Mock via Alias)
+npm run gate            # das Repo-Gate: build + test + typecheck + typecheck:test + typecheck:scripts + lint (vor jedem Commit)
+npm test                # vitest (Node, obsidian-Mock via Alias) plus check-no-abs-paths und check-no-nul-bytes
 npm run typecheck       # tsc gegen echte obsidian-Typen (CI-Gate)
+npm run typecheck:test  # Typprüfung der Tests, tsconfig.test.json (CI-Gate)
 npm run lint            # eslint + eslint-plugin-obsidianmd — clean halten
-npm run build           # main.js (committed)
+npm run build           # main.js (Build-Artefakt, gitignored; aus dem Repo genommen in 250cee3, Build vor den Tests seit 9f50034)
 npm run deploy          # build + cp nach ${OBSIDIAN_PLUGIN_DIR}
 npm run parity          # eingebauter Import gegen Python-Referenz (maintainer-lokal)
 npm run smoke:gui       # GUI-Smoke gegen laufendes Obsidian (maintainer-lokal, CDP)
 ```
 
-`npm run typecheck:scripts`, `parity`, `smoke:gui` und `shots` brauchen Werkzeuge aus dem
-Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich
-bzw. scheitern außerhalb davon — CI nutzt nur `typecheck` + `test` + `build`.
+`npm run typecheck:scripts`, `parity`, `smoke:gui` und `shots` brauchen Werkzeuge aus dem Maintainer-Workspace (`../tools/obsidian-cdp/`, Importer-Repo) und überspringen sich bzw. scheitern außerhalb davon. CI (`.github/workflows/test.yml`) fährt `typecheck`, `typecheck:test`, `test` und `build`; `typecheck:scripts` und `lint` laufen nur im Gate.
 
 ## Conventions
 
