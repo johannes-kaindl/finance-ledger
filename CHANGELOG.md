@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.6.3] — 2026-10-25
+
 ### Changed
 
 - Shared building blocks updated (obsidian-kit 0.70.0 → 0.71.0). The list the import owns in existing notes (`ledger_accounts`) is now written by the kit's `frontmatter-patch` (`listStyle: "block"`) instead of a local copy. Checked against your 17 category notes: the result is byte for byte what the local copy wrote.
