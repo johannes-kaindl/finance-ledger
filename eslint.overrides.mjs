@@ -45,35 +45,4 @@ export default [
       }],
     },
   },
-  {
-    // Optionales Desktop-Integrations-Feature (Zwei-Modi-Architektur): Importer-
-    // Subprozess, Git-Backup, CSV-Copy. Alle Node-Builtin-Zugriffe sind
-    // dynamische import()s hinter `Platform.isDesktop`-Guards — der Kern bleibt
-    // mobile-fähig (isDesktopOnly:false), diese Module werfen/skippen auf Mobile.
-    // Die generische import/no-nodejs-modules-Regel kennt den Obsidian-Guard-
-    // Pattern nicht; daher hier die tatsächlich genutzten Builtins explizit
-    // erlauben (restlicher Code bleibt voll durch die Regel geschützt).
-    files: [
-      "src/categorizer-rules/spawnImporter.ts",
-      "src/categorizer-rules/gitBackup.ts",
-      "src/ui/importCSVModal.ts",
-      "src/ui/settingsTab.ts",
-    ],
-    rules: {
-      // `os` kam 2026-08-01 dazu: die Import-Vorschau legt die CSV in einer Temp-Kopie
-      // ab (os.tmpdir), weil `File.path` seit Electron 32 nicht mehr existiert.
-      "import/no-nodejs-modules": ["error", { allow: ["child_process", "fs", "fs/promises", "os", "path"] }],
-      // Dieselbe Ausnahme fuer die gleichnamige Regel des Store-Scanners, die mit
-      // eslint-plugin-obsidianmd 0.4.x dazukam (andere Regel-ID, gleiche Sache).
-      //
-      // KEINE gestundete Schuld, sondern ein False Positive: die Regel empfiehlt in ihrer
-      // eigenen Meldung "use a dynamic import() ... guarded by Platform.isDesktop" — und
-      // genau das steht im Code (`const { mkdtemp } = await import('fs/promises')`,
-      // importCSVModal.ts:40). Sie sieht den Modulnamen, nicht die Importform.
-      // Anders als die generische Regel nimmt sie keine `allow`-Liste (Schema: 0 Optionen),
-      // deshalb "off" statt einer Einschraenkung. Der Schutz fuer den uebrigen Code bleibt:
-      // dieser Block gilt nur fuer die vier Desktop-Integrations-Dateien oben.
-      "obsidianmd/no-nodejs-modules": "off",
-    },
-  },
 ];
