@@ -131,6 +131,7 @@ const PUNKTE = [
   "Dimensions-Notizen entstehen im Import: je Kategorie mit Buchungen eine Notiz, dazu Tx-Typen",
   "Regel-Notizen bekommen im Import ihren Rumpf: Regel-Übersicht im Marker-Block, Frontmatter unberührt",
   "Sparziel-Notiz entsteht aus sparziele.yaml: Frontmatter, Kalkulation und Konto-Verweis",
+  "Wikilink in der Frontmatter-Liste ist ein echter Link (Gegenprobe: roh ist er keiner)",
   "Import-Report entsteht neben dem Journal: Zusammenfassung, Validierung und Konto-Notes",
   "Zweiter Lauf lässt Konto-Notizen byte-gleich",
   "…und die Eröffnungsbilanz ebenso",
@@ -1180,11 +1181,53 @@ async function main(): Promise<void> {
       ziel.includes("aktueller_stand_eur: null") &&
       ziel.includes("<!-- BEGIN: AUTO-GENERATED -->") &&
       ziel.includes("| ETA bei aktueller Sparrate | 2.8 J |") &&
-      /gespart_auf:\n  - \[\[[^\]]*\/10-Konten\/[^\]]+\]\]/.test(ziel);
+      /gespart_auf:\n  - "\[\[[^\]]*\/10-Konten\/[^\]]+\]\]"/.test(ziel);
     record(
       "Sparziel-Notiz entsteht aus sparziele.yaml: Frontmatter, Kalkulation und Konto-Verweis",
       sparzielOk,
       sparzielOk ? "Notgroschen.md: Typ, ETA 2.8 J, Konto-Verweis" : ziel === "" ? "keine Notiz Notgroschen.md" : "Gerüst unvollständig",
+    );
+    console.log("");
+
+    // Ein Wikilink in einer Frontmatter-Liste ist nur gequotet ein Link: Obsidian liest `- [[X]]` als verschachtelte Liste
+    // (gemessen 2026-10-25, 1.12.4). Die Gegenprobe legt eine Wegwerf-Notiz mit der rohen Form an; ohne sie wäre ein grüner
+    // Punkt nicht von „Obsidian löst auch die rohe Form auf" zu unterscheiden (CORE-TEST-20).
+    const zielPfad = [...sparzieleNach.keys()].find((p) => p.endsWith("/Notgroschen.md")) ?? "";
+    const linkMessung = await cdp.evaluate<{ echt: number; aufgeloest: number; ziel: string; roh: number; rohBereit: boolean }>(`
+      const f = app.vault.getAbstractFileByPath(${JSON.stringify(zielPfad)});
+      if (!f) return { echt: 0, aufgeloest: 0, ziel: "", roh: 0, rohBereit: false };
+      const cache = app.metadataCache.getFileCache(f);
+      const echte = (cache?.frontmatterLinks ?? []).filter((l) => l.key.startsWith("gespart_auf"));
+      const ziel = echte[0]?.link ?? "";
+      const aufgeloest = Object.keys(app.metadataCache.resolvedLinks[f.path] ?? {}).length;
+      const probe = "gui-smoke-wikilink-roh.md";
+      let roh = -1, rohBereit = false;
+      try {
+        const alt = app.vault.getAbstractFileByPath(probe);
+        if (alt) await app.vault.delete(alt);
+        const g = await app.vault.create(probe, "---\\nl:\\n  - [[" + ziel + "]]\\n---\\nText\\n");
+        for (let i = 0; i < 40 && !rohBereit; i++) {
+          await new Promise((r) => setTimeout(r, 100));
+          const c = app.metadataCache.getFileCache(g);
+          if (c?.frontmatter) { rohBereit = true; roh = (c.frontmatterLinks ?? []).length; }
+        }
+      } finally {
+        const g2 = app.vault.getAbstractFileByPath(probe);
+        if (g2) await app.vault.delete(g2);
+      }
+      return { echt: echte.length, aufgeloest, ziel, roh, rohBereit };
+    `);
+    const linkOk = linkMessung.echt >= 1 && linkMessung.aufgeloest >= 1 && linkMessung.rohBereit && linkMessung.roh === 0;
+    record(
+      "Wikilink in der Frontmatter-Liste ist ein echter Link (Gegenprobe: roh ist er keiner)",
+      linkOk,
+      linkOk
+        ? `gespart_auf: ${linkMessung.echt} Link(s) im Cache, ${linkMessung.aufgeloest} aufgelöst · rohe Gegenprobe: ${linkMessung.roh} Links`
+        : !linkMessung.rohBereit
+          ? "Gegenprobe nicht gemessen: Cache der Wegwerf-Notiz blieb leer"
+          : linkMessung.roh !== 0
+            ? `Gegenprobe greift nicht: die rohe Form ergibt ${linkMessung.roh} Link(s)`
+            : `gespart_auf: ${linkMessung.echt} Link(s), ${linkMessung.aufgeloest} aufgelöst`,
     );
     console.log("");
 
