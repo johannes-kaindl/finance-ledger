@@ -110,6 +110,8 @@ interface Shot {
   name: string;
   klasse: "hero" | "feature" | "detail";
   run(cdp: Cdp): Promise<Rect | null>;
+  /** Läuft nach der Aufnahme, auch wenn sie scheitert: stellt zurück, was `run` verändert hat (Fenstergröße). */
+  nachher?(cdp: Cdp): Promise<void>;
 }
 
 /**
@@ -325,15 +327,22 @@ const SHOTS: Shot[] = [
      * voller Fensterhöhe misst jede Inhaltsmessung bis zu ihr — und dazwischen steht
      * Leere (gemessen: 64 % des Bildes). Ein Randscan findet das nicht, weil unten etwas
      * steht. Also das Fenster so hoch machen, wie der Inhalt ist.
+     *
+     * **Das Fenster bleibt klein, bis aufgenommen ist** (gemessen 2026-10-26, Obsidian 1.14.5, sauberer Vault): das Rezept stellte
+     * es vor der Aufnahme auf 900 px zurück. Die Box (40…380 px) galt aber nur im kleinen Fenster; im großen klebt die
+     * Summenzeile am unteren Rand (Unterkante bei 862 px), und die Box zeigte vier Zeilen und Leere darunter, ohne die Summenzeile
+     * (23 % bis 29 % identische Zeilen). Jetzt setzt `nachher` das Fenster erst nach `capture` zurück.
      */
     async run(cdp) {
       await hubTab(cdp, "open-tbc-triage");
       await sidebarBreit(cdp, PANEL_BREITE);
       await setWindowSize(cdp, FENSTER_BREITE, 430);
       await new Promise((r) => setTimeout(r, 800));
-      const box = await panelBox(cdp);
+      // Das Fenster bleibt klein, bis das Bild aufgenommen ist (`nachher`): die Box gilt nur in diesem Layout.
+      return panelBox(cdp);
+    },
+    async nachher(cdp) {
       await setWindowSize(cdp, FENSTER_BREITE, FENSTER_HOEHE);
-      return box;
     },
   },
   {
@@ -552,13 +561,17 @@ async function main(): Promise<void> {
         continue;
       }
       process.stdout.write(`  ${shot.name} … `);
-      const box = await shot.run(cdp);
-      const png = await capture(cdp, box ?? undefined);
-      const hinweis = await writeShot(cdp, shot.name, png, {
-        ...opts,
-        thumb: shot.klasse === "detail",
-      });
-      console.log(hinweis);
+      try {
+        const box = await shot.run(cdp);
+        const png = await capture(cdp, box ?? undefined);
+        const hinweis = await writeShot(cdp, shot.name, png, {
+          ...opts,
+          thumb: shot.klasse === "detail",
+        });
+        console.log(hinweis);
+      } finally {
+        await shot.nachher?.(cdp);
+      }
     }
   } finally {
     if (spracheVorher !== null) {
