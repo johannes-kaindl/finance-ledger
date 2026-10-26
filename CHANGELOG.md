@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-10-26
+
 ### Added
 
 - **A setting for the property that links new finance notes to the project note** ("Property for the project link", under Vault paths). The import has always written `projektbezug`; if your vault uses another name, for example `projekt`, set it once and every note the import creates from then on carries that property. The default stays `projektbezug`, so nothing changes for existing setups, and notes that already exist keep the property they have.
