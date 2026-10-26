@@ -10,6 +10,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 - **A setting for the property that links new finance notes to the project note** ("Property for the project link", under Vault paths). The import has always written `projektbezug`; if your vault uses another name, for example `projekt`, set it once and every note the import creates from then on carries that property. The default stays `projektbezug`, so nothing changes for existing setups, and notes that already exist keep the property they have.
 
+### Changed
+
+- The README image of the To-classify tab is retaken and now shows the total row below the four transactions, as its description says; the previous image ended above it (and the recording recipe showed empty space instead).
+
 ## [0.6.3] — 2026-10-25
 
 ### Changed
