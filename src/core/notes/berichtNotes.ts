@@ -331,7 +331,7 @@ function renderFrontmatter(
 		...vorKategorie,
 		`kategorie: ${slug}`,
 		...nachKategorie,
-		"projektbezug:",
+		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		...nachProjekt,
 		`saldo_eur: ${get("saldo_eur")}`,

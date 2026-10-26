@@ -18,6 +18,13 @@ describe('resolveFinancePaths', () => {
     expect(p.rulesFolder).toBe('');
   });
 
+  it('projektKey: Standard projektbezug, eigener Wert wird übernommen, Unbrauchbares fällt auf den Standard zurück', () => {
+    expect(resolveFinancePaths(withRoot('Finance')).projektKey).toBe('projektbezug');
+    expect(resolveFinancePaths({ ...withRoot('Finance'), projektKey: ' projekt ' }).projektKey).toBe('projekt');
+    expect(resolveFinancePaths({ ...withRoot('Finance'), projektKey: 'pro jekt:' }).projektKey).toBe('projektbezug');
+    expect(resolveFinancePaths(DEFAULT_PATH_SETTINGS).projektKey).toBe('projektbezug');
+  });
+
   it('whitespace-only root counts as not configured', () => {
     expect(resolveFinancePaths(withRoot('   ')).isConfigured).toBe(false);
   });

@@ -1,4 +1,5 @@
 import { normalizePath, TFolder, type App } from 'obsidian';
+import { normalizeProjektKey, DEFAULT_PROJEKT_KEY } from '../core/config/context';
 import { t } from '../i18n/strings';
 
 export interface FinancePathSettings {
@@ -18,6 +19,8 @@ export interface FinancePathSettings {
   vertraegeFile: string;
   /** Sparziel-Konfiguration, relativ zum Finanzordner. Optional — fehlt sie, entstehen keine Sparziel-Notizen. */
   sparzieleFile: string;
+  /** Frontmatter-Schlüssel der Verknüpfung zur Projektnotiz in neu angelegten Notizen (Standard `projektbezug`). */
+  projektKey: string;
 }
 
 export interface ResolvedFinancePaths {
@@ -34,6 +37,8 @@ export interface ResolvedFinancePaths {
   kontenFile: string;
   vertraegeFile: string;
   sparzieleFile: string;
+  /** Der Schlüssel der Projektverknüpfung, geprüft (unbrauchbar ergibt `projektbezug`). */
+  projektKey: string;
   /**
    * Schnappschüsse vor Schreibvorgängen (GFS-rotiert).
    *
@@ -65,12 +70,13 @@ export const DEFAULT_PATH_SETTINGS: FinancePathSettings = {
   kontenFile: 'konten.yaml',
   vertraegeFile: 'vertraege.yaml',
   sparzieleFile: 'sparziele.yaml',
+  projektKey: DEFAULT_PROJEKT_KEY,
 };
 
 const EMPTY: ResolvedFinancePaths = {
   isConfigured: false, root: '', journal: '', openingBalances: '', accounts: '',
   rulesFolder: '', basesFolder: '', kategorienFolder: '', empfaengerFolder: '', umsatzDir: '',
-  kontenFile: '', vertraegeFile: '', sparzieleFile: '', snapshotsFolder: '',
+  kontenFile: '', vertraegeFile: '', sparzieleFile: '', projektKey: DEFAULT_PROJEKT_KEY, snapshotsFolder: '',
 };
 
 export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePaths {
@@ -93,6 +99,7 @@ export function resolveFinancePaths(s: FinancePathSettings): ResolvedFinancePath
     kontenFile: join(root, s.kontenFile),
     vertraegeFile: join(root, s.vertraegeFile),
     sparzieleFile: join(root, s.sparzieleFile),
+    projektKey: normalizeProjektKey(s.projektKey),
   };
 }
 

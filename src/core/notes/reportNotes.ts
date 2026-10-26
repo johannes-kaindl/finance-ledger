@@ -74,7 +74,7 @@ function frontmatter(ctx: ImporterContext, today: string): string {
 		"  - 🏗_Finanzplan",
 		"  - finanzen/report",
 		"bereich: 💰 Finanzen",
-		"projektbezug:",
+		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		"status: 🌿 Evergreen",
 		`created: ${today}`,

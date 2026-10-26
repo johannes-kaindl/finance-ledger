@@ -212,7 +212,7 @@ tags:
 aliases:
 ${aliases}
 bereich: 💰 Finanzen
-projektbezug:
+${ctx.projektKey}:
   - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}
 status: 🌿 Evergreen
 priority: 🟡 Mittel

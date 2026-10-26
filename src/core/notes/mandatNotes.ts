@@ -198,7 +198,7 @@ function renderMandat(
 				...(vertragStem === null ? ["vertrag_link: null"] : ["vertrag_link:", ...vertragLink.map((l) => `  - ${quoteScalar(l)}`)]),
 				"aggregat_base: shared",
 				`generated: ${today}`,
-				"projektbezug:",
+				`${ctx.projektKey}:`,
 				`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 			],
 			owned: {

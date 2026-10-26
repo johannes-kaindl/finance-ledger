@@ -159,6 +159,8 @@ export const EN: Record<string, string> = {
   'settings.heading.vaultPaths': 'Vault paths',
   'settings.financeRoot.name': 'Finance project folder',
   'settings.financeRoot.desc': 'Vault-relative folder that contains your hledger journal and finance notes.',
+  'settings.projektKey.name': 'Property for the project link',
+  'settings.projektKey.desc': 'Name of the note property that links new finance notes to the project note. Default: projektbezug. Notes that already exist keep their property.',
   'settings.heading.advancedPaths': 'Advanced paths',
   'settings.advancedPaths.desc':
     'Sub-folder and file names within the finance project folder. Defaults match the standard layout — change only if your structure differs.',
@@ -415,6 +417,8 @@ export const DE: Record<string, string> = {
   'settings.heading.vaultPaths': 'Vault-Pfade',
   'settings.financeRoot.name': 'Finanzprojekt-Ordner',
   'settings.financeRoot.desc': 'Vault-relativer Ordner mit deinem hledger-Journal und den Finanznotizen.',
+  'settings.projektKey.name': 'Eigenschaft für den Projektbezug',
+  'settings.projektKey.desc': 'Name der Notiz-Eigenschaft, die neue Finanznotizen mit der Projektnotiz verknüpft. Standard: projektbezug. Bestehende Notizen behalten ihre Eigenschaft.',
   'settings.heading.advancedPaths': 'Erweiterte Pfade',
   'settings.advancedPaths.desc':
     'Unterordner- und Dateinamen innerhalb des Finanzprojekt-Ordners. Die Standardwerte entsprechen dem Standard-Layout — nur ändern, wenn deine Struktur abweicht.',

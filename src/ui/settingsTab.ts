@@ -134,6 +134,11 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
             desc: t('settings.financeRoot.desc'),
             control: { type: 'text', key: 'financeRoot', placeholder: 'Finance' },
           },
+          {
+            name: t('settings.projektKey.name'),
+            desc: t('settings.projektKey.desc'),
+            control: { type: 'text', key: 'projektKey', placeholder: 'projektbezug' },
+          },
         ],
       },
       {
@@ -190,6 +195,9 @@ export class FinanceSettingTab extends PluginSettingTab implements SettingContro
       }
       case 'financeRoot':
         data.financeRoot = String(value).trim();
+        break;
+      case 'projektKey':
+        data.projektKey = String(value).trim();
         break;
       default:
         if (isPathField(key)) {

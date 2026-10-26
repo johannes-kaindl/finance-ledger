@@ -75,4 +75,14 @@ describe('FinanceSettingTab.display', () => {
     // muss über getControlValue lesbar sein (das ist es, was Obsidian ≥1.13 nativ tut).
     expect(tab.getControlValue('financeRoot')).toBe('Finance');
   });
+
+  it('projektKey: Feld ist eingebunden, setControlValue speichert den getrimmten Wert', async () => {
+    const accessor = fakeAccessor({ financeRoot: 'Finance', projektKey: 'projektbezug' });
+    const tab = new FinanceSettingTab({} as never, {} as never, accessor as never, () => undefined);
+    tab.containerEl = makeFakeEl('div') as never;
+    tab.display();
+    expect(tab.getControlValue('projektKey')).toBe('projektbezug');
+    await tab.setControlValue('projektKey', '  projekt ');
+    expect(tab.getControlValue('projektKey')).toBe('projekt');
+  });
 });

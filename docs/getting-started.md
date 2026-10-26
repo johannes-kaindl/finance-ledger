@@ -6,6 +6,8 @@ This walks you from an empty vault to your first balance overview. You need Obsi
 
 Enable **Finance Ledger** under **Settings → Community plugins**. Then open **Settings → Finance Ledger** and set **Finance project folder** to a vault-relative folder, for example `Finance`. Until you do, every view says *Configure your finance project folder in the Finance Ledger settings.*
 
+New notes link back to the project note through a property named `projektbezug`. If your vault uses another name for that property (for example `projekt`), set **Property for the project link** in the same settings group; notes that already exist keep the property they have.
+
 ## 2. Describe your accounts
 
 Create `konten.yaml` in the finance folder (the file name is the **Accounts file** setting). One entry per bank account:

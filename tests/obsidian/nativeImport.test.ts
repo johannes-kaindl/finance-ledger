@@ -119,6 +119,22 @@ describe("runNativeImport", () => {
 		expect(written.has("Finanzplan/Ledger/accounts.ledger")).toBe(true);
 	});
 
+	it("schreibt die Projektverknüpfung unter dem Schlüssel aus den Einstellungen (Standard projektbezug)", async () => {
+		const dateien = { text: { "Finanzplan/konten.yaml": KONTEN_JSON }, binary: { "Finanzplan/Umsätze/a-camt52v8.CSV": camtCsvBytes() } };
+		const projektbezug = (w: Map<string, string>) => [...w].filter(([p, t]) => p.endsWith(".md") && /^projektbezug:$/m.test(t)).length;
+		const projekt = (w: Map<string, string>) => [...w].filter(([p, t]) => p.endsWith(".md") && /^projekt:$/m.test(t)).length;
+
+		const standard = fakeApp(dateien);
+		await runNativeImport({ app: standard.app, paths });
+		expect(projektbezug(standard.written)).toBeGreaterThan(0);
+		expect(projekt(standard.written)).toBe(0);
+
+		const eigener = fakeApp(dateien);
+		await runNativeImport({ app: eigener.app, paths: resolveFinancePaths({ ...DEFAULT_PATH_SETTINGS, financeRoot: "Finanzplan", projektKey: "projekt" }) });
+		expect(projekt(eigener.written)).toBe(projektbezug(standard.written));
+		expect(projektbezug(eigener.written)).toBe(0);
+	});
+
 	it("wendet Regeln aus den Vault-Notizen an", async () => {
 		const { app, written } = fakeApp(
 			{

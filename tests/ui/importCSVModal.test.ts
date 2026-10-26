@@ -134,6 +134,7 @@ function makeModal(opts?: { onImportSuccess?: () => Promise<void> }) {
     rulesFolder: 'R/55-Categorizer-Rules', basesFolder: 'R/05-Bases', kategorienFolder: 'R/45-Kategorien', empfaengerFolder: 'R/60-Empfänger',
     umsatzDir: '20_Projekte/02-Aktiv/26-011 Finanzplan erstellen/Umsätze',
     kontenFile: 'R/konten.yaml', vertraegeFile: 'R/vertraege.yaml', sparzieleFile: 'R/sparziele.yaml',
+    projektKey: 'projektbezug',
     snapshotsFolder: 'R/.fl-snapshots',
   };
   const modal = new ImportCSVModal(

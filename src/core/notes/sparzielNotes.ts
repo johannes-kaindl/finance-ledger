@@ -152,7 +152,7 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		"aliases:",
 		...spec.aliases.map((a) => `  - ${a}`),
 		"bereich: 💰 Finanzen",
-		"projektbezug:",
+		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		"status: ✏️ In-Arbeit",
 		"",

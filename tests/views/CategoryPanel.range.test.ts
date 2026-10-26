@@ -24,7 +24,7 @@ const LEDGER = `\
 const PATHS = {
   isConfigured: true, root: 'R', journal: 'R/Ledger/journal.ledger', openingBalances: 'R/Ledger/o.ledger', accounts: 'R/Ledger/a.ledger',
   rulesFolder: 'R/55', basesFolder: 'R/05', kategorienFolder: 'R/45', empfaengerFolder: 'R/60', umsatzDir: 'R/U',
-  kontenFile: 'R/k.yaml', vertraegeFile: 'R/v.yaml', sparzieleFile: '', snapshotsFolder: 'R/.s',
+  kontenFile: 'R/k.yaml', vertraegeFile: 'R/v.yaml', sparzieleFile: '', projektKey: 'projektbezug', snapshotsFolder: 'R/.s',
 };
 
 function all(root: FakeEl): FakeEl[] {

@@ -53,6 +53,7 @@ export async function runNativeImport(
 		konten,
 		// Die Wikilinks der generierten Notizen hängen am Projektordner selbst.
 		notesPrefix: paths.root,
+		projektKey: paths.projektKey,
 	});
 
 	const { notes, incomplete } = collectRuleNotes(app);

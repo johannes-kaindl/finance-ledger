@@ -57,6 +57,8 @@ export interface ImporterContextInput {
 	notesPrefix: string;
 	/** Abweichende Ordnernamen; nicht Genanntes bleibt auf der Vorgabe. */
 	folders?: Partial<NoteFolders>;
+	/** Schlüssel der Verknüpfung zur Projektnotiz im Frontmatter; leer oder unbrauchbar ergibt `projektbezug`. */
+	projektKey?: string;
 	clock?: ClockPort;
 }
 
@@ -115,6 +117,8 @@ export interface ImporterContext {
 	readonly notesPrefix: string;
 	/** Letztes Segment des Prefix = Name der Projekt-Ordnernotiz. */
 	readonly projectNote: string;
+	/** Schlüssel der Verknüpfung zur Projektnotiz im Frontmatter (Standard `projektbezug`, das Vault-Schema des Maintainers kennt `projekt`). */
+	readonly projektKey: string;
 	readonly folders: NoteFolders;
 	readonly clock: ClockPort;
 
@@ -128,6 +132,19 @@ export interface ImporterContext {
 
 export const DEFAULT_NOTES_PREFIX = "Finanzplan";
 
+/** Der Schlüssel, den Importer und Plugin immer geschrieben haben; Notizen anderer Nutzer tragen ihn. */
+export const DEFAULT_PROJEKT_KEY = "projektbezug";
+
+/**
+ * Ein Schlüssel, der als einfacher YAML-Schlüssel ohne Anführungszeichen steht. Die Regel ist die des Kits (`KEY_NAME_RE` in `frontmatter-patch.ts`,
+ * die `patchFrontmatter` als `invalid-key` anwendet); sie zieht auf den Kit-Export `isFrontmatterKeyName` (obsidian-kit 0.73.0), sobald der Pin dort steht.
+ * Alles andere (leer, Doppelstrich vorweg, Doppelpunkt, `#`, Klammern, Anführungszeichen) würde die Zeile `<key>:` zerlegen und fällt still auf den Standard zurück.
+ */
+export function normalizeProjektKey(raw: string | undefined): string {
+	const key = (raw ?? "").trim();
+	return /^[A-Za-z0-9_][\w .-]*$/.test(key) ? key : DEFAULT_PROJEKT_KEY;
+}
+
 export function createImporterContext(
 	input: ImporterContextInput,
 ): ImporterContext {
@@ -137,6 +154,7 @@ export function createImporterContext(
 		activeKonten: activeKonten(input.konten),
 		notesPrefix,
 		projectNote: notesPrefix.split("/").filter(Boolean).at(-1) ?? notesPrefix,
+		projektKey: normalizeProjektKey(input.projektKey),
 		folders: { ...DEFAULT_NOTE_FOLDERS, ...input.folders },
 		clock: input.clock ?? systemClock(),
 		ibanToLedger: ibanToLedger(input.konten),
