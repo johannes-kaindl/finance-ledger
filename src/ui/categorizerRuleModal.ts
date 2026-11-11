@@ -7,6 +7,7 @@ import { previewMatchCount } from '../views/helpers';
 import { loadAccountSuggestions } from '../categorizer-rules/accountSuggestions';
 import type { ResolvedFinancePaths } from '../state/financePaths';
 import { t } from '../i18n/strings';
+import { splitList } from '../vendor/kit/split-list';
 
 export interface RuleModalParams {
   counterparty: string;
@@ -182,8 +183,8 @@ export class CategorizerRuleModal extends Modal {
       }
 
       const patternType = typeSelect.value as 'substring' | 'paypal-sub';
-      const tags = tagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
-      const aliases = aliasesInput.value.split(',').map(a => a.trim()).filter(Boolean);
+      const tags = splitList(tagsInput.value);
+      const aliases = splitList(aliasesInput.value);
 
       try {
         const existingRules = loadCategorizerRules(this.app);

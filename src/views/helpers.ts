@@ -1,5 +1,6 @@
 import type { Transaction, LedgerDiagnostics } from '../parser/ledger';
 import { getLang, t, tPlural } from '../i18n/strings';
+import { splitList } from '../vendor/kit/split-list';
 
 /**
  * One-line, human-readable summary of non-fatal parse findings — or `null` when
@@ -147,7 +148,7 @@ export function filterRows(rows: PostingRow[], f: FilterState, slugMaps?: SlugMa
     if (f.counterparty && !row.counterparty.toLowerCase().includes(f.counterparty.toLowerCase())) return false;
     if (f.account && !row.account.toLowerCase().includes(f.account.toLowerCase())) return false;
     if (f.tags) {
-      const required = f.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const required = splitList(f.tags);
       if (!required.every(rt => row.tags.includes(rt))) return false;
     }
     if (kategoriePrefix && !row.account.startsWith(kategoriePrefix)) return false;

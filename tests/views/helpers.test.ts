@@ -200,6 +200,27 @@ describe('filterRows — tags (AND logic)', () => {
     const result = filterRows(rows, { ...emptyFilter, tags: 'recurring,tbc' });
     expect(result).toHaveLength(0);
   });
+
+  // Randfälle der Tag-Liste (Eingabefeld): Leerraum, leere Einträge, nur Trennzeichen
+  it('ignores blanks around entries and empty entries', () => {
+    const rows = buildPostingRows(txs);
+    expect(filterRows(rows, { ...emptyFilter, tags: ' recurring , paypal-via ' })).toHaveLength(2);
+    expect(filterRows(rows, { ...emptyFilter, tags: 'recurring,,paypal-via,' })).toHaveLength(2);
+    expect(filterRows(rows, { ...emptyFilter, tags: ',recurring' })).toHaveLength(8);
+    expect(filterRows(rows, { ...emptyFilter, tags: 'recurring,\t \n,' })).toHaveLength(8);
+  });
+
+  it('a list of nothing but separators and blanks requires no tag at all', () => {
+    const rows = buildPostingRows(txs);
+    expect(filterRows(rows, { ...emptyFilter, tags: ' , ,, ' })).toHaveLength(14);
+    expect(filterRows(rows, { ...emptyFilter, tags: ',' })).toHaveLength(14);
+  });
+
+  it('does not split on anything but the comma', () => {
+    const rows = buildPostingRows(txs);
+    expect(filterRows(rows, { ...emptyFilter, tags: 'recurring;paypal-via' })).toHaveLength(0);
+    expect(filterRows(rows, { ...emptyFilter, tags: 'recurring paypal-via' })).toHaveLength(0);
+  });
 });
 
 // ── A1.4: sortRows ──────────────────────────────────────────────────────────
