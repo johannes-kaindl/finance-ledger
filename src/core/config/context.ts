@@ -13,6 +13,7 @@
  * am Fundament, damit ihn keine spätere Etappe nachziehen muss.
  */
 
+import { isFrontmatterKeyName } from "../../vendor/kit/frontmatter-patch";
 import { localDate } from "../../vendor/kit/local-stamp";
 import type { IsoDate } from "../dates";
 import {
@@ -136,13 +137,12 @@ export const DEFAULT_NOTES_PREFIX = "Finanzplan";
 export const DEFAULT_PROJEKT_KEY = "projektbezug";
 
 /**
- * Ein Schlüssel, der als einfacher YAML-Schlüssel ohne Anführungszeichen steht. Die Regel ist die des Kits (`KEY_NAME_RE` in `frontmatter-patch.ts`,
- * die `patchFrontmatter` als `invalid-key` anwendet); sie zieht auf den Kit-Export `isFrontmatterKeyName` (obsidian-kit 0.73.0), sobald der Pin dort steht.
- * Alles andere (leer, Doppelstrich vorweg, Doppelpunkt, `#`, Klammern, Anführungszeichen) würde die Zeile `<key>:` zerlegen und fällt still auf den Standard zurück.
+ * Ein Schlüssel, der als einfacher YAML-Schlüssel ohne Anführungszeichen steht. Die Regel ist die des Kits (`isFrontmatterKeyName` aus
+ * `frontmatter-patch.ts`, dieselbe Prüfung wie `patchFrontmatter` als `invalid-key`). Alles andere (leer, Doppelstrich vorweg, Doppelpunkt, `#`, Klammern, Anführungszeichen) würde die Zeile `<key>:` zerlegen und fällt still auf den Standard zurück.
  */
 export function normalizeProjektKey(raw: string | undefined): string {
 	const key = (raw ?? "").trim();
-	return /^[A-Za-z0-9_][\w .-]*$/.test(key) ? key : DEFAULT_PROJEKT_KEY;
+	return isFrontmatterKeyName(key) ? key : DEFAULT_PROJEKT_KEY;
 }
 
 export function createImporterContext(

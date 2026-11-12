@@ -1,4 +1,4 @@
-// vendored from obsidian-kit@0.71.0, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
+// vendored from obsidian-kit@0.82.2, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
 // frontmatter-patch.ts — eigene Frontmatter-Felder setzen, fremde Zeilen byte-gleich lassen. Kein obsidian-Import.
 //
 // Zusammengeführt aus zwei unabhängigen Fassungen desselben Vorgangs (Diachronic wäre die dritte):
@@ -29,7 +29,9 @@
 //     `"DE98ZZZ00000000001"`); `isFmLiteralText` gibt die Prüfung heraus, damit kein Konsument die Regex kopiert. Die Regex ist enger als die in `needsQuoting` (`-.5` und `+.5` liest js-yaml als Text, Obsidian als Zahl: die Menge
 //     hier ist die gemeinsame). Gemessen 2026-10-25 in Obsidian 1.14.5 (`pilot/literal-formen.ts`): `parseYaml`, `metadataCache` und der gerenderte
 //     Eigenschaften-Editor (Zahlenfeld) lesen `5.`, `+5`, `-0` und `007` als Zahl mit demselben Wert wie js-yaml 4.2.0 (5, 5, 7); nur `-0` bleibt bei Obsidian
-//     ein `-0` (js-yaml: `0`), das Feld zeigt `0`, aus dem Cache einer unveränderten Notiz liest man `0`. Ungemessen: Bases.
+//     ein `-0` (js-yaml: `0`), das Feld zeigt `0`, aus dem Cache einer unveränderten Notiz liest man `0`.
+//     Bases gemessen (Obsidian 1.14.5, `pilot/bases-literale.ts`, Tabellenansicht mit der Formel `x + 1` und einer Sortierung nach `x`): `5.`, `+5`, `-0` und `007` sind Zahlen (Zelle `5`, `5`, `0`, `7`;
+//     `x + 1` ergibt `6`, `6`, `1`, `8`, nie eine Verkettung wie `5.1`; `12.50` zeigt `12.5`), die Sortierung ist numerisch (`0`, `5`, `5`, `7`, `12.5`), `"DE98"` bleibt Text. Dieselbe Lesart wie js-yaml und Obsidian: die Regex bleibt.
 // Grenzen, bewusst wie im Kit-Parser: ein Schlüssel muss `[A-Za-z0-9_][\w .-]*` sein (ein Schlüssel mit Umlaut wird nicht gefunden,
 // also angehängt, nicht ersetzt — `invalid-key` fängt ihn deshalb schon beim Setzen ab); Kommentare auf der Zeile eines gesetzten
 // Schlüssels gehen mit der Zeile verloren; ein Block-Skalar (`|`, `>`) wird gemeldet, nicht ersetzt.
@@ -139,6 +141,16 @@ export function isFmLiteralText(text: string): boolean {
   return typeof text === "string" && LITERAL_RE.test(text) && !hasControl(text);
 }
 
+/** Ist `name` ein Schlüsselname, den der Block-Leser des Kits als Schlüssel erkennt? Dieselbe Prüfung wie in `patchFrontmatter` (`invalid-key`); wirft nie, Nicht-Text ist `false`.
+ *  Ungemessen: `yes`, `no`, `on`, `off` und `null` bestehen sie, sind aber in YAML 1.1 keine sicheren Schlüssel (kein Sonderfall gebaut).
+ *  @example
+ *  isFrontmatterKeyName("diachronic-round") // → true
+ *  isFrontmatterKeyName("Größe")            // → false (Umlaut: der Leser findet die Zeile nicht)
+ *  isFrontmatterKeyName("a: b")             // → false */
+export function isFrontmatterKeyName(name: string): boolean {
+  return typeof name === "string" && KEY_NAME_RE.test(name);
+}
+
 function isLiteral(v: FmValue | FmLiteral): v is FmLiteral {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
@@ -182,7 +194,7 @@ export function patchFrontmatter(text: string, spec: FrontmatterPatchSpec): Fron
   const ensureEntries = Object.entries(spec.ensure ?? {});
 
   for (const [key, value] of [...setEntries, ...ensureEntries]) {
-    if (!KEY_NAME_RE.test(key)) return { ok: false, reason: "invalid-key", key };
+    if (!isFrontmatterKeyName(key)) return { ok: false, reason: "invalid-key", key };
     if (badValue(value)) return { ok: false, reason: "invalid-value", key };
   }
   for (const [key] of setEntries) {

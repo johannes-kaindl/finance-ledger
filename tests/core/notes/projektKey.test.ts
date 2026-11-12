@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { isFrontmatterKeyName } from "../../../src/vendor/kit/frontmatter-patch";
 import { createImporterContext, DEFAULT_PROJEKT_KEY, fixedClock, normalizeProjektKey } from "../../../src/core/config/context";
 import { parseKontenConfig } from "../../../src/core/config/konten";
 import { parseSparzieleConfig } from "../../../src/core/config/sparziele";
@@ -52,6 +54,18 @@ describe("normalizeProjektKey", () => {
 			expect(normalizeProjektKey(v)).toBe(DEFAULT_PROJEKT_KEY);
 		}
 		expect(DEFAULT_PROJEKT_KEY).toBe("projektbezug");
+	});
+});
+
+describe("normalizeProjektKey ist die Schlüsselprüfung des Kits, keine Kopie", () => {
+	it("nimmt genau die Namen an, die isFrontmatterKeyName annimmt (sonst Standard)", () => {
+		const namen = ["projekt", "Projekt Bezug", "a.b", "1projekt", "_projekt", "-projekt", ".projekt", "a: b", "Größe", "pro#jekt", "yes", "null", "x\ty"];
+		for (const v of namen) expect(normalizeProjektKey(v) === v).toBe(isFrontmatterKeyName(v));
+	});
+	it("context.ts ruft das Kit und trägt keine eigene Schlüssel-Regex mehr", () => {
+		const quelle = readFileSync("src/core/config/context.ts", "utf-8");
+		expect(quelle).toContain("isFrontmatterKeyName");
+		expect(quelle).not.toContain("[\\w .-]");
 	});
 });
 
