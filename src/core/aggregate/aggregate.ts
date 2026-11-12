@@ -16,6 +16,8 @@ import { formatGermanEuro, type MoneyValue, ZERO } from "../money";
 import { kategorieWikilink } from "../notes/wikilinks";
 import { EINMALIG_PREFIX, FIX_FELDER, KATEGORIE_MAPPING } from "./kategorien";
 
+const UNKATEGORISIERT_PREFIX = "Ausgaben:Unkategorisiert:";
+
 export type Categorizer = (tx: BankTransaction) => CategorizationResult;
 
 /** Aggregat einer Sicht (gesamt / privat / Vermietung). */
@@ -29,6 +31,11 @@ export interface SichtAggregat {
 	einnahmenDetails: ReadonlyMap<string, MoneyValue>;
 	/** Nur gesetzt, wenn es Einmal-Ausgaben gab. */
 	ausgabenEinmalig: MoneyValue | null;
+	/**
+	 * Eingänge auf einem Konto `Ausgaben:Unkategorisiert:…` (Geld kam herein, keine Regel hat es klassifiziert).
+	 * Sie zählen weder als Einnahme noch mindern sie die Ausgaben; nur gesetzt, wenn es welche gab.
+	 */
+	unklassifizierteEingaenge: MoneyValue | null;
 }
 
 /** Auf Cent runden (ROUND_HALF_UP, bei Gleichstand weg von der Null). */
@@ -102,6 +109,7 @@ export function aggregateTransactions(
 	const ausgaben = new Map<string, MoneyValue>();
 	const einnahmen = new Map<string, MoneyValue>();
 	let einmalig: MoneyValue = ZERO;
+	let unklassifiziert: MoneyValue = ZERO;
 	const add = (m: Map<string, MoneyValue>, key: string, v: MoneyValue): void => {
 		m.set(key, (m.get(key) ?? ZERO).plus(v));
 	};
@@ -116,12 +124,13 @@ export function aggregateTransactions(
 
 		const gegen = r.gegenAccount;
 		if (gegen.startsWith("Ausgaben:")) {
-			for (const [suffix, prefix] of KATEGORIE_MAPPING) {
-				if (gegen.startsWith(prefix)) {
-					add(ausgaben, suffix, tx.betrag.neg());
-					break;
-				}
+			if (gegen.startsWith(UNKATEGORISIERT_PREFIX) && tx.betrag.gt(0)) {
+				unklassifiziert = unklassifiziert.plus(tx.betrag);
+				continue;
 			}
+			// Ein Ausgabenkonto außerhalb der Kategorienliste zählt unter Sonstiges, nicht gar nicht.
+			const treffer = KATEGORIE_MAPPING.find(([, prefix]) => gegen.startsWith(prefix));
+			add(ausgaben, treffer ? treffer[0] : "sonstiges", tx.betrag.neg());
 			if (gegen.startsWith(EINMALIG_PREFIX)) einmalig = einmalig.plus(tx.betrag.neg());
 		} else if (gegen.startsWith("Einnahmen:")) {
 			const parts = gegen.split(":");
@@ -154,6 +163,7 @@ export function aggregateTransactions(
 		kategorie,
 		einnahmenDetails,
 		ausgabenEinmalig: einmalig.isZero() ? null : zweiStellen(einmalig),
+		unklassifizierteEingaenge: unklassifiziert.isZero() ? null : zweiStellen(unklassifiziert),
 	};
 }
 
@@ -178,14 +188,18 @@ function kategorieName(suffix: string): string {
 
 /** Kennzahlen-Tabelle (Markdown) eines Aggregats. */
 export function kennzahlenTabelle(agg: SichtAggregat): string {
-	return [
+	const zeilen = [
 		"| Kennzahl | Wert |",
 		"|---|---:|",
 		`| Einnahmen | ${formatGermanEuro(agg.einnahmenGesamt)} |`,
 		`| Ausgaben | ${formatGermanEuro(agg.ausgabenGesamt)} |`,
 		`| Saldo | ${formatGermanEuro(agg.saldo)} |`,
 		`| Sparquote | ${formatProzent(agg.sparquoteProzent)} |`,
-	].join("\n");
+	];
+	if (agg.unklassifizierteEingaenge) {
+		zeilen.push(`| Unklassifizierte Eingänge | ${formatGermanEuro(agg.unklassifizierteEingaenge)} |`);
+	}
+	return zeilen.join("\n");
 }
 
 /** Kategorien-Tabelle (Markdown), absteigend nach Betrag; Kategorien ohne Betrag fehlen. */

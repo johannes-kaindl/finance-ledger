@@ -120,6 +120,48 @@ describe("aggregateTransactions — Grundlogik", () => {
 	});
 });
 
+describe("Eingänge ohne Regel und Konten außerhalb der Kategorienliste", () => {
+	it("ein Eingang auf Ausgaben:Unkategorisiert wird weder negative Ausgabe noch Einnahme, sondern eigener Posten", () => {
+		const r = agg(
+			[makeTx({ betrag: "3200.00", buchungstag: "2026-04-01", rawRowIdx: 1 }), makeTx({ betrag: "-100.00", buchungstag: "2026-04-02", rawRowIdx: 2 })],
+			(tx) => fixedCat(tx.rawRowIdx === 1 ? "Ausgaben:Unkategorisiert:Globex" : "Ausgaben:Lebensmittel:Supermarkt:REWE"),
+		);
+		eq(r.ausgabenGesamt, "100.00");
+		eq(r.einnahmenGesamt, "0.00");
+		eq(r.saldo, "-100.00");
+		eq(r.unklassifizierteEingaenge!, "3200.00");
+		expect(r.kategorie.get("unkategorisiert")?.isZero() ?? true).toBe(true);
+	});
+
+	it("ohne solche Eingänge ist der Posten null", () => {
+		const r = agg([makeTx({ betrag: "-100.00", buchungstag: "2026-04-01" })], makeCat("Ausgaben:Unkategorisiert:Rewe"));
+		expect(r.unklassifizierteEingaenge).toBeNull();
+		eq(r.ausgabenGesamt, "100.00");
+	});
+
+	it("eine Erstattung auf einer benannten Kategorie mindert diese weiter (kein Eingang ohne Regel)", () => {
+		const r = agg(
+			[makeTx({ betrag: "-100.00", buchungstag: "2026-04-01", rawRowIdx: 1 }), makeTx({ betrag: "30.00", buchungstag: "2026-04-02", rawRowIdx: 2 })],
+			makeCat("Ausgaben:Lebensmittel:Supermarkt:REWE"),
+		);
+		eq(r.ausgabenGesamt, "70.00");
+		expect(r.unklassifizierteEingaenge).toBeNull();
+	});
+
+	it("ein Ausgabenkonto außerhalb der Kategorienliste zählt unter Sonstiges, nicht gar nicht", () => {
+		const r = agg([makeTx({ betrag: "-309.02", buchungstag: "2026-04-01" })], makeCat("Ausgaben:Groceries:Edeka"));
+		eq(r.ausgabenGesamt, "309.02");
+		eq(r.kategorie.get("sonstiges")!, "309.02");
+	});
+
+	it("die Kennzahlen-Tabelle weist die Eingänge ohne Regel als eigene Zeile aus, nur wenn es welche gibt", () => {
+		const mit = agg([makeTx({ betrag: "3200.00", buchungstag: "2026-04-01" })], makeCat("Ausgaben:Unkategorisiert:Globex"));
+		expect(kennzahlenTabelle(mit)).toContain("| Unklassifizierte Eingänge | 3.200,00 € |");
+		const ohne = agg([makeTx({ betrag: "-1.00", buchungstag: "2026-04-01" })], makeCat("Ausgaben:Wohnen:Miete"));
+		expect(kennzahlenTabelle(ohne)).not.toContain("Unklassifizierte");
+	});
+});
+
 describe("Sparquote: Pythons round(x, 1) auf dem Float", () => {
 	const quote = (einnahme: string, ausgabe: string): number => {
 		const cat = (tx: ReturnType<typeof makeTx>) => (tx.betrag.gt(0) ? fixedCat("Einnahmen:X:Y") : fixedCat("Ausgaben:Lebensmittel:S"));

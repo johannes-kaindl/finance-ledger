@@ -8,6 +8,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Fixed
 
+- A deposit that no rule has classified (it lands on an `Ausgaben:Unkategorisiert:…` account) no longer counts as a negative expense in the reports, which inflated the balance and the savings rate. It now appears as its own row "Unklassifizierte Eingänge" in the key-figures table. Expense accounts outside the category list are counted under "Sonstiges" instead of being dropped from the totals.
 - Percentages in the generated reports (savings rate, category shares, total row) now use a decimal comma and a space before the sign, like the amounts: `32,5 %`, `100,0 %` instead of `32.5 %`, `44.3%`, `100%`. The machine values in the front matter (`sparquote_prozent`) keep the decimal point.
 
 ## [0.7.0] — 2026-10-26
