@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Changed
+
+- The "Save filter preset" name dialog now comes from the shared building block (obsidian-kit `prompt-text`): an empty name keeps the dialog open instead of doing nothing, the text is trimmed, and the buttons sit in the native button row (Cancel left, OK right).
+
 ### Fixed
 
 - A deposit that no rule has classified (it lands on an `Ausgaben:Unkategorisiert:…` account) no longer counts as a negative expense in the reports, which inflated the balance and the savings rate. It now appears as its own row "Unklassifizierte Eingänge" in the key-figures table. Expense accounts outside the category list are counted under "Sonstiges" instead of being dropped from the totals.

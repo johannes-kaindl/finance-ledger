@@ -10,7 +10,7 @@
     { "dir": "tests/vendor/kit", "source": "obsidian-kit", "from": "src/testing", "modules": ["window-timers"] },
     {
       "dir": "src/vendor/kit-obsidian", "source": "obsidian-kit", "from": "src/obsidian",
-      "modules": ["confirm", "hub", "settings_walker", "folder-suggest", "help-setting"]
+      "modules": ["confirm", "hub", "settings_walker", "folder-suggest", "help-setting", { "name": "prompt-text", "ref": "0.82.2" }]
     }
   ]
 }

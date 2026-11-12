@@ -19,7 +19,7 @@ import {
 } from './helpers';
 import { loadState, saveState, loadPresets, savePreset, deletePreset } from '../state/filterState';
 import { loadSlugMaps } from './slugMaps';
-import { promptText } from '../ui/promptModal';
+import { promptText } from '../vendor/kit-obsidian/prompt-text';
 import { confirmAction } from '../vendor/kit-obsidian/confirm';
 import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financePaths';
 import type { FinancePanel } from './hub/panelTypes';
@@ -147,10 +147,14 @@ export class LedgerPanel implements FinancePanel {
     // Save
     const btnSave = bar.createEl('button', { text: t('ledger.preset.save'), cls: 'fl-fs-xs fl-self-end' });
     btnSave.onclick = async () => {
-      const name = await promptText(this.app, t('ledger.preset.namePrompt'));
-      if (!name?.trim()) return;
-      savePreset(name.trim(), this.filter);
-      this.activePresetName = name.trim();
+      const name = await promptText(this.app, {
+        title: t('ledger.preset.namePrompt'),
+        okLabel: t('common.ok'),
+        cancelLabel: t('common.cancel'),
+      });
+      if (name === null) return;
+      savePreset(name, this.filter);
+      this.activePresetName = name;
       this.refreshPresetSelect();
     };
 
