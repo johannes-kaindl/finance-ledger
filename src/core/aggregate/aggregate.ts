@@ -68,6 +68,15 @@ function formatFixed1(x: number): string {
 	return Object.is(r, -0) ? "-0.0" : r.toFixed(1);
 }
 
+/**
+ * Prozentwert im Bericht: Komma und ein Leerzeichen vor dem Zeichen, wie die Beträge (`formatGermanEuro`) — die
+ * Berichte sind deutsche Notizen mit fester deutscher Zahlform. Die Rundung bleibt Pythons `:.1f`; die
+ * Frontmatter-Felder (`sparquoteFrontmatter`) bleiben Maschinenwerte mit Punkt.
+ */
+function formatProzent(x: number): string {
+	return `${formatFixed1(x).replace(".", ",")} %`;
+}
+
 /** Pythons `repr(float)` für einen auf eine Stelle gerundeten Wert: `100` wird `100.0`, `-0` wird `-0.0`. */
 function pyFloatRepr(x: number): string {
 	if (Object.is(x, -0)) return "-0.0";
@@ -175,7 +184,7 @@ export function kennzahlenTabelle(agg: SichtAggregat): string {
 		`| Einnahmen | ${formatGermanEuro(agg.einnahmenGesamt)} |`,
 		`| Ausgaben | ${formatGermanEuro(agg.ausgabenGesamt)} |`,
 		`| Saldo | ${formatGermanEuro(agg.saldo)} |`,
-		`| Sparquote | ${formatFixed1(agg.sparquoteProzent)} % |`,
+		`| Sparquote | ${formatProzent(agg.sparquoteProzent)} |`,
 	].join("\n");
 }
 
@@ -190,9 +199,9 @@ export function kategorienTabelle(ctx: ImporterContext, agg: SichtAggregat, with
 		const anteil = gesamt.isZero() ? 0 : wert.div(gesamt).times(100).toNumber();
 		const name = kategorieName(suffix);
 		const cell = withWikilinks ? kategorieWikilink(ctx, suffix, { display: name, forTable: true }) : name;
-		rows.push(`| ${cell} | ${formatGermanEuro(wert)} | ${formatFixed1(anteil)}% |`);
+		rows.push(`| ${cell} | ${formatGermanEuro(wert)} | ${formatProzent(anteil)} |`);
 	}
-	rows.push(`| **Summe** | **${formatGermanEuro(gesamt)}** | 100% |`);
+	rows.push(`| **Summe** | **${formatGermanEuro(gesamt)}** | 100,0 % |`);
 	return rows.join("\n");
 }
 

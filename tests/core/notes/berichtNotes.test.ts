@@ -21,6 +21,10 @@ import { FIX, config, importMit, makeCtx as makeGoldenCtx, vaultMitCsvs } from "
  * Goldmuster: ein Lauf des Python-Importers (`--all-aggregates`) auf den synthetischen Eingaben unter
  * `fixtures/berichte/` am 2026-10-16. Der TS-Lauf muss dieselben Berichte Byte für Byte liefern — das ist die
  * Abnahme von Etappe E5. Die Eingaben erzeugt `fixtures/berichte/gen.py`, alles ist erfunden.
+ *
+ * Seit Welle 33 weichen die Muster in einem Punkt vom Python-Lauf ab, mit Absicht: Prozentwerte im Bericht
+ * stehen mit Komma und `1,5 %` (wie die Beträge), nicht als `1.5%` (Pythons `:.1f`). Die Frontmatter-Felder
+ * bleiben Maschinenwerte mit Punkt.
  */
 const TODAY = "2026-10-16";
 const makeCtx = (today = TODAY): ImporterContext => makeGoldenCtx(today);
@@ -172,7 +176,7 @@ describe("Sichten und Randfälle", () => {
 		);
 		expect(text).toContain("sparquote_prozent: 100.0\n");
 		expect(text).toContain("ausgaben_einmalig_eur: null\n");
-		expect(text).toContain("| Sparquote | 100.0 % |");
+		expect(text).toContain("| Sparquote | 100,0 % |");
 	});
 
 	it("entschärft Empfängernamen aus Bankdaten: kein Pipe, keine Klammern in der Tabellenzelle", () => {

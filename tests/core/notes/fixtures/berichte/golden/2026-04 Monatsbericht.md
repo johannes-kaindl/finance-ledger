@@ -71,27 +71,27 @@ pie showData
 | Einnahmen | 4.130,00 € |
 | Ausgaben | 2.787,93 € |
 | Saldo | 1.342,07 € |
-| Sparquote | 32.5 % |
+| Sparquote | 32,5 % |
 
 ### Ausgaben pro Top-Kategorie
 
 | Kategorie | Betrag | Anteil % |
 |---|---:|---:|
-| [[Finanzplan/45-Kategorien/steuern\|Steuern]] | 1.234,56 € | 44.3% |
-| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 1.109,00 € | 39.8% |
-| [[Finanzplan/45-Kategorien/lebensmittel\|Lebensmittel]] | 192,80 € | 6.9% |
-| [[Finanzplan/45-Kategorien/online_shopping\|Online Shopping]] | 71,35 € | 2.6% |
-| [[Finanzplan/45-Kategorien/mobilitaet\|Mobilitaet]] | 49,00 € | 1.8% |
-| [[Finanzplan/45-Kategorien/kommunikation\|Kommunikation]] | 29,99 € | 1.1% |
-| [[Finanzplan/45-Kategorien/tech_abos\|Tech Abos]] | 29,34 € | 1.1% |
-| [[Finanzplan/45-Kategorien/essen_auswaerts\|Essen Auswaerts]] | 23,23 € | 0.8% |
-| [[Finanzplan/45-Kategorien/freizeit\|Freizeit]] | 12,32 € | 0.4% |
-| [[Finanzplan/45-Kategorien/versicherung\|Versicherung]] | 12,25 € | 0.4% |
-| [[Finanzplan/45-Kategorien/gesundheit\|Gesundheit]] | 12,10 € | 0.4% |
-| [[Finanzplan/45-Kategorien/unkategorisiert\|Unkategorisiert]] | 7,08 € | 0.3% |
-| [[Finanzplan/45-Kategorien/bankgebuehren\|Bankgebuehren]] | 4,90 € | 0.2% |
-| [[Finanzplan/45-Kategorien/sonstiges\|Sonstiges]] | 0,01 € | 0.0% |
-| **Summe** | **2.787,93 €** | 100% |
+| [[Finanzplan/45-Kategorien/steuern\|Steuern]] | 1.234,56 € | 44,3 % |
+| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 1.109,00 € | 39,8 % |
+| [[Finanzplan/45-Kategorien/lebensmittel\|Lebensmittel]] | 192,80 € | 6,9 % |
+| [[Finanzplan/45-Kategorien/online_shopping\|Online Shopping]] | 71,35 € | 2,6 % |
+| [[Finanzplan/45-Kategorien/mobilitaet\|Mobilitaet]] | 49,00 € | 1,8 % |
+| [[Finanzplan/45-Kategorien/kommunikation\|Kommunikation]] | 29,99 € | 1,1 % |
+| [[Finanzplan/45-Kategorien/tech_abos\|Tech Abos]] | 29,34 € | 1,1 % |
+| [[Finanzplan/45-Kategorien/essen_auswaerts\|Essen Auswaerts]] | 23,23 € | 0,8 % |
+| [[Finanzplan/45-Kategorien/freizeit\|Freizeit]] | 12,32 € | 0,4 % |
+| [[Finanzplan/45-Kategorien/versicherung\|Versicherung]] | 12,25 € | 0,4 % |
+| [[Finanzplan/45-Kategorien/gesundheit\|Gesundheit]] | 12,10 € | 0,4 % |
+| [[Finanzplan/45-Kategorien/unkategorisiert\|Unkategorisiert]] | 7,08 € | 0,3 % |
+| [[Finanzplan/45-Kategorien/bankgebuehren\|Bankgebuehren]] | 4,90 € | 0,2 % |
+| [[Finanzplan/45-Kategorien/sonstiges\|Sonstiges]] | 0,01 € | 0,0 % |
+| **Summe** | **2.787,93 €** | 100,0 % |
 
 ## 🏠 Privat-only ([[Finanzplan/10-Konten/Konto 01 – Everyday Checking|Konto 01]] + [[Finanzplan/10-Konten/Konto 02 – Household Pool|Konto 02]] + [[Finanzplan/10-Konten/Konto 03 – Everyday Visa|Konto 03]])
 
@@ -104,26 +104,26 @@ pie showData
 | Einnahmen | 3.350,00 € |
 | Ausgaben | 2.710,92 € |
 | Saldo | 639,08 € |
-| Sparquote | 19.1 % |
+| Sparquote | 19,1 % |
 
 ### Ausgaben pro Top-Kategorie
 
 | Kategorie | Betrag | Anteil % |
 |---|---:|---:|
-| [[Finanzplan/45-Kategorien/steuern\|Steuern]] | 1.234,56 € | 45.5% |
-| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 1.032,00 € | 38.1% |
-| [[Finanzplan/45-Kategorien/lebensmittel\|Lebensmittel]] | 192,80 € | 7.1% |
-| [[Finanzplan/45-Kategorien/online_shopping\|Online Shopping]] | 71,35 € | 2.6% |
-| [[Finanzplan/45-Kategorien/mobilitaet\|Mobilitaet]] | 49,00 € | 1.8% |
-| [[Finanzplan/45-Kategorien/kommunikation\|Kommunikation]] | 29,99 € | 1.1% |
-| [[Finanzplan/45-Kategorien/tech_abos\|Tech Abos]] | 29,34 € | 1.1% |
-| [[Finanzplan/45-Kategorien/essen_auswaerts\|Essen Auswaerts]] | 23,23 € | 0.9% |
-| [[Finanzplan/45-Kategorien/freizeit\|Freizeit]] | 12,32 € | 0.5% |
-| [[Finanzplan/45-Kategorien/versicherung\|Versicherung]] | 12,25 € | 0.5% |
-| [[Finanzplan/45-Kategorien/gesundheit\|Gesundheit]] | 12,10 € | 0.4% |
-| [[Finanzplan/45-Kategorien/unkategorisiert\|Unkategorisiert]] | 7,08 € | 0.3% |
-| [[Finanzplan/45-Kategorien/bankgebuehren\|Bankgebuehren]] | 4,90 € | 0.2% |
-| **Summe** | **2.710,92 €** | 100% |
+| [[Finanzplan/45-Kategorien/steuern\|Steuern]] | 1.234,56 € | 45,5 % |
+| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 1.032,00 € | 38,1 % |
+| [[Finanzplan/45-Kategorien/lebensmittel\|Lebensmittel]] | 192,80 € | 7,1 % |
+| [[Finanzplan/45-Kategorien/online_shopping\|Online Shopping]] | 71,35 € | 2,6 % |
+| [[Finanzplan/45-Kategorien/mobilitaet\|Mobilitaet]] | 49,00 € | 1,8 % |
+| [[Finanzplan/45-Kategorien/kommunikation\|Kommunikation]] | 29,99 € | 1,1 % |
+| [[Finanzplan/45-Kategorien/tech_abos\|Tech Abos]] | 29,34 € | 1,1 % |
+| [[Finanzplan/45-Kategorien/essen_auswaerts\|Essen Auswaerts]] | 23,23 € | 0,9 % |
+| [[Finanzplan/45-Kategorien/freizeit\|Freizeit]] | 12,32 € | 0,5 % |
+| [[Finanzplan/45-Kategorien/versicherung\|Versicherung]] | 12,25 € | 0,5 % |
+| [[Finanzplan/45-Kategorien/gesundheit\|Gesundheit]] | 12,10 € | 0,4 % |
+| [[Finanzplan/45-Kategorien/unkategorisiert\|Unkategorisiert]] | 7,08 € | 0,3 % |
+| [[Finanzplan/45-Kategorien/bankgebuehren\|Bankgebuehren]] | 4,90 € | 0,2 % |
+| **Summe** | **2.710,92 €** | 100,0 % |
 
 ## 🏘️ Vermietung-only ([[Finanzplan/10-Konten/Konto 04 – Rental|Konto 04]])
 
@@ -136,15 +136,15 @@ pie showData
 | Einnahmen | 780,00 € |
 | Ausgaben | 77,01 € |
 | Saldo | 702,99 € |
-| Sparquote | 90.1 % |
+| Sparquote | 90,1 % |
 
 ### Ausgaben pro Top-Kategorie
 
 | Kategorie | Betrag | Anteil % |
 |---|---:|---:|
-| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 77,00 € | 100.0% |
-| [[Finanzplan/45-Kategorien/sonstiges\|Sonstiges]] | 0,01 € | 0.0% |
-| **Summe** | **77,01 €** | 100% |
+| [[Finanzplan/45-Kategorien/wohnen\|Wohnen]] | 77,00 € | 100,0 % |
+| [[Finanzplan/45-Kategorien/sonstiges\|Sonstiges]] | 0,01 € | 0,0 % |
+| **Summe** | **77,01 €** | 100,0 % |
 
 ## 💰 Budget-Übersicht
 

@@ -165,25 +165,25 @@ describe("Tabellen", () => {
 
 	it("Kennzahlen-Tabelle", () => {
 		expect(kennzahlenTabelle(r)).toBe(
-			["| Kennzahl | Wert |", "|---|---:|", "| Einnahmen | 2.000,00 € |", "| Ausgaben | 400,00 € |", "| Saldo | 1.600,00 € |", "| Sparquote | 80.0 % |"].join("\n"),
+			["| Kennzahl | Wert |", "|---|---:|", "| Einnahmen | 2.000,00 € |", "| Ausgaben | 400,00 € |", "| Saldo | 1.600,00 € |", "| Sparquote | 80,0 % |"].join("\n"),
 		);
 	});
 
 	it("Kategorien-Tabelle ohne Wikilinks: absteigend, ohne leere Kategorien, mit Summenzeile", () => {
 		expect(kategorienTabelle(ctx, r, false)).toBe(
-			["| Kategorie | Betrag | Anteil % |", "|---|---:|---:|", "| Wohnen | 300,00 € | 75.0% |", "| Online Shopping | 100,00 € | 25.0% |", "| **Summe** | **400,00 €** | 100% |"].join("\n"),
+			["| Kategorie | Betrag | Anteil % |", "|---|---:|---:|", "| Wohnen | 300,00 € | 75,0 % |", "| Online Shopping | 100,00 € | 25,0 % |", "| **Summe** | **400,00 €** | 100,0 % |"].join("\n"),
 		);
 	});
 
-	it("Anteil rundet wie Pythons :.1f: Gleichstand zur geraden Ziffer (12.25 → 12.2, 87.75 → 87.8)", () => {
+	it("Anteil rundet wie Pythons :.1f: Gleichstand zur geraden Ziffer (12,25 → 12,2, 87,75 → 87,8), Komma wie die Beträge", () => {
 		const t = aggregateTransactions(
 			[makeTx({ betrag: "-49.00", rawRowIdx: 1, buchungstag: "2026-04-01" }), makeTx({ betrag: "-351.00", rawRowIdx: 2, buchungstag: "2026-04-02" })],
 			april,
 			(tx) => fixedCat(tx.rawRowIdx === 1 ? "Ausgaben:Freizeit:X" : "Ausgaben:Wohnen:Miete"),
 		);
 		const tabelle = kategorienTabelle(ctx, t, false);
-		expect(tabelle).toContain("| Freizeit | 49,00 € | 12.2% |");
-		expect(tabelle).toContain("| Wohnen | 351,00 € | 87.8% |");
+		expect(tabelle).toContain("| Freizeit | 49,00 € | 12,2 % |");
+		expect(tabelle).toContain("| Wohnen | 351,00 € | 87,8 % |");
 	});
 
 	it("Kategorien-Tabelle mit Wikilinks: der Alias-Trenner ist escaped", () => {

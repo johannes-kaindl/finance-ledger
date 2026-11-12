@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Fixed
+
+- Percentages in the generated reports (savings rate, category shares, total row) now use a decimal comma and a space before the sign, like the amounts: `32,5 %`, `100,0 %` instead of `32.5 %`, `44.3%`, `100%`. The machine values in the front matter (`sparquote_prozent`) keep the decimal point.
+
 ## [0.7.0] — 2026-10-26
 
 ### Added
