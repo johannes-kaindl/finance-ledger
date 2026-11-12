@@ -142,6 +142,8 @@ export const DEFAULT_PROJEKT_KEY = "projektbezug";
  */
 export function normalizeProjektKey(raw: string | undefined): string {
 	const key = (raw ?? "").trim();
+	// `null` besteht die Kit-Regel, Obsidian liest es aber als leeren Schlüssel (gemessen 2026-11-12): die Verknüpfung wäre unsichtbar.
+	if (/^null$/i.test(key)) return DEFAULT_PROJEKT_KEY;
 	return isFrontmatterKeyName(key) ? key : DEFAULT_PROJEKT_KEY;
 }
 

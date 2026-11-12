@@ -57,9 +57,20 @@ describe("normalizeProjektKey", () => {
 	});
 });
 
+describe("normalizeProjektKey: YAML-Null als Schlüssel", () => {
+	// Gemessen 2026-11-12 (Zweitinstanz, Obsidian, 11 Schlüssel): yes, no, on, off, true, false, y, n kommen als Text-Schlüssel an; `null` und `~`
+	// liest Obsidian als LEEREN Schlüssel (Schlüssel `""`), die Verknüpfung wäre in der Notiz unsichtbar. `~` fällt an der Kit-Regel, `null` besteht sie.
+	it("lehnt null in jeder Schreibweise ab und fällt auf den Standard zurück", () => {
+		for (const v of ["null", "Null", "NULL", " null "]) expect(normalizeProjektKey(v)).toBe(DEFAULT_PROJEKT_KEY);
+	});
+	it("nimmt die übrigen YAML-1.1-Wörter, die Obsidian als Text-Schlüssel liest", () => {
+		for (const v of ["yes", "no", "on", "off", "true", "false", "y", "n", "nullable", "null_bezug"]) expect(normalizeProjektKey(v)).toBe(v);
+	});
+});
+
 describe("normalizeProjektKey ist die Schlüsselprüfung des Kits, keine Kopie", () => {
-	it("nimmt genau die Namen an, die isFrontmatterKeyName annimmt (sonst Standard)", () => {
-		const namen = ["projekt", "Projekt Bezug", "a.b", "1projekt", "_projekt", "-projekt", ".projekt", "a: b", "Größe", "pro#jekt", "yes", "null", "x\ty"];
+	it("nimmt genau die Namen an, die isFrontmatterKeyName annimmt (sonst Standard; null ist die eine gemessene Ausnahme, siehe oben)", () => {
+		const namen = ["projekt", "Projekt Bezug", "a.b", "1projekt", "_projekt", "-projekt", ".projekt", "a: b", "Größe", "pro#jekt", "yes", "x\ty"];
 		for (const v of namen) expect(normalizeProjektKey(v) === v).toBe(isFrontmatterKeyName(v));
 	});
 	it("context.ts ruft das Kit und trägt keine eigene Schlüssel-Regex mehr", () => {
