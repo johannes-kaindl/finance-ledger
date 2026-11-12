@@ -28,17 +28,16 @@ describe("parseVertraegeConfig", () => {
 		const spec = parseVertraegeConfig({ vertraege: [vertrag()] }).vertraege[0];
 
 		expect(spec.aliases).toEqual([]);
-		expect(spec.sticker).toBe("");
 		expect(spec.noteExtraWarning).toBe("");
 	});
 
-	it("nimmt Aliase und Sticker, wenn sie dastehen", () => {
+	it("nimmt Aliase, wenn sie dastehen, und überliest ein altes sticker-Feld", () => {
 		const spec = parseVertraegeConfig({
 			vertraege: [vertrag({ aliases: ["ACME Festnetz"], sticker: "lucide//phone" })],
 		}).vertraege[0];
 
 		expect(spec.aliases).toEqual(["ACME Festnetz"]);
-		expect(spec.sticker).toBe("lucide//phone");
+		expect(spec).not.toHaveProperty("sticker");
 	});
 
 	it("nennt das fehlende Pflichtfeld beim Namen", () => {

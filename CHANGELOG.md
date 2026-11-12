@@ -8,6 +8,7 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ### Changed
 
+- Generated notes (accounts, contracts, savings goals, reports, categories, recipients, mandates) now follow the vault note types: `status` is written as `evergreen` / `in-arbeit` instead of `🌿 Evergreen` / `✏️ In-Arbeit`, the contract number is written as `aktenzeichen` (the contract table reads `=this.aktenzeichen`), and fields nobody reads are no longer written: `priority`, `sticker`, `aggregat_base`, `sicht`, `abgeschlossen_am`. Existing notes keep their fields; `scripts/migrate-note-schema.mjs` brings them up to date (dry run by default). A `sticker` key in `konten.yaml`, `vertraege.yaml` or `sparziele.yaml` is ignored; `sparziele.yaml` no longer requires it.
 - The "Save filter preset" name dialog now comes from the shared building block (obsidian-kit `prompt-text`): an empty name keeps the dialog open instead of doing nothing, the text is trimmed, and the buttons sit in the native button row (Cancel left, OK right).
 
 ### Fixed

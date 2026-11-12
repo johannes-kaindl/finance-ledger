@@ -8,10 +8,9 @@ tags:
 bereich: 💰 Finanzen
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
-status: 🌿 Evergreen
+status: evergreen
 created: 2026-10-18
 updated: 2026-10-18
-sticker: lucide//file-bar-chart
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

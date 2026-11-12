@@ -154,7 +154,7 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		"bereich: 💰 Finanzen",
 		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
-		"status: ✏️ In-Arbeit",
+		"status: in-arbeit",
 		"",
 		`sparziel_typ: ${spec.sparzielTyp}`,
 		`zielbetrag_eur: ${spec.zielbetragEur}`,
@@ -169,7 +169,6 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		"",
 		`created: ${today}`,
 		`updated: ${today}`,
-		`sticker: ${spec.sticker}`,
 		"---",
 		"",
 	].join("\n");

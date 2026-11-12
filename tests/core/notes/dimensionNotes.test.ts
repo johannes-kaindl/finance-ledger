@@ -71,7 +71,7 @@ describe("Dimensions-Notizen — zweiter Lauf", () => {
 		const original = first.files.get(path) ?? "";
 		const edited = original
 			.replace("  - finanzen/kategorie-note\n", "  - finanzen/kategorie-note\n  - mein-tag\n")
-			.replace("aggregat_base: shared\n", "aggregat_base: shared\nmein_feld: 42\n")
+			.replace("period: alltime\n", "period: alltime\nmein_feld: 42\n")
 			.replace("_Eigene Anmerkungen zu dieser Kategorie — wird bei Re-Run NICHT überschrieben._", "Meine Gedanken zur Miete.");
 		expect(edited).not.toBe(original);
 		first.files.set(path, edited);

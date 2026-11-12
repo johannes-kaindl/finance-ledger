@@ -11,7 +11,7 @@ aliases:
 bereich: 💰 Finanzen
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
-status: ✏️ In-Arbeit
+status: in-arbeit
 
 sparziel_typ: konkret
 zielbetrag_eur: 2500.5
@@ -26,7 +26,6 @@ aktiv: true
 
 created: 2026-10-18
 updated: 2026-10-18
-sticker: lucide//plane
 ---
 ## 🎯 Reise
 

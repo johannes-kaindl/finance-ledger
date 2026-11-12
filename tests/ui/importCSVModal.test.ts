@@ -57,7 +57,6 @@ function konto(partial: Partial<KontoSpec> & Pick<KontoSpec, 'id' | 'iban'>): Ko
     csvSchema: 'sparkasse_camt52',
     inhaber: 'Max Mustermann',
     aliases: [],
-    sticker: '',
     rolleBeschreibung: '',
     filename: null,
     aktiv: true,

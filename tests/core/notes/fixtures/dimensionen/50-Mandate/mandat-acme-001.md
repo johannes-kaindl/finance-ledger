@@ -5,7 +5,7 @@ tags:
   - 🏗_Finanzplan
   - finanzen/mandat
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-18
 updated: 2026-10-18
 note_type: mandat-note
@@ -17,7 +17,6 @@ tx_count: 13
 volumen_eur: 1297.00
 aktiv: true
 vertrag_link: null
-aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"

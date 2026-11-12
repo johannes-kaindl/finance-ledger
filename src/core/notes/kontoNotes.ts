@@ -140,8 +140,7 @@ ${aliases}
 bereich: 💰 Finanzen
 ${ctx.projektKey}:
   - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}
-status: 🌿 Evergreen
-priority: 🔴 Hoch
+status: evergreen
 
 iban: ${spec.iban}
 bank: ${spec.bank}
@@ -160,7 +159,6 @@ aktiv: true
 
 created: ${heute}
 updated: ${heute}
-sticker: ${spec.sticker}
 ---
 
 # 🏦 ${title}

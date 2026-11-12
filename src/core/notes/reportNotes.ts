@@ -76,10 +76,9 @@ function frontmatter(ctx: ImporterContext, today: string): string {
 		"bereich: 💰 Finanzen",
 		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
-		"status: 🌿 Evergreen",
+		"status: evergreen",
 		`created: ${today}`,
 		`updated: ${today}`,
-		"sticker: lucide//file-bar-chart",
 		"---",
 	].join("\n");
 }

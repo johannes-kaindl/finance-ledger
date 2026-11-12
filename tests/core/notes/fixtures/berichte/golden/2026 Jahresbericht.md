@@ -8,7 +8,7 @@ aliases:
   - "2026"
   - Jahr 2026
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-16 00:00:00
 updated: 2026-10-16 00:00:00
 ausgaben_bankgebuehren_eur: 49.00
@@ -40,7 +40,6 @@ projektbezug:
   - "[[Finanzplan/Finanzplan]]"
 saldo_eur: 22595.91
 sparquote_prozent: 55.1
-sticker: lucide//calendar-days
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

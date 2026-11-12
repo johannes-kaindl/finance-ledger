@@ -111,7 +111,7 @@ auf **einer** Zeile; Pattern `/^; (:[a-z0-9_-]+)+:$/`.
 
 Was das Plugin **nicht** tut:
 
-- Konto-/Vertrags-Note-Schemas ändern (die besitzt der Importer)
+- Notiz-Schemas nach eigenem Gutdünken ändern: seit E7 schreibt das Plugin alle Notizen selbst, die Feldnamen und Enum-Werte (`status: evergreen`/`in-arbeit`) folgen aber den Vault-Typen `dokument` und `referenz`; ein neues Feld ohne Verbraucher kommt nicht hinein (`tests/core/notes/frontmatterSchema.test.ts`)
 - Categorizer-**Logik** forken — der eingebaute Import bleibt Parity-gebunden an die Referenz
 
 ## Context index

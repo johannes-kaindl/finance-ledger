@@ -290,25 +290,21 @@ function renderFrontmatter(
 	let vorKategorie: string[] = [];
 	let nachKategorie: string[] = [];
 	let nachProjekt: string[] = [];
-	let sticker: string;
 	if (periode.art === "monat") {
 		titel = `${info.label} Monatsbericht`;
 		aliases = [info.label, `${MONAT_NAMEN_DE[periode.month]} ${periode.year}`];
 		slug = "monatsbericht";
 		nachKategorie = [`monat: ${info.label}`];
-		sticker = "lucide//calendar";
 	} else if (periode.art === "quartal") {
 		titel = `${info.label} Quartalsbericht`;
 		aliases = [info.label, `Q${periode.quarter} ${periode.year}`, `Quartal ${periode.quarter} ${periode.year}`];
 		slug = "quartalsbericht";
 		nachProjekt = [`quartal: ${info.label}`];
-		sticker = "lucide//calendar-range";
 	} else {
 		titel = `${periode.year} Jahresbericht`;
 		aliases = [`"${periode.year}"`, `Jahr ${periode.year}`];
 		slug = "jahresbericht";
 		vorKategorie = [`jahr: ${periode.year}`];
-		sticker = "lucide//calendar-days";
 	}
 
 	// `created` und `updated` tragen wie in Python eine Uhrzeit; der Import kennt nur den Tag.
@@ -322,7 +318,7 @@ function renderFrontmatter(
 		"aliases:",
 		...aliases.map((a) => `  - ${a}`),
 		"bereich: 💰 Finanzen",
-		"status: ✏️ In-Arbeit",
+		"status: in-arbeit",
 		`created: ${today} 00:00:00`,
 		`updated: ${today} 00:00:00`,
 		...kategorieFelder,
@@ -336,7 +332,6 @@ function renderFrontmatter(
 		...nachProjekt,
 		`saldo_eur: ${get("saldo_eur")}`,
 		`sparquote_prozent: ${get("sparquote_prozent")}`,
-		`sticker: ${sticker}`,
 		"---",
 	];
 	return lines.join("\n");

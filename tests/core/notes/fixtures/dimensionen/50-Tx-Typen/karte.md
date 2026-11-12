@@ -5,7 +5,7 @@ tags:
   - 🏗_Finanzplan
   - finanzen/tx-typ-note
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-18
 updated: 2026-10-18
 note_type: tx-typ-note
@@ -14,7 +14,6 @@ tx_typ_canonical: Karte
 period: alltime
 tx_count: 91
 volumen_total_eur: 3820.58
-aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"

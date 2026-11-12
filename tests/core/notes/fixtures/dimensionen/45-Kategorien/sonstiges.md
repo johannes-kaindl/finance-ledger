@@ -5,7 +5,7 @@ tags:
   - 🏗_Finanzplan
   - finanzen/kategorie-note
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-18
 updated: 2026-10-18
 note_type: kategorie-note
@@ -13,13 +13,11 @@ kategorie_slug: sonstiges
 kategorie_canonical: Sonstiges
 kategorie_prefix: "Ausgaben:Sonstiges:"
 lebensbereich: sonstiges
-sicht: gesamt
 period: alltime
 ledger_accounts:
   - Ausgaben:Sonstiges:Einmalig:Reparatur
 posting_count: 13
 volumen_total_eur: 907.52
-aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"

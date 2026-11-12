@@ -12,3 +12,4 @@ docs/superpowers/specs/*
 docs/superpowers/plans/*
 !docs/superpowers/specs/.gitkeep
 !docs/superpowers/plans/.gitkeep
+.migrate-note-schema.mjs

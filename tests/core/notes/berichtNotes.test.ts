@@ -81,7 +81,7 @@ describe("Berichte — zweiter Lauf", () => {
 		// Nutzer ergänzt ein eigenes Tag, ein eigenes Feld und eine Bemerkung unter dem Block.
 		const edited = original
 			.replace("  - finanzen/monatsbericht\n", "  - finanzen/monatsbericht\n  - mein-tag\n")
-			.replace("sticker: lucide//calendar\n", "sticker: lucide//calendar\nmein_feld: 42\n")
+			.replace("kategorie: monatsbericht\n", "kategorie: monatsbericht\nmein_feld: 42\n")
 			.replace("_Eigene Notizen / Reflexionen — wird bei Re-Run NICHT überschrieben._", "Meine Gedanken zum April.");
 		expect(edited).not.toBe(original);
 		first.files.set(path, edited);

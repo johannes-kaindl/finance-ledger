@@ -22,14 +22,13 @@ export interface SparzielSpec {
 	gespartAufKonto: string;
 	ledgerKategorie: string;
 	aliases: string[];
-	sticker: string;
 }
 
 export interface SparzieleConfig {
 	sparziele: SparzielSpec[];
 }
 
-const REQUIRED_TEXT = ["filename", "title", "sparziel_typ", "gespart_auf_konto", "ledger_kategorie", "sticker"];
+const REQUIRED_TEXT = ["filename", "title", "sparziel_typ", "gespart_auf_konto", "ledger_kategorie"];
 const REQUIRED_NUMBER = ["zielbetrag_eur", "sparrate_monatlich_eur"];
 
 /** Liest die Sparziel-Konfiguration. Alle Mängel werden gesammelt und zusammen gemeldet (wie bei `parseVertraegeConfig`). */
@@ -82,7 +81,6 @@ export function parseSparzieleConfig(data: unknown): SparzieleConfig {
 			gespartAufKonto: String(entry.gespart_auf_konto),
 			ledgerKategorie: String(entry.ledger_kategorie),
 			aliases: Array.isArray(entry.aliases) ? entry.aliases.filter((a): a is string => typeof a === "string") : [],
-			sticker: String(entry.sticker),
 		});
 	});
 

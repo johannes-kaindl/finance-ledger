@@ -21,6 +21,10 @@
  *   npm run parity -- <config.json> <ziel-vault> [referenz-vault]
  *
  * Ohne `referenz-vault` wird nur geschrieben, nicht verglichen.
+ *
+ * Seit Welle 33 weichen die Notizen mit Absicht vom Python-Lauf ab (`status: evergreen`/`in-arbeit`, `aktenzeichen`, kein `priority`,
+ * `sticker`, `aggregat_base`, `sicht`, `abgeschlossen_am`; Prozentwerte der Berichte mit Komma): ein Vergleich mit dem Python-Lauf zeigt
+ * diese Zeilen als Unterschied, der Python-Importer wird dafür nicht mehr angepasst.
  */
 
 import { existsSync } from "node:fs";

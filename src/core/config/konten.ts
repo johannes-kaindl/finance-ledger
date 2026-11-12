@@ -25,7 +25,6 @@ export interface KontoSpec {
 	csvSchema: string;
 	inhaber: string;
 	aliases: string[];
-	sticker: string;
 	rolleBeschreibung: string;
 	/** Dateiname der Konto-Notiz; fehlt er, wird er aus Index + Bank gebildet. */
 	filename: string | null;
@@ -97,7 +96,6 @@ export function parseKontenConfig(data: unknown): KontenConfig {
 			csvSchema: String(entry.csv_schema),
 			inhaber: String(entry.inhaber),
 			aliases: stringList(entry.aliases),
-			sticker: optionalString(entry.sticker),
 			rolleBeschreibung: optionalString(entry.rolle_beschreibung),
 			filename:
 				typeof entry.filename === "string" && entry.filename !== ""

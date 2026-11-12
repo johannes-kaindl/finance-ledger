@@ -23,7 +23,6 @@ export interface VertragSpec {
 	/** `id` eines Kontos aus `konten.yaml`. */
 	abbuchtVonKonto: string;
 	aliases: string[];
-	sticker: string;
 	/** Zusätzlicher Warnhinweis im Kopf der erzeugten Notiz. */
 	noteExtraWarning: string;
 }
@@ -102,7 +101,6 @@ export function parseVertraegeConfig(data: unknown): VertraegeConfig {
 			vertragSubkategorie: String(entry.vertrag_subkategorie),
 			abbuchtVonKonto: String(entry.abbucht_von_konto),
 			aliases: stringList(entry.aliases),
-			sticker: optionalString(entry.sticker),
 			noteExtraWarning: optionalString(entry.note_extra_warning),
 		});
 	});

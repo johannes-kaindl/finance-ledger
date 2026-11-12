@@ -214,11 +214,10 @@ ${aliases}
 bereich: 💰 Finanzen
 ${ctx.projektKey}:
   - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}
-status: 🌿 Evergreen
-priority: 🟡 Mittel
+status: evergreen
 
 vertragspartner: ${spec.vertragspartner}
-vertragsnummer: ${nummer === null ? "null" : `"${nummer}"`}
+aktenzeichen: ${nummer === null ? "null" : `"${nummer}"`}
 vertrag_kategorie: ${spec.vertragKategorie}
 vertrag_subkategorie: ${spec.vertragSubkategorie}
 ledger_kategorie: "${spec.ledgerKategorie}"
@@ -229,7 +228,6 @@ abbucht_von:
   - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.folders.konten}/${kontoName}]]`)}
 kuendigungsfrist_tage: null
 vertrag_ende: null
-abgeschlossen_am: null
 optimierungspotenzial: null
 mandats_id: null
 
@@ -237,7 +235,6 @@ aktiv: true
 
 created: ${heute}
 updated: ${heute}
-sticker: ${spec.sticker}
 ---
 `;
 
@@ -276,7 +273,7 @@ function autoSection(
 			"| Feld | Wert |\n" +
 			"|---|---|\n" +
 			"| Vertragspartner | `=this.vertragspartner` |\n" +
-			"| Vertragsnummer | `=this.vertragsnummer` |\n" +
+			"| Vertragsnummer | `=this.aktenzeichen` |\n" +
 			"| Betrag | `=this.betrag_eur` € |\n" +
 			"| Rhythmus | `=this.rhythmus` |\n" +
 			"| Nächste Zahlung | `=this.naechste_zahlung` |\n" +

@@ -5,7 +5,7 @@ tags:
   - 🏗_Finanzplan
   - finanzen/empfaenger-note
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-18
 updated: 2026-10-18
 note_type: empfaenger-note
@@ -15,7 +15,6 @@ ledger_account: "Einnahmen:Gehalt:Globex"
 posting_count: 13
 volumen_total_eur: 43100.00
 period: alltime
-aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"

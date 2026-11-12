@@ -37,7 +37,6 @@ describe("parseKontenConfig", () => {
 		const spec = parseKontenConfig({ konten: [konto()] }).konten[0];
 		expect(spec.bic).toBe("");
 		expect(spec.aliases).toEqual([]);
-		expect(spec.sticker).toBe("");
 	});
 
 	it("nimmt aktiv:false ernst, alles andere gilt als aktiv", () => {

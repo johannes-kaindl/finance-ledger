@@ -10,7 +10,7 @@ aliases:
 bereich: 💰 Finanzen
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
-status: ✏️ In-Arbeit
+status: in-arbeit
 
 sparziel_typ: notgroschen
 zielbetrag_eur: 6500
@@ -25,7 +25,6 @@ aktiv: true
 
 created: 2026-10-18
 updated: 2026-10-18
-sticker: lucide//life-buoy
 ---
 ## 🎯 Notgroschen
 

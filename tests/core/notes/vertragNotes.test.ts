@@ -143,7 +143,11 @@ describe("planVertragNotes", () => {
 		expect(note).toContain("betrag_eur: 39.95");
 		expect(note).toContain("rhythmus: monatlich");
 		expect(note).toContain("naechste_zahlung: 2026-08-05");
-		expect(note).toContain('vertragsnummer: "ACME-123"');
+		expect(note).toContain('aktenzeichen: "ACME-123"');
+		expect(note).toContain("| Vertragsnummer | `=this.aktenzeichen` |");
+		// Schema des Typs Dokument (Welle 33): status als Enum-Wert, keine Felder ohne Verbraucher.
+		expect(note).toContain("\nstatus: evergreen\n");
+		for (const weg of ["priority:", "vertragsnummer", "abgeschlossen_am", "sticker:"]) expect(note, weg).not.toContain(weg);
 		expect(note).toContain("abbucht_von:\n  - \"[[Finanzplan/10-Konten/Konto 01 – Hauptkonto]]\"\n");
 		expect(note).toContain("projektbezug:\n  - \"[[Finanzplan/");
 	});

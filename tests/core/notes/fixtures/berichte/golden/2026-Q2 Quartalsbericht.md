@@ -9,7 +9,7 @@ aliases:
   - Q2 2026
   - Quartal 2 2026
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-16 00:00:00
 updated: 2026-10-16 00:00:00
 ausgaben_bankgebuehren_eur: 14.70
@@ -41,7 +41,6 @@ projektbezug:
 quartal: 2026-Q2
 saldo_eur: 5891.12
 sparquote_prozent: 48.3
-sticker: lucide//calendar-range
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

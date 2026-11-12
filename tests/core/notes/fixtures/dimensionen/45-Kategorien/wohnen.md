@@ -5,7 +5,7 @@ tags:
   - 🏗_Finanzplan
   - finanzen/kategorie-note
 bereich: 💰 Finanzen
-status: ✏️ In-Arbeit
+status: in-arbeit
 created: 2026-10-18
 updated: 2026-10-18
 note_type: kategorie-note
@@ -13,7 +13,6 @@ kategorie_slug: wohnen
 kategorie_canonical: Wohnen
 kategorie_prefix: "Ausgaben:Wohnen:"
 lebensbereich: wohnen
-sicht: gesamt
 period: alltime
 ledger_accounts:
   - Ausgaben:Wohnen:Bewirtschaftung
@@ -21,7 +20,6 @@ ledger_accounts:
   - Ausgaben:Wohnen:Strom
 posting_count: 39
 volumen_total_eur: 14603.00
-aggregat_base: shared
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
