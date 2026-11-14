@@ -323,6 +323,14 @@ describe("patchFrontmatter — lists (Blocklisten, die der Import besitzt)", () 
 		expect(neu).toBe(["---", "title: T", "ledger_accounts:", "  - B:1", "posting_count: 7", "created: 2026-10-01", "---", "Text", ""].join("\n"));
 	});
 
+	it("ersetzt eine Blockliste mit Leerzeile darin ganz, ohne Listenrest hinter dem Schlüssel davor (Kit 0.89.0)", () => {
+		// Unter Kit 0.84.0 endete der Wert an der Leerzeile: `  - A:2` blieb stehen und wurde zum Wert des Schlüssels davor.
+		const alt = mit(["ledger_accounts:", "  - A:1", "", "  - A:2"]);
+		const neu = patchFrontmatter(alt, lists("ledger_accounts", ["B:1"]));
+		expect(neu).toBe(["---", "title: T", "ledger_accounts:", "  - B:1", "posting_count: 1", "created: 2026-10-01", "---", "Text", ""].join("\n"));
+		expect(neu).not.toContain("A:2");
+	});
+
 	it("ein Eintrag mit Zeilenumbruch wirft mit Schlüssel und Grund", () => {
 		expect(() => patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["a\nb"]))).toThrow(/ledger_accounts.*invalid-value/);
 	});

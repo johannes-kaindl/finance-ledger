@@ -4,7 +4,7 @@
     "code-kit": { "ref": "0.37.5" }
   },
   "targets": [
-    { "dir": "src/vendor/kit", "source": "obsidian-kit", "from": "src/pure", "modules": ["callout", { "name": "frontmatter", "ref": "0.84.0" }, { "name": "frontmatter-patch", "ref": "0.84.0" }] },
+    { "dir": "src/vendor/kit", "source": "obsidian-kit", "from": "src/pure", "modules": ["callout", { "name": "frontmatter", "ref": "0.89.0" }, { "name": "frontmatter-patch", "ref": "0.89.0" }] },
     { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/pure", "modules": ["i18n", "local-stamp", "markdown-table", "marker-zone", { "name": "rotation", "ref": "0.60.0" }, "sha256", { "name": "split-list", "ref": "0.63.0" }] },
     { "dir": "src/vendor/kit", "source": "code-kit", "from": "src/ts/web", "modules": ["clipboard"] },
     { "dir": "tests/vendor/kit", "source": "obsidian-kit", "from": "src/testing", "modules": ["window-timers"] },

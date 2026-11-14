@@ -10,6 +10,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 - Generated notes take four more steps toward the vault note types: category notes carry `ausgabengruppe` instead of `lebensbereich`, mandate notes no longer write `vertrag_link: null` (the key appears once a contract is found), `created` and `updated` carry a time (`2026-11-14 00:00:00`, as the reports already did), and an IBAN is no longer taken as a contract number: some building societies enter the payer's IBAN as the mandate reference, which landed in `aktenzeichen`. `scripts/migrate-note-schema.mjs` brings existing notes up to date (dry run by default); a base that reads `note.lebensbereich` must read `note.ausgabengruppe` after that.
 
+### Fixed
+
+- Re-importing a note whose list field (accounts, tags) held a blank line or a comment inside the list left the rest of the old list behind and glued it to the field before it. The kit's frontmatter writer (0.89.0) now finds the end of such a value correctly.
+
 ## [0.8.0] — 2026-11-12
 
 ### Changed
