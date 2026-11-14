@@ -51,8 +51,8 @@ describe("Import-Report gegen den Python-Importer (Goldmuster)", () => {
 		first.files.set(path, (first.files.get(path) ?? "").replace("_Eigene Anmerkungen zum Import-Report — wird bei Re-Run NICHT überschrieben._", "Meine Notiz."));
 		const second = await importMit(makeCtx("2026-10-19"), { report: true }, { port: first.port, files: first.files });
 		const text = second.files.get(path) ?? "";
-		expect(text).toContain("created: 2026-10-18\n");
-		expect(text).toContain("updated: 2026-10-19\n");
+		expect(text).toContain("created: 2026-10-18 00:00:00\n");
+		expect(text).toContain("updated: 2026-10-19 00:00:00\n");
 		expect(text).toContain("Auto-generiert am 2026-10-19");
 		expect(text).toContain("Meine Notiz.");
 	});

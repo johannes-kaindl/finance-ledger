@@ -153,17 +153,22 @@ export function naechsteZahlung(last: IsoDate, rhythmus: Rhythmus): IsoDate {
 	return addDays(last, DELTA_DAYS[rhythmus]);
 }
 
+/** Eine IBAN (zwei Buchstaben, zwei Ziffern, 11 bis 30 Zeichen), auch mit Leerzeichen geschrieben. */
+const IBAN_FORM = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
+
 /**
  * Vertragsnummer aus den Buchungen.
  *
  * Die Mandatsreferenz ist die verlässlichste Quelle und hat deshalb Vorrang vor
- * allem, was sich aus dem Verwendungszweck herauslesen lässt.
+ * allem, was sich aus dem Verwendungszweck herauslesen lässt. Eine IBAN ist keine: Bausparkassen tragen die IBAN des Zahlers
+ * als Mandatsreferenz ein (gemessen Welle 34 am Bestand, `LBS Sued – Bauspar`), sie stand als Aktenzeichen in der Notiz.
+ * Die echte Nummer steht dort im Verwendungszweck ohne Stichwort, davor ein Muster zu raten wäre bei einem Vertrag geraten.
  */
 export function extractVertragsnummer(
 	matching: readonly CategorizedTx[],
 ): string | null {
 	for (const { tx } of matching) {
-		if (tx.mandatsreferenz !== "") {
+		if (tx.mandatsreferenz !== "" && !IBAN_FORM.test(tx.mandatsreferenz.replace(/\s+/g, "").toUpperCase())) {
 			return tx.mandatsreferenz;
 		}
 	}
@@ -233,8 +238,8 @@ mandats_id: null
 
 aktiv: true
 
-created: ${heute}
-updated: ${heute}
+created: ${heute} 00:00:00
+updated: ${heute} 00:00:00
 ---
 `;
 

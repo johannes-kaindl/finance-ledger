@@ -82,8 +82,8 @@ describe("Dimensions-Notizen — zweiter Lauf", () => {
 		expect(after).toContain("  - mein-tag\n");
 		expect(after).toContain("mein_feld: 42\n");
 		expect(after).toContain("Meine Gedanken zur Miete.");
-		expect(after).toContain("created: 2026-10-18\n");
-		expect(after).toContain("updated: 2026-10-19\n");
+		expect(after).toContain("created: 2026-10-18 00:00:00\n");
+		expect(after).toContain("updated: 2026-10-19 00:00:00\n");
 		expect(after).toContain("generated: 2026-10-19\n");
 	});
 

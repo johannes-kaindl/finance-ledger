@@ -207,6 +207,8 @@ export interface NoteSpec {
 	owned: Record<string, string>;
 	/** Block-Listen, die der Import besitzt (`ledger_accounts`): bei einer bestehenden Notiz ersetzt. */
 	lists?: Record<string, string[]>;
+	/** Blockliste, die nur bei fehlendem Schlüssel angelegt wird (siehe `FrontmatterPatch.listsAnlegen`). */
+	listsAnlegen?: Record<string, string[]>;
 	auto: string;
 	userDefault: string;
 }
@@ -216,11 +218,11 @@ export function renderNote(spec: NoteSpec, existing: string | undefined, today: 
 		return ["---", ...spec.frontmatter, "---"].join("\n") + assembleBody("", spec.auto, spec.userDefault);
 	}
 	const nachgezogen = updateAutoNote(existing, {
-		set: { ...spec.owned, updated: today },
+		set: { ...spec.owned, updated: `${today} 00:00:00` },
 		auto: spec.auto,
 		userDefault: spec.userDefault,
 	});
-	return spec.lists === undefined ? nachgezogen : patchFrontmatter(nachgezogen, { lists: spec.lists });
+	return spec.lists === undefined && spec.listsAnlegen === undefined ? nachgezogen : patchFrontmatter(nachgezogen, { lists: spec.lists, listsAnlegen: spec.listsAnlegen });
 }
 
 const fmt = (v: MoneyValue): string => v.toFixed(2);
@@ -257,8 +259,8 @@ function frontmatterKopf(titel: string, tag: string, noteType: string, today: st
 		`  - finanzen/${tag}`,
 		"bereich: 💰 Finanzen",
 		"status: in-arbeit",
-		`created: ${today}`,
-		`updated: ${today}`,
+		`created: ${today} 00:00:00`,
+		`updated: ${today} 00:00:00`,
 		`note_type: ${noteType}`,
 	];
 }
@@ -342,7 +344,7 @@ function renderKategorie(
 				`kategorie_slug: ${suffix}`,
 				`kategorie_canonical: ${canonical}`,
 				`kategorie_prefix: "${prefix}"`,
-				`lebensbereich: ${lebensbereichFor(suffix)}`,
+				`ausgabengruppe: ${lebensbereichFor(suffix)}`,
 				"period: alltime",
 				"ledger_accounts:",
 				...ledgerAccounts.map((a) => `  - ${a}`),

@@ -243,6 +243,18 @@ describe("renderNote — Blocklisten des Imports (Kit, listStyle block)", () => 
 	});
 });
 
+describe("patchFrontmatter — listsAnlegen (Liste nur bei fehlendem Schlüssel)", () => {
+	const alt = "---\na: 1\n---\n";
+	it("legt eine fehlende Liste als Blockliste an, eine leere legt nichts an", () => {
+		expect(patchFrontmatter(alt, { listsAnlegen: { vertrag_link: ["X"] } })).toBe("---\na: 1\nvertrag_link:\n  - X\n---\n");
+		expect(patchFrontmatter(alt, { listsAnlegen: { vertrag_link: [] } })).toBe(alt);
+	});
+	it("lässt eine vorhandene Liste unberührt", () => {
+		const da = "---\nvertrag_link:\n  - A\n---\n";
+		expect(patchFrontmatter(da, { listsAnlegen: { vertrag_link: ["B"] } })).toBe(da);
+	});
+});
+
 describe("patchFrontmatter — lists (Blocklisten, die der Import besitzt)", () => {
 	const mit = (liste: string[]): string =>
 		["---", "title: T", ...liste, "posting_count: 1", "created: 2026-10-01", "---", "Text", ""].join("\n");

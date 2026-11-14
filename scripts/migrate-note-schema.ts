@@ -4,6 +4,11 @@
  * (`priority`, `sticker`, `aggregat_base`, `sicht`, `abgeschlossen_am`) weg. Neu erzeugte Notizen kommen schon so aus dem Plugin;
  * der Import zieht in bestehenden Notizen nur seine eigenen Felder nach und fasst diese nie an.
  *
+ * Welle 34 (Entscheidung Johannes 2026-11-14) zieht vier Reste nach: `lebensbereich` → `ausgabengruppe` (nur der Schlüssel; die Typangabe
+ * `kategorie: lebensbereich` einer Ordnernotiz bleibt), `vertrag_link: null` weg (eine Liste bleibt), `created`/`updated` ohne Uhrzeit
+ * bekommen ` 00:00:00` wie die Berichte (Formen mit Uhrzeit bleiben, wie sie sind), und eine IBAN als `aktenzeichen` einer Vertragsnotiz wird `null`
+ * (eine Bausparkasse trägt die IBAN des Zahlers als Mandatsreferenz ein, die Extraktion nimmt sie seither nicht mehr).
+ *
  * Aufruf (Trockenlauf ist der Standard, geschrieben wird nur mit `--apply`):
  *   npm run migrate-note-schema -- <finanzplan-ordner> [--apply]
  *
@@ -24,6 +29,8 @@ const ORDNER = ["10-Konten", "20-Verträge", "30-Sparziele", "40-Monatsberichte"
 const WEG = ["priority", "sticker", "aggregat_base", "sicht", "abgeschlossen_am"];
 const STATUS = new Set(["entwurf", "in-arbeit", "evergreen", "erledigt", "archiv", "frozen"]);
 const TAG = "🏗_Finanzplan";
+const NUR_TAG = /^\d{4}-\d{2}-\d{2}$/;
+const IBAN_FORM = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
 
 export interface Ergebnis {
 	text: string;
@@ -54,6 +61,7 @@ export function migriere(text: string): Ergebnis {
 	const istVertrag = vorher.data["kategorie"] === "vertrag";
 
 	const hatAktenzeichen = "aktenzeichen" in vorher.data;
+	const hatGruppe = "ausgabengruppe" in vorher.data;
 	const neu: string[] = [];
 	for (const zeile of t.block) {
 		const m = /^([A-Za-z_][\w-]*):(?:[ \t]+(.*?))?\r?$/.exec(zeile);
@@ -72,6 +80,31 @@ export function migriere(text: string): Ergebnis {
 				}
 				ergebnis.befund.push(`status ${m[2].trim()} ist kein Enum-Wert und wird nicht geraten`);
 			}
+		}
+		const cr = zeile.endsWith("\r") ? "\r" : "";
+		const wertRoh = (m?.[2] ?? "").replace(/\r$/, "");
+		if (schluessel === "lebensbereich" && m?.[2] !== undefined) {
+			if (hatGruppe) {
+				ergebnis.befund.push("lebensbereich und ausgabengruppe stehen beide da, nichts umbenannt");
+			} else {
+				neu.push(zeile.replace(/^lebensbereich:/, "ausgabengruppe:"));
+				ergebnis.geaendert.push("lebensbereich → ausgabengruppe");
+				continue;
+			}
+		}
+		if (schluessel === "vertrag_link" && wertRoh === "null") {
+			ergebnis.geaendert.push("vertrag_link: null entfernt");
+			continue;
+		}
+		if ((schluessel === "created" || schluessel === "updated") && NUR_TAG.test(wertRoh)) {
+			neu.push(`${schluessel}: ${wertRoh} 00:00:00${cr}`);
+			ergebnis.geaendert.push(`${schluessel} ohne Uhrzeit`);
+			continue;
+		}
+		if (schluessel === "aktenzeichen" && istVertrag && IBAN_FORM.test(wertRoh.replace(/^["']|["']$/g, "").replace(/\s+/g, "").toUpperCase())) {
+			neu.push(`aktenzeichen: null${cr}`);
+			ergebnis.geaendert.push("aktenzeichen: IBAN → null");
+			continue;
 		}
 		if (schluessel === "vertragsnummer" && istVertrag) {
 			if (hatAktenzeichen) {
@@ -96,13 +129,28 @@ export function migriere(text: string): Ergebnis {
 
 	// Sicherung: nur die genannten Schlüssel dürfen sich unterscheiden.
 	const danach = parseFrontmatter(nachher);
-	const erlaubt = new Set([...WEG, "vertragsnummer", "aktenzeichen", "status"]);
+	const erlaubt = new Set([...WEG, "vertragsnummer", "aktenzeichen", "status", "lebensbereich", "ausgabengruppe", "vertrag_link", "created", "updated"]);
 	const schluessel = new Set([...Object.keys(vorher.data), ...Object.keys(danach.data)]);
 	for (const k of schluessel) {
 		if (erlaubt.has(k)) continue;
 		if (JSON.stringify(vorher.data[k] as FmValue | undefined) !== JSON.stringify(danach.data[k] as FmValue | undefined)) {
 			return { text, geaendert: [], befund: [`Sicherung: ${k} wäre mitverändert worden, Notiz unberührt`] };
 		}
+	}
+	// Die Schlüssel mit eigener Regel dürfen sich nur in dieser Weise ändern.
+	const gleich = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+	if (!hatGruppe && vorher.data["lebensbereich"] !== undefined && !gleich(vorher.data["lebensbereich"], danach.data["ausgabengruppe"] ?? vorher.data["lebensbereich"])) {
+		return { text, geaendert: [], befund: ["Sicherung: der Wert von lebensbereich wäre verändert worden, Notiz unberührt"] };
+	}
+	for (const k of ["created", "updated"]) {
+		const alt = vorher.data[k];
+		const neuWert = danach.data[k];
+		if (alt !== undefined && !gleich(alt, neuWert) && String(neuWert) !== `${String(alt)} 00:00:00`) {
+			return { text, geaendert: [], befund: [`Sicherung: ${k} wäre anders als um die Uhrzeit verändert worden, Notiz unberührt`] };
+		}
+	}
+	if (Array.isArray(vorher.data["vertrag_link"]) && !gleich(vorher.data["vertrag_link"], danach.data["vertrag_link"])) {
+		return { text, geaendert: [], befund: ["Sicherung: eine vorhandene vertrag_link-Liste wäre verändert worden, Notiz unberührt"] };
 	}
 	ergebnis.text = nachher;
 	return ergebnis;

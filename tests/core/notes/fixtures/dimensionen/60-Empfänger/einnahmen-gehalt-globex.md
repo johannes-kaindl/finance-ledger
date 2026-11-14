@@ -6,8 +6,8 @@ tags:
   - finanzen/empfaenger-note
 bereich: 💰 Finanzen
 status: in-arbeit
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 note_type: empfaenger-note
 empfaenger_slug: einnahmen-gehalt-globex
 counterparty_canonical: Globex

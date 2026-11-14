@@ -167,8 +167,8 @@ function renderNeu(ctx: ImporterContext, spec: SparzielSpec): string {
 		"",
 		"aktiv: true",
 		"",
-		`created: ${today}`,
-		`updated: ${today}`,
+		`created: ${today} 00:00:00`,
+		`updated: ${today} 00:00:00`,
 		"---",
 		"",
 	].join("\n");

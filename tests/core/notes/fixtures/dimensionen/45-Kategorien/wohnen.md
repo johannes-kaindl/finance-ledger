@@ -6,13 +6,13 @@ tags:
   - finanzen/kategorie-note
 bereich: 💰 Finanzen
 status: in-arbeit
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 note_type: kategorie-note
 kategorie_slug: wohnen
 kategorie_canonical: Wohnen
 kategorie_prefix: "Ausgaben:Wohnen:"
-lebensbereich: wohnen
+ausgabengruppe: wohnen
 period: alltime
 ledger_accounts:
   - Ausgaben:Wohnen:Bewirtschaftung

@@ -87,13 +87,16 @@ describe("Mandate", () => {
 			{ filename: "Anderer.md", text: '---\nmandats_id: "M2"\n---\n' },
 		];
 		const ohne = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, [], {})[0];
-		expect(ohne?.content).toContain("vertrag_link: null\n");
+		expect(ohne?.content).not.toContain("vertrag_link");
 		const mit = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, vertraege, { [ohne?.path ?? ""]: ohne?.content ?? "" })[0];
 		// Die erste Datei nach Name gewinnt.
 		// Gequotet: Obsidian liest `- [[X]]` ungequotet als verschachtelte Liste, also nicht als Link (gemessen 2026-10-25).
 		expect(mit?.content).toContain('vertrag_link:\n  - "[[Finanzplan/20-Verträge/Erster]]"\n');
 		expect(mit?.content).toContain("[[Finanzplan/20-Verträge/Erster|Erster]]");
 		expect(mit?.content).not.toContain("vertrag_link: null");
+		// Ohne Vertrag bleibt auch ein zweiter Lauf ohne den Schlüssel (kein `vertrag_link: []`).
+		const nochmal = planMandatNotes(ctx, [tx("2026-10-01", "M1")], cat, [], { [ohne?.path ?? ""]: ohne?.content ?? "" })[0];
+		expect(nochmal?.content).not.toContain("vertrag_link");
 	});
 
 	it("schreibt den Verweis schon bei der Neuanlage gequotet: der zweite Lauf ändert die Notiz nicht", () => {

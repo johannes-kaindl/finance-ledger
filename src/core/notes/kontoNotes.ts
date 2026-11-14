@@ -157,8 +157,8 @@ mitinhaber:
 
 aktiv: true
 
-created: ${heute}
-updated: ${heute}
+created: ${heute} 00:00:00
+updated: ${heute} 00:00:00
 ---
 
 # 🏦 ${title}
@@ -182,7 +182,7 @@ export function updateKontoNote(
 		set: {
 			saldo_eur: saldoOf(kennzahlen),
 			saldo_stand_am: standAmOf(kennzahlen, heute),
-			updated: heute,
+			updated: `${heute} 00:00:00`,
 		},
 		ensure: { anfangssaldo_eur: "null", anfangssaldo_stand_am: "null" },
 	});

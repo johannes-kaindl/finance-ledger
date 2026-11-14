@@ -132,6 +132,30 @@ describe("extractVertragsnummer", () => {
 	it("meldet null, wenn nichts zu finden ist", () => {
 		expect(extractVertragsnummer([cat("-1", "2026-05-06")])).toBeNull();
 	});
+
+	// Gemessen am Bestand (Welle 34): eine Bausparkasse trägt die IBAN des Zahlers als Mandatsreferenz ein, die Lastschrift also keine
+	// Vertragsnummer; die IBAN stand als Aktenzeichen in der Vertragsnotiz. Hier mit der Beispiel-IBAN der Bundesbank.
+	it("hält eine IBAN als Mandatsreferenz nicht für eine Vertragsnummer", () => {
+		const iban = [cat("-1", "2026-05-06", { mandatsreferenz: "DE89370400440532013000", verwendungszweck: "Beitrag Juni" })];
+		expect(extractVertragsnummer(iban)).toBeNull();
+		const mitLeerzeichen = [cat("-1", "2026-05-06", { mandatsreferenz: "DE89 3704 0044 0532 0130 00" })];
+		expect(extractVertragsnummer(mitLeerzeichen)).toBeNull();
+	});
+
+	it("nimmt dann die nächste Mandatsreferenz oder das Muster im Verwendungszweck", () => {
+		const gemischt = [
+			cat("-1", "2026-05-06", { mandatsreferenz: "DE89370400440532013000" }),
+			cat("-1", "2026-06-06", { mandatsreferenz: "REF-77" }),
+		];
+		expect(extractVertragsnummer(gemischt)).toBe("REF-77");
+		const muster = [cat("-1", "2026-05-06", { mandatsreferenz: "DE89370400440532013000", verwendungszweck: "Vertragskonto 4711 Juni" })];
+		expect(extractVertragsnummer(muster)).toBe("4711");
+	});
+
+	it("lässt eine Referenz stehen, die nur ähnlich aussieht (zu kurz, ohne Ziffernpaar)", () => {
+		expect(extractVertragsnummer([cat("-1", "2026-05-06", { mandatsreferenz: "DE12" })])).toBe("DE12");
+		expect(extractVertragsnummer([cat("-1", "2026-05-06", { mandatsreferenz: "ACME-LASTSCHRIFT-1234567" })])).toBe("ACME-LASTSCHRIFT-1234567");
+	});
 });
 
 describe("planVertragNotes", () => {

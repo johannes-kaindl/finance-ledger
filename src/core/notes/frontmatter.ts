@@ -34,6 +34,11 @@ export interface FrontmatterPatch {
 	 * Schlüssel aber nie an. Eine leere Liste steht als `key: null`.
 	 */
 	lists?: Record<string, readonly string[]>;
+	/**
+	 * Blocklisten, die nur dann in die Notiz kommen, wenn der Schlüssel fehlt (`vertrag_link` nach dem ersten Treffer): eine vorhandene
+	 * Liste bleibt unberührt (dafür ist `lists` da), eine leere Liste legt nichts an.
+	 */
+	listsAnlegen?: Record<string, readonly string[]>;
 }
 
 /** Frontmatter lesen. Dünne Hülle über den Kit-Parser. */
@@ -69,10 +74,17 @@ export function patchFrontmatter(
 		text,
 		patchKit(text, { set: toKit(patch.set), ensure: toKit(patch.ensure) }),
 	);
-	if (patch.lists === undefined) return scalars;
-	return apply(
+	const angelegt = patch.listsAnlegen === undefined ? scalars : apply(
 		scalars,
 		patchKit(scalars, {
+			ensure: Object.fromEntries(Object.entries(patch.listsAnlegen).filter(([, items]) => items.length > 0).map(([key, items]) => [key, [...items]])),
+			listStyle: "block",
+		}),
+	);
+	if (patch.lists === undefined) return angelegt;
+	return apply(
+		angelegt,
+		patchKit(angelegt, {
 			set: Object.fromEntries(
 				Object.entries(patch.lists).map(([key, items]) => [
 					key,

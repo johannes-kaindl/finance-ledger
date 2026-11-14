@@ -9,8 +9,8 @@ bereich: 💰 Finanzen
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
 status: evergreen
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 ---
 
 <!-- BEGIN: AUTO-GENERATED -->

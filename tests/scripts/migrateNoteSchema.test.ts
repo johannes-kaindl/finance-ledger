@@ -67,3 +67,84 @@ describe("migriere: Bestand auf das Vault-Schema", () => {
 		expect(beide.text).toContain("=this.vertragsnummer");
 	});
 });
+
+
+/** Die vier Reste der Schema-Anpassung (Welle 34): ausgabengruppe, vertrag_link, Uhrzeit, IBAN als Aktenzeichen. */
+describe("migriere: Schema-Rest (Welle 34)", () => {
+	const KATEGORIE = `---
+title: Kategorie Wohnen
+type: 📋 Referenz
+tags:
+  - 🏗_Finanzplan
+  - finanzen/kategorie-note
+status: in-arbeit
+created: 2026-05-11
+updated: 2026-05-12
+note_type: kategorie-note
+lebensbereich: wohnen
+period: alltime
+---
+
+# Wohnen
+`;
+	const MANDAT = `---
+title: Mandat M1
+tags:
+  - 🏗_Finanzplan
+status: in-arbeit
+created: 2026-05-11 09:10:15
+updated: 2026-05-12T08:00:00
+note_type: mandat-note
+vertrag_link: null
+tx_count: 3
+---
+`;
+	const MANDAT_MIT = MANDAT.replace("vertrag_link: null", 'vertrag_link:\n  - "[[X/Erster]]"');
+
+	it("benennt lebensbereich in ausgabengruppe um und setzt an Datumsangaben ohne Uhrzeit 00:00:00", () => {
+		const r = migriere(KATEGORIE);
+		expect(r.befund).toEqual([]);
+		expect(r.text).toContain("\nausgabengruppe: wohnen\n");
+		expect(r.text).not.toContain("lebensbereich:");
+		expect(r.text).toContain("\ncreated: 2026-05-11 00:00:00\n");
+		expect(r.text).toContain("\nupdated: 2026-05-12 00:00:00\n");
+		expect(r.geaendert).toEqual(expect.arrayContaining(["lebensbereich → ausgabengruppe", "created ohne Uhrzeit", "updated ohne Uhrzeit"]));
+	});
+
+	it("lässt die Typangabe kategorie: lebensbereich einer Ordnernotiz stehen und benennt nur den Schlüssel", () => {
+		const hub = "---\ntags:\n  - 🏗_Finanzplan\nkategorie: lebensbereich\nlebensbereich: freizeit\n---\n";
+		const r = migriere(hub);
+		expect(r.text).toContain("\nkategorie: lebensbereich\n");
+		expect(r.text).toContain("\nausgabengruppe: freizeit\n");
+	});
+
+	it("entfernt vertrag_link: null, lässt eine Liste und Datumsformen mit Uhrzeit stehen", () => {
+		const r = migriere(MANDAT);
+		expect(r.text).not.toContain("vertrag_link");
+		expect(r.text).toContain("\ncreated: 2026-05-11 09:10:15\n");
+		expect(r.text).toContain("\nupdated: 2026-05-12T08:00:00\n");
+		expect(r.geaendert).toEqual(["vertrag_link: null entfernt"]);
+		expect(migriere(MANDAT_MIT).geaendert).toEqual([]);
+	});
+
+	it("setzt eine IBAN als Aktenzeichen einer Vertragsnotiz auf null und lässt eine echte Nummer stehen", () => {
+		const iban = "---\ntags:\n  - 🏗_Finanzplan\nkategorie: vertrag\naktenzeichen: \"DE89370400440532013000\"\n---\n";
+		const r = migriere(iban);
+		expect(r.text).toContain("\naktenzeichen: null\n");
+		expect(r.geaendert).toEqual(["aktenzeichen: IBAN → null"]);
+		expect(migriere(iban.replace("DE89370400440532013000", "ACME-123")).geaendert).toEqual([]);
+	});
+
+	it("ist beim zweiten Lauf still", () => {
+		for (const t of [KATEGORIE, MANDAT]) {
+			const einmal = migriere(t).text;
+			expect(migriere(einmal).geaendert).toEqual([]);
+		}
+	});
+
+	it("bricht ab, wenn ausgabengruppe schon neben lebensbereich steht (nichts geraten)", () => {
+		const r = migriere(KATEGORIE.replace("lebensbereich: wohnen", "lebensbereich: wohnen\nausgabengruppe: freizeit"));
+		expect(r.befund.join(" ")).toContain("ausgabengruppe");
+		expect(r.text).toContain("lebensbereich: wohnen");
+	});
+});

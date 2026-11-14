@@ -23,8 +23,8 @@ ledger_kategorie: "Aktiva:Sparzweck:Notgroschen"
 
 aktiv: true
 
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 ---
 ## 🎯 Notgroschen
 

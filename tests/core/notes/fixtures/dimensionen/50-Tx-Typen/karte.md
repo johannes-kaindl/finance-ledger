@@ -6,8 +6,8 @@ tags:
   - finanzen/tx-typ-note
 bereich: 💰 Finanzen
 status: in-arbeit
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 note_type: tx-typ-note
 tx_typ_slug: karte
 tx_typ_canonical: Karte

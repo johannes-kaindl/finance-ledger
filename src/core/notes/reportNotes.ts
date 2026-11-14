@@ -61,7 +61,7 @@ export function renderReport(ctx: ImporterContext, input: ReportInput, existing?
 	if (existing === undefined) {
 		return frontmatter(ctx, today) + assembleBody("", auto, USER_DEFAULT);
 	}
-	return updateAutoNote(existing, { set: { updated: today }, auto, userDefault: USER_DEFAULT });
+	return updateAutoNote(existing, { set: { updated: `${today} 00:00:00` }, auto, userDefault: USER_DEFAULT });
 }
 
 function frontmatter(ctx: ImporterContext, today: string): string {
@@ -77,8 +77,8 @@ function frontmatter(ctx: ImporterContext, today: string): string {
 		`${ctx.projektKey}:`,
 		`  - ${quoteScalar(`[[${ctx.notesPrefix}/${ctx.projectNote}]]`)}`,
 		"status: evergreen",
-		`created: ${today}`,
-		`updated: ${today}`,
+		`created: ${today} 00:00:00`,
+		`updated: ${today} 00:00:00`,
 		"---",
 	].join("\n");
 }

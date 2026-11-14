@@ -6,8 +6,8 @@ tags:
   - finanzen/mandat
 bereich: 💰 Finanzen
 status: in-arbeit
-created: 2026-10-18
-updated: 2026-10-18
+created: 2026-10-18 00:00:00
+updated: 2026-10-18 00:00:00
 note_type: mandat-note
 mandats_id: "MANDAT-INSURE-7"
 glaeubiger_id: "DE98ZZZ00000000002"
@@ -16,7 +16,6 @@ letztes_datum: 2026-10-10
 tx_count: 13
 volumen_eur: 418.75
 aktiv: true
-vertrag_link: null
 generated: 2026-10-18
 projektbezug:
   - "[[Finanzplan/Finanzplan]]"
