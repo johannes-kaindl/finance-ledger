@@ -4,7 +4,7 @@
 // reicht fertige Skalare (`Money.toFixed(2)`, `null`, gequotetes `glaeubiger_id`) als `{ literal }` durch. Ändert ein
 // Kit-Update eine davon, fasst jeder Import jede Notiz neu an oder kippt den Datentyp im Vault; hier fällt es zuerst auf.
 import { describe, expect, it } from "vitest";
-import { isFmLiteralText, patchFrontmatter } from "../../src/vendor/kit/frontmatter-patch";
+import { isFmLiteralText, isFrontmatterKeyName, patchFrontmatter } from "../../src/vendor/kit/frontmatter-patch";
 
 const lit = (literal: string) => ({ literal });
 
@@ -83,5 +83,20 @@ describe("isFmLiteralText — gleiche Antwort wie patchFrontmatter", () => {
 		const r = patchFrontmatter("---\na: 1\n---\n", { set: { x: lit(text) } });
 		expect(r.ok).toBe(erwartet);
 		if (!erwartet && !r.ok) expect(r.reason).toBe("invalid-value");
+	});
+});
+
+// Kit 0.84.0: ein Schlüsselname mit Leerzeichen am Ende wird abgelehnt. Der Leser trimmt ihn, das zweite `set` legte sonst eine Dublette an.
+// `normalizeProjektKey` (context.ts) trimmt vor der Prüfung; dieser Wächter fällt, wenn ein Pin unter 0.84.0 zurückfällt.
+describe("patchFrontmatter — Schlüsselname mit Leerzeichen am Ende", () => {
+	it("lehnt ihn als invalid-key ab und legt keine Zeile an", () => {
+		expect(isFrontmatterKeyName("projekt ")).toBe(false);
+		expect(patchFrontmatter("---\na: 1\n---\n", { set: { "projekt ": "x" } })).toEqual({ ok: false, reason: "invalid-key", key: "projekt " });
+	});
+
+	it("legt beim zweiten set mit dem getrimmten Schlüssel keine Dublette an", () => {
+		const einmal = geschrieben("---\na: 1\n---\n", { set: { projekt: "x" } });
+		const zweimal = geschrieben(einmal, { set: { projekt: "y" } });
+		expect(zweimal.match(/^projekt:/gm)).toHaveLength(1);
 	});
 });

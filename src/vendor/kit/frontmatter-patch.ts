@@ -1,4 +1,4 @@
-// vendored from obsidian-kit@0.82.2, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
+// vendored from obsidian-kit@0.84.0, src/pure/frontmatter-patch.ts — do not hand-edit; re-vendor via tools/sync-kit.sh
 // frontmatter-patch.ts — eigene Frontmatter-Felder setzen, fremde Zeilen byte-gleich lassen. Kein obsidian-Import.
 //
 // Zusammengeführt aus zwei unabhängigen Fassungen desselben Vorgangs (Diachronic wäre die dritte):
@@ -75,7 +75,9 @@ const FM_RE = /^(---\r?\n)([\s\S]*?)(\r?\n---[ \t]*\r?\n?)/;
 const EMPTY_RE = /^(---\r?\n)(---[ \t]*(?:\r?\n|$))/;
 // Schlüsselzeile: Schlüssel am Zeilenanfang (nie eingerückt) — dieselbe Form wie im Kit-Parser.
 const KEY_RE = /^([A-Za-z0-9_][\w .-]*?):[ \t]*(.*)$/;
-const KEY_NAME_RE = /^[A-Za-z0-9_][\w .-]*$/;
+// Kein Leerzeichen am Ende: `patchFrontmatter` schrieb `a : x`, der Leser (`scanEntries`) trimmt den Schlüssel auf `a`, findet `a ` nie wieder, und das zweite `set` hängte eine
+// Dublette an (Befund kitok4-w28, 2026-10-27). Ein Leerzeichen in der Mitte bleibt erlaubt, am Ende stehen Wortzeichen, Punkt oder Bindestrich.
+const KEY_NAME_RE = /^[A-Za-z0-9_](?:[\w .-]*[\w.-])?$/;
 // Fortsetzung einer Schlüssel-Darstellung: eingerückt (Liste, mehrzeiliger Wert) oder Listenpunkt auf Spalte 0.
 const CONT_RE = /^([ \t]|-[ \t])/;
 
@@ -146,7 +148,8 @@ export function isFmLiteralText(text: string): boolean {
  *  @example
  *  isFrontmatterKeyName("diachronic-round") // → true
  *  isFrontmatterKeyName("Größe")            // → false (Umlaut: der Leser findet die Zeile nicht)
- *  isFrontmatterKeyName("a: b")             // → false */
+ *  isFrontmatterKeyName("a: b")             // → false
+ *  isFrontmatterKeyName("a ")               // → false (Leerzeichen am Ende: der Leser trimmt, das zweite set legte eine Dublette an) */
 export function isFrontmatterKeyName(name: string): boolean {
   return typeof name === "string" && KEY_NAME_RE.test(name);
 }
