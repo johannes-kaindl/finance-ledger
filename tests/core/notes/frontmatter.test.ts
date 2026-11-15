@@ -60,6 +60,16 @@ describe("patchFrontmatter", () => {
 		expect(out).toContain('ledger_account: "Aktiva:Bank:Sparkasse:Hauptkonto"');
 	});
 
+	it("ersetzt eine Blockliste mit Leerzeile oder Kommentar ganz und lässt keinen Listenrest als Wert des Schlüssels davor stehen", () => {
+		const text = "---\ntitle: X\nledger_accounts:\n  - A:B\n\n  # Hinweis\n  - C:D\nsaldo_eur: 1.00\n---\nText\n";
+		const out = patchFrontmatter(text, { lists: { ledger_accounts: ["E:F"] } });
+
+		expect(out).not.toMatch(/C:D/);
+		expect(out).not.toMatch(/A:B/);
+		expect(readFrontmatter(out)?.data["ledger_accounts"]).toEqual(["E:F"]);
+		expect(out).toContain("saldo_eur: 1.00\n---\nText\n");
+	});
+
 	it("lässt den Rumpf zeichengenau", () => {
 		const out = patchFrontmatter(NOTE, { set: { saldo_eur: "1.00" } });
 		expect(out.slice(out.indexOf("\n---\n") + 5)).toBe(
