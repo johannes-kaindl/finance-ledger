@@ -5,7 +5,7 @@ tags:
   - finance/account
 iban: GB00ACME00000001
 bank: Acme Bank
-ledger_account: "Aktiva:Bank:Everyday Checking"
+ledger_account: "Assets:Bank:Everyday Checking"
 saldo_eur: 0.00
 saldo_stand_am: 2026-08-17
 anfangssaldo_eur: 2480,00
@@ -27,7 +27,7 @@ updated: 2026-08-17
 |---|---|
 | IBAN | `GB00ACME00000001` |
 | Bank | `Acme Bank` |
-| Ledger account | `Aktiva:Bank:Everyday Checking` |
+| Ledger account | `Assets:Bank:Everyday Checking` |
 | Balance (€) | `see Balances tab` |
 <!-- END: AUTO-GENERATED -->
 

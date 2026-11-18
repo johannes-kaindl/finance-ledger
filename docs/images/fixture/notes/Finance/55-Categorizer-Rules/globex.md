@@ -2,7 +2,7 @@
 kategorie: categorizer-rule
 pattern: globex
 pattern_type: substring
-ledger_account: "Einnahmen:Salary:Globex"
+ledger_account: "Income:Salary:Globex"
 priority: 50
 ---
 

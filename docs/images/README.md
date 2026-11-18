@@ -28,19 +28,11 @@ Aufnahme: `npm run shots -- --setup`, **Zweitinstanz** mit eigenem Profil starte
 - **Keine deutsche Oberfläche.** Die Plugin-UI folgt Obsidians Spracheinstellung; für die
   Aufnahme steht sie auf Englisch, weil `README.md` die kanonische Fassung ist.
 
-## Eine Eigenheit, die man im Bild sieht — und die ein Befund ist
+## Kontonamen im Fixture
 
-Die Kontopräfixe **`Aktiva:`, `Passiva:`, `Einnahmen:`, `Ausgaben:` sind hart verdrahtet**
-(`src/views/helpers.ts` → `accountType`, `src/aggregator/saldo.ts`). Sie sind keine
-Anzeigetexte, sondern Datenlogik: an ihnen entscheidet das Plugin, ob ein Konto Vermögen,
-Schuld, Einnahme oder Ausgabe ist.
+Das Fixture trägt **englische Wurzeln** (`Assets:`, `Liabilities:`, `Income:`, `Expenses:`, `Equity:`), damit die englischen Bilder keine deutschen Kontonamen zeigen. Der Kontotyp kommt aus dem Kontenplan: `make-ledger.mjs` schreibt wie der Importer die `type:`-Tags in die `accounts.ledger`, und `konten.yaml` setzt `kontowurzeln`, damit der Import des GUI-Smokes dieselben Wurzeln anlegt.
 
-Folge für die Bilder: In einer **englischen** Oberfläche stehen **deutsche** Kontonamen —
-`Ausgaben:Groceries:Northwind`. Das Fixture bildet das ehrlich ab, statt es zu kaschieren.
-
-Das ist kein Aufnahme-Problem, sondern eine offene Frage am Produkt: ein englischsprachiger
-Nutzer müsste seine Konten deutsch präfixieren. Solange das so ist, gehört es in die README
-und nicht in eine Fußnote — die Bebilderung hat es sichtbar gemacht.
+Bis 2026-11-18 standen hier deutsche Wurzeln (`Ausgaben:Groceries:Northwind`), weil das Plugin den Typ am Namen erkannte; das war ein offener Befund und ist erledigt. Wer die Wurzeln im Fixture wieder ändert, ändert `kontowurzeln` in `konten.yaml`, die Tags im Generator und die Wurzeln in `scripts/gui-smoke.ts` (`FIXTURE_WURZELN`) zusammen.
 
 ## Fixture
 

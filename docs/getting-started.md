@@ -16,7 +16,7 @@ Create `konten.yaml` in the finance folder (the file name is the **Accounts file
 konten:
   - id: checking
     iban: GB00ACME00000001
-    ledger_account: "Aktiva:Bank:Everyday Checking"
+    ledger_account: "Assets:Bank:Everyday Checking"
     bank: Acme Bank
     konto_typ: giro
     konto_rolle: checking
@@ -26,6 +26,8 @@ konten:
 ```
 
 `csv_schema` is `camt52` for the CAMT export and `sparkasse_visa` for a Visa CSV.
+
+The import creates a few accounts of its own (catch-all, bank fees, opening balance) under German root names such as `Ausgaben:` unless you add a `kontowurzeln:` block to this file; the README section *Account names* shows it. Accounts you name yourself, like the one above, keep your names.
 
 ## 3. Drop the CSVs in
 

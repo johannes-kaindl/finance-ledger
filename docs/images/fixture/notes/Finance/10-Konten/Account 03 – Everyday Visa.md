@@ -5,7 +5,7 @@ tags:
   - finance/account
 iban: GB00ACME00000003
 bank: Acme Bank
-ledger_account: "Passiva:Credit Card:Everyday Visa"
+ledger_account: "Liabilities:Credit Card:Everyday Visa"
 saldo_eur: 0.00
 saldo_stand_am: 2026-08-17
 anfangssaldo_eur: -320,00
@@ -27,7 +27,7 @@ updated: 2026-08-17
 |---|---|
 | IBAN | `GB00ACME00000003` |
 | Bank | `Acme Bank` |
-| Ledger account | `Passiva:Credit Card:Everyday Visa` |
+| Ledger account | `Liabilities:Credit Card:Everyday Visa` |
 | Balance (€) | `see Balances tab` |
 <!-- END: AUTO-GENERATED -->
 

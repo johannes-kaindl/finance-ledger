@@ -2,7 +2,7 @@
 kategorie: categorizer-rule
 pattern: metro transit
 pattern_type: substring
-ledger_account: "Ausgaben:Transport:Metro Transit"
+ledger_account: "Expenses:Transport:Metro Transit"
 priority: 50
 ---
 

@@ -2,6 +2,8 @@
 paths:
   - "src/core/notes/**"
   - "src/core/import/**"
+  - "src/core/accounts/**"
+  - "src/aggregator/**"
   - "scripts/parity-*"
   - "tests/core/notes/**"
 ---
@@ -9,6 +11,12 @@ paths:
 # Importer-Port (Stand Welle 24: E0–E7 fertig)
 
 `src/core/notes/` schreibt alle Notiz-Arten (Berichte, `dimensionNotes`, `mandatNotes`, `sparzielNotes` mit `sparziele.yaml`, `ruleBodies`, `reportNotes`); `runImport` verdrahtet sie über opt-in-Optionen, `nativeImport.ts` setzt alle. Bestehende Notizen zieht `autoNote.ts` nach (nur Felder des Imports und der Marker-Block; `created` und Eigenes bleiben). `npm run parity -- <config.json> <ziel> <referenz>` vergleicht alle Ordner und den Report mit dem Python-Importer (lokal unter `~/Archive/repos/26-011-finanzplan-importer`; `parity-export.py` nimmt `sparziele.yaml` und `vertraege.yaml` als Parameter 4 und 5); bekannte Unterschiede stehen im Kopf von `parity-check.ts`. Goldmuster: `tests/core/notes/fixtures/` (Eingaben `berichte/gen.py`). Fremdtext aus Bankdaten geht nur über `neutralizeCellText` (code-kit) in Tabellenzellen.
+
+## Kontotyp kommt aus dem Kontenplan, nicht aus dem Namen (seit 2026-11-18)
+
+`kontoTyp(konto, plan)` in `src/core/accounts/kontoTyp.ts` ist die einzige Stelle, die entscheidet, ob ein Konto Vermögen, Schuld, Einnahme, Ausgabe oder Eigenkapital ist; ein neues `startsWith("Ausgaben:")` (oder `Aktiva:`, `Einnahmen:`, `Passiva:`, `Eigenkapital:`) im Quelltext ist ein Fehler. Der Plan ist `parseKontenplan(accounts.ledger)`: `type:`-Tags der `account`-Zeilen (hledger: `A L E R X C` oder Langform), das genauere Konto gewinnt vor dem Vorfahren; ohne Eintrag gilt die Wurzel des Namens (deutsch wie bisher, dazu `Assets`, `Liabilities`, `Income`, `Revenues`, `Expenses`, `Equity`), und der Doppelpunkt hinter der Wurzel bleibt Pflicht (`Aktiva` allein hat keinen Typ). Die Ansichten laden den Plan mit `loadKontenplan` (`src/views/kontenplan.ts`) und reichen ihn weiter.
+
+Der Importer legt eigene Konten (Auffangkonto, Bankgebühren, Zinsen, Eröffnungsbilanz, Durchlaufkonto) unter `ctx.wurzeln` an (`src/core/accounts/wurzeln.ts`, Konfiguration `kontowurzeln` in `konten.yaml`, Standard deutsch). Für abweichende Wurzeln schreibt `formatAccounts` `account <Wurzel>  ; type: <Kürzel>`-Zeilen (`wurzelDirektiven`), beim Standard nichts: `accounts.ledger` bleibt für bestehende Kontenpläne byte-gleich, und `npm run parity` gegen den Python-Importer bleibt gültig. Die Kategorienamen unter der Ausgaben-Wurzel (`Wohnen`, `Lebensmittel`, …, `kategorieMapping(wurzeln)` in `kategorien.ts`) sind Kategorien, keine Wurzeln, und bleiben deutsch. `tests/core/import/englischerKontenplan.test.ts` fährt den ganzen Weg (Import → `journal.ledger` und `accounts.ledger` → Saldo und Kategorien) mit englischen und mit frei benannten Wurzeln samt Gegenprobe ohne Plan.
 
 ## Wikilinks in Frontmatter-Listen stehen gequotet
 

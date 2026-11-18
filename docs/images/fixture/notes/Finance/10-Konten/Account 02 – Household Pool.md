@@ -5,7 +5,7 @@ tags:
   - finance/account
 iban: GB00ACME00000002
 bank: Acme Bank
-ledger_account: "Aktiva:Bank:Household Pool"
+ledger_account: "Assets:Bank:Household Pool"
 saldo_eur: 0.00
 saldo_stand_am: 2026-08-17
 anfangssaldo_eur: 940,00
@@ -27,7 +27,7 @@ updated: 2026-08-17
 |---|---|
 | IBAN | `GB00ACME00000002` |
 | Bank | `Acme Bank` |
-| Ledger account | `Aktiva:Bank:Household Pool` |
+| Ledger account | `Assets:Bank:Household Pool` |
 | Balance (€) | `see Balances tab` |
 <!-- END: AUTO-GENERATED -->
 

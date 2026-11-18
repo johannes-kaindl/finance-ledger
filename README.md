@@ -122,6 +122,24 @@ into `opening_balances.ledger`. The plugin then filters out transactions before 
 - Optional `vertraege.yaml` (contract notes) and `sparziele.yaml` (savings goals) next to `konten.yaml`.
   The Python importer is not needed.
 
+### Account names
+
+The views read the **type** of an account (asset, liability, income, expense, equity) from the chart of accounts, not from its name. An `account` line in `accounts.ledger` carries it as an hledger tag (`account Savings  ; type: A`, values `A` `L` `E` `R` `X` or `Asset` `Liability` `Equity` `Revenue` `Expense`) and applies to every sub-account. Without a tag the root of the name decides: `Assets`, `Liabilities`, `Income` (or `Revenues`), `Expenses`, `Equity` in English and `Aktiva`, `Passiva`, `Einnahmen`, `Ausgaben`, `Eigenkapital` in German. A chart of accounts in either language works as it is.
+
+The built-in import creates a few accounts of its own (catch-all, bank fees, interest, opening balance, the clearing account for transfers between your accounts). It creates them under the German roots unless `konten.yaml` says otherwise:
+
+```yaml
+kontowurzeln:
+  asset: Assets
+  liability: Liabilities
+  income: Income
+  expense: Expenses
+  equity: Equity
+  clearing: Clearing
+```
+
+Name only the roots you want to change. For roots that differ from the German defaults the import writes the matching `type:` tags into `accounts.ledger`. The category names below the expense root (`Wohnen`, `Lebensmittel`, …) are not roots and stay as they are.
+
 ## Install
 
 **Recommended — from the community store:** Obsidian → Settings → Community plugins → Browse → search for **Finance Ledger** → Install → Enable. Updates arrive through Obsidian like for any other plugin.

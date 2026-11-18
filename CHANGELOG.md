@@ -6,6 +6,15 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Added
+
+- The type of an account (asset, liability, income, expense, equity) now comes from the chart of accounts, not from the German name prefix. A `type:` tag on an `account` line in `accounts.ledger` decides; without a tag the root of the name does, in German as before and now in English as well (`Assets`, `Liabilities`, `Income`, `Expenses`, `Equity`). Existing German charts behave exactly as before.
+- `kontowurzeln` in `konten.yaml` sets the root names under which the import creates its own accounts (catch-all, bank fees, interest, opening balance, clearing account for transfers). The default stays German, and for other roots the import writes the matching `type:` tags into `accounts.ledger`.
+
+### Changed
+
+- The account placeholder in the categorizer-rule dialog follows the interface language (`Expenses:...` in English).
+
 ## [0.9.1] — 2026-11-15
 
 ### Fixed

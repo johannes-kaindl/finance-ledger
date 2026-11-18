@@ -124,6 +124,24 @@ daraus `opening_balances.ledger`. Das Plugin filtert dann die Buchungen vor dem 
 - Optional `vertraege.yaml` (Vertrags-Notizen) und `sparziele.yaml` (Sparziele) neben der `konten.yaml`.
   Der Python-Importer wird nicht gebraucht.
 
+### Kontonamen
+
+Die Ansichten lesen den **Typ** eines Kontos (Vermögen, Schuld, Einnahme, Ausgabe, Eigenkapital) aus dem Kontenplan, nicht aus seinem Namen. Eine `account`-Zeile in der `accounts.ledger` trägt ihn als hledger-Tag (`account Rücklagen  ; type: A`, Werte `A` `L` `E` `R` `X` oder `Asset` `Liability` `Equity` `Revenue` `Expense`) und gilt für alle Unterkonten. Ohne Tag entscheidet die Wurzel des Namens: `Aktiva`, `Passiva`, `Einnahmen`, `Ausgaben`, `Eigenkapital` auf Deutsch und `Assets`, `Liabilities`, `Income` (oder `Revenues`), `Expenses`, `Equity` auf Englisch. Ein Kontenplan in einer der beiden Sprachen läuft so, wie er ist.
+
+Der eingebaute Import legt einige Konten selbst an (Auffangkonto, Bankgebühren, Zinsen, Eröffnungsbilanz, das Durchlaufkonto für Umbuchungen zwischen deinen Konten). Er legt sie unter den deutschen Wurzeln an, solange die `konten.yaml` nichts anderes sagt:
+
+```yaml
+kontowurzeln:
+  asset: Assets
+  liability: Liabilities
+  income: Income
+  expense: Expenses
+  equity: Equity
+  clearing: Clearing
+```
+
+Nenne nur die Wurzeln, die du ändern willst. Für Wurzeln, die vom deutschen Standard abweichen, schreibt der Import die passenden `type:`-Tags in die `accounts.ledger`. Die Kategorienamen unter der Ausgaben-Wurzel (`Wohnen`, `Lebensmittel`, …) sind keine Wurzeln und bleiben, wie sie sind.
+
 ## Installation
 
 **Empfohlen — über den Community-Store:** Obsidian → Einstellungen → Community-Plugins → Durchsuchen → **Finance Ledger** suchen → Installieren → Aktivieren. Aktualisierungen kommen wie bei jedem anderen Plugin über Obsidian.

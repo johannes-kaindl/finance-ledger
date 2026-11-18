@@ -1,8 +1,18 @@
 # Example account configuration (fixture)
+#
+# The account tree uses English roots. `kontowurzeln` tells the importer which roots to create its own accounts under
+# (catch-all, bank fees, opening balance); unnamed roots keep the German defaults.
+kontowurzeln:
+  asset: Assets
+  liability: Liabilities
+  income: Income
+  expense: Expenses
+  equity: Equity
+  clearing: Clearing
 konten:
   - id: checking
     iban: GB00ACME00000001
-    ledger_account: "Aktiva:Bank:Everyday Checking"
+    ledger_account: "Assets:Bank:Everyday Checking"
     bank: Acme Bank
     konto_typ: giro
     konto_rolle: checking
@@ -11,7 +21,7 @@ konten:
     filename: "Account 01 – Everyday Checking.md"
   - id: pool
     iban: GB00ACME00000002
-    ledger_account: "Aktiva:Bank:Household Pool"
+    ledger_account: "Assets:Bank:Household Pool"
     bank: Acme Bank
     konto_typ: giro
     konto_rolle: pool
@@ -20,7 +30,7 @@ konten:
     filename: "Account 02 – Household Pool.md"
   - id: visa
     iban: GB00ACME00000003
-    ledger_account: "Passiva:Credit Card:Everyday Visa"
+    ledger_account: "Liabilities:Credit Card:Everyday Visa"
     bank: Acme Bank
     konto_typ: kreditkarte
     konto_rolle: visa

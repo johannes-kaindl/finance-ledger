@@ -219,7 +219,14 @@ async function sidebarBreit(cdp: Cdp, breite: number): Promise<void> {
       const jetzt = Math.round(el.getBoundingClientRect().width);
       const vorher = window.__shotsBreite;
       window.__shotsBreite = jetzt;
-      return vorher === jetzt && jetzt > 100 ? true : null;
+      // Ruhe allein genügt nicht, und ein einmaliges setSize auch nicht: das erste im frischen Profil griff nicht
+      // (Hero 2026-11-18: Sidebar blieb bei 300 statt 820 px, zwei gleiche Messungen in Folge). Solange die Breite
+      // fehlt, wird sie erneut gesetzt; erst Ruhe bei erreichter Breite zählt.
+      if (jetzt < ${breite} * 0.85) {
+        app.workspace.rightSplit.setSize(${breite});
+        return null;
+      }
+      return vorher === jetzt ? true : null;
     `,
     10_000,
     250,

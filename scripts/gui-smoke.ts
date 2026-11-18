@@ -57,7 +57,8 @@ import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { cwd } from "node:process";
 
-import { KATEGORIE_MAPPING } from "../src/core/aggregate/kategorien.js";
+import { kategorieMapping } from "../src/core/aggregate/kategorien.js";
+import { normalizeWurzeln } from "../src/core/accounts/wurzeln.js";
 import { Vorbedingung, createBilanz, parseArgs, runDriver } from "../../tools/obsidian-cdp/bilanz.js";
 import {
   attachTo,
@@ -86,7 +87,9 @@ const KONTO_ID = "checking";
  *  Sie geht im `finally` wieder heraus. */
 const SPUR = "<!-- gui-smoke: diese Zeile muss den Import überleben -->";
 /** Konto der Regel, die der Schnappschuss-Punkt anlegt — daran erkennt das Aufräumen Reste. */
-const SMOKE_KONTO = "Ausgaben:GuiSmoke:Test";
+/** Die Wurzeln des Fixtures (`kontowurzeln` in `docs/images/fixture/notes/Finance/konten.yaml`). */
+const FIXTURE_WURZELN = normalizeWurzeln({ asset: "Assets", liability: "Liabilities", income: "Income", expense: "Expenses", equity: "Equity", clearing: "Clearing" });
+const SMOKE_KONTO = "Expenses:GuiSmoke:Test";
 const KONTEN_NAME = "konten.yaml";
 const KONTEN_WEG = "konten.yaml.gui-smoke";
 /** Ordner und Notiz-Art der Berichte (E5). Der Treiber leert sie vor dem Lauf, damit „entstehen“ nichts Altes liest. */
@@ -580,8 +583,8 @@ async function pruefeVorschau(cdp: Cdp, root: string): Promise<void> {
 async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
   const NAME = "Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter";
   const journal = await readNote(cdp, `${root}/Ledger/journal.ledger`);
-  // Das Kategorien-Panel steht auf „Ausgaben“: der Tag muss eine Buchung mit einem Konto unter Ausgaben: tragen (der erste Tag des Journals ist das Gehalt und zeigt dort „No data“; gemessen 2026-11-18, Obsidian 1.15.1).
-  const ersterTag = journal === null ? null : /^(\d{4}-\d{2}-\d{2})[^\n]*\n(?:[ \t]+[^\n]*\n)*?[ \t]+Ausgaben:/m.exec(journal)?.[1] ?? null;
+  // Das Kategorien-Panel steht auf „Ausgaben“: der Tag muss eine Buchung mit einem Konto unter Expenses: tragen (der erste Tag des Journals ist das Gehalt und zeigt dort „No data“; gemessen 2026-11-18, Obsidian 1.15.1).
+  const ersterTag = journal === null ? null : /^(\d{4}-\d{2}-\d{2})[^\n]*\n(?:[ \t]+[^\n]*\n)*?[ \t]+Expenses:/m.exec(journal)?.[1] ?? null;
   if (ersterTag === null) throw new Vorbedingung("Kein Tag mit einer Ausgaben-Buchung im journal.ledger gefunden");
 
   await cdp.evaluate(`await app.commands.executeCommandById(${JSON.stringify(`${PLUGIN_ID}:open-category-overview`)}); return true;`);
@@ -1138,7 +1141,7 @@ async function main(): Promise<void> {
     // Dimensions-Notizen (E6): je Hauptkategorie mit Buchungen eine Notiz. Die Soll-Menge stammt aus den Konten
     // der Buchungen im geschriebenen Journal und der Kategorie-Tabelle des Kerns, nicht aus einer Konstante.
     const dimensionenNach = await leseDimensionen(cdp, root);
-    const sollKategorien = KATEGORIE_MAPPING.filter(([, prefix]) =>
+    const sollKategorien = kategorieMapping(FIXTURE_WURZELN).filter(([, prefix]) =>
       (journal ?? "").split("\n").some((zeile) => zeile.trimStart().startsWith(prefix)),
     ).map(([suffix]) => suffix);
     const istOrdner = (ordner: string): string[] =>
