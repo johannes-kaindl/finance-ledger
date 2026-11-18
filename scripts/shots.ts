@@ -177,7 +177,6 @@ async function statusleisteAus(cdp: Cdp): Promise<void> {
  * hier den Lauf abbrechen, nicht ein falsches Motiv durchreichen.
  */
 async function hubTab(cdp: Cdp, tab: string): Promise<void> {
-  await cdp.send("Page.bringToFront");
   await cdp.evaluate(`
     app.commands.executeCommandById(${JSON.stringify(`${PLUGIN_ID}:${tab}`)});
     return true;
