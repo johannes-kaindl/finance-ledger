@@ -580,17 +580,18 @@ async function pruefeVorschau(cdp: Cdp, root: string): Promise<void> {
 async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
   const NAME = "Kategorien — Zeitrahmen schränkt ein und reist in den Ledger-Filter";
   const journal = await readNote(cdp, `${root}/Ledger/journal.ledger`);
-  const ersterTag = journal === null ? null : /^(\d{4}-\d{2}-\d{2})/m.exec(journal)?.[1] ?? null;
-  if (ersterTag === null) throw new Vorbedingung("Kein Datum im journal.ledger gefunden");
+  // Das Kategorien-Panel steht auf „Ausgaben“: der Tag muss eine Buchung mit einem Konto unter Ausgaben: tragen (der erste Tag des Journals ist das Gehalt und zeigt dort „No data“; gemessen 2026-11-18, Obsidian 1.15.1).
+  const ersterTag = journal === null ? null : /^(\d{4}-\d{2}-\d{2})[^\n]*\n(?:[ \t]+[^\n]*\n)*?[ \t]+Ausgaben:/m.exec(journal)?.[1] ?? null;
+  if (ersterTag === null) throw new Vorbedingung("Kein Tag mit einer Ausgaben-Buchung im journal.ledger gefunden");
 
   await cdp.evaluate(`await app.commands.executeCommandById(${JSON.stringify(`${PLUGIN_ID}:open-category-overview`)}); return true;`);
   const da = await pollUntil<boolean>(cdp, `return !!document.querySelector(".fl-range-bar select") && document.querySelectorAll(".fl-table tbody tr").length > 0;`, 10_000);
   if (!da) throw new Vorbedingung("Kategorien-Tab mit Zeitrahmen-Leiste nicht erreicht");
 
-  const messung = await cdp.evaluate<{ alle: number[]; leer: number; tag: number[]; zeilenTag: number; ledgerVon: string; ledgerBis: string } | null>(`
+  const messung = await cdp.evaluate<{ alle: number[]; leer: number; tag: number[]; zeilenTag: number; ledgerVon: string; ledgerBis: string } | { fehlt: string }>(`
     // Der Hub hält alle Tabs gemountet: nur die Tabelle des Kategorien-Panels zählt (das Panel, das die Leiste trägt).
     const panel = document.querySelector(".fl-range-bar")?.closest(".fl-view");
-    if (!panel) return null;
+    if (!panel) return { fehlt: "Panel: .fl-range-bar hat keinen Vorfahren .fl-view" };
     // Die Buchungszahl der obersten Zeile (3. Spalte, ganze Zahl) statt des Betrags: Betragsformat und
     // Tausendertrennzeichen hängen an der Sprache, die Zahl der Buchungen nicht.
     const geld = () => {
@@ -601,7 +602,7 @@ async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
     const warte = (ms) => new Promise((r) => setTimeout(r, ms));
     const von = panel.querySelector(".fl-range-bar input[type=date]");
     const bis = panel.querySelectorAll(".fl-range-bar input[type=date]")[1];
-    if (!von || !bis) return null;
+    if (!von || !bis) return { fehlt: ".fl-range-bar input[type=date]: " + panel.querySelectorAll(".fl-range-bar input[type=date]").length + " gefunden, Felder der Leiste: " + Array.from(panel.querySelectorAll(".fl-range-bar input, .fl-range-bar select")).map((e) => e.tagName + ":" + (e.getAttribute("type") ?? "")).join(",") };
     const setze = async (v, b) => {
       for (const [el, x] of [[von, v], [bis, b]]) { el.value = x; el.dispatchEvent(new Event("input", { bubbles: true })); }
       await warte(300);
@@ -613,13 +614,13 @@ async function pruefeKategorien(cdp: Cdp, root: string): Promise<void> {
     const tag = geld();
     const zeilenTag = panel.querySelectorAll(".fl-table tbody tr").length;
     const link = panel.querySelector(".fl-table .fl-link-affordance");
-    if (!link) return null;
+    if (!link) return { fehlt: ".fl-table .fl-link-affordance: 0 gefunden; Kategoriezeile: " + (panel.querySelector(".fl-table tbody tr")?.innerHTML ?? "keine").slice(0, 400) };
     link.click();
     await warte(800);
     const felder = Array.from(document.querySelectorAll(".ledger-filter-bar input[type=date]"));
     return { alle, leer, tag, zeilenTag, ledgerVon: felder[0]?.value ?? "", ledgerBis: felder[1]?.value ?? "" };
   `);
-  if (messung === null) throw new Vorbedingung("Zeitrahmen-Felder oder Kategoriezeile nicht im DOM");
+  if ("fehlt" in messung) throw new Vorbedingung(`Zeitrahmen-Felder oder Kategoriezeile nicht im DOM — ${messung.fehlt}`);
   // Der Klick hat im localStorage des Profils einen Datumsfilter hinterlassen — zurücksetzen, sonst erbt ihn
   // der nächste Lauf (das Hero der README-Bilder zeigte danach eine leere Tabelle).
   await cdp.evaluate(`
