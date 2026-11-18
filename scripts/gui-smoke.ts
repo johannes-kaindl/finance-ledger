@@ -20,19 +20,11 @@
  *
  * ## Lauf (Zweitinstanz, eigenes Profil, eigener Port; die reguläre Instanz wird nie angefasst)
  *
- * ```bash
- * echo "$STAGING_VAULTS_DIR"                       # muss gesetzt sein (~/.zshenv)
- * npm run build
- * npm run smoke:gui -- --setup                      # Vault aus docs/images/fixture bauen + Plugin deployen
- * UD=/tmp/obs-test-finance-ledger; mkdir -p "$UD"   # Profil je Repo; lebt dort eine fremde Instanz: $UD-w19
- * cp ~/Library/Application\ Support/obsidian/obsidian-*.asar "$UD"/   # aktuelle Version, sonst 1.12.4
- * # $UD/obsidian.json: {"vaults":{"<id>":{"path":"<STAGING_VAULTS_DIR>/finance-ledger","ts":0,"open":true}},"language":"en"}
- * lsof -nP -iTCP:<port> -sTCP:LISTEN                # Port frei?
- * /Applications/Obsidian.app/Contents/MacOS/Obsidian --user-data-dir="$UD" --remote-debugging-port=<port> &
- * python3 ~/.claude/hooks/obsidian-cdp-lock.py acquire --label finance-ledger --intent "GUI-Smoke :<port>" --exclusive focus --port <port> --ttl 300
- * npm run smoke:gui -- --port <port>
- * python3 ~/.claude/hooks/obsidian-cdp-lock.py release
- * ```
+ * Lauf: `tools/obsidian-cdp/messlauf.sh` (Dach, README § Messlauf in einem Aufruf) startet die Zweitinstanz, hält den Lock (`--exclusive focus`, davor, mit `export`)
+ * und räumt auf; das Rezept steht nur dort. Für diesen Treiber: `REPO=finance-ledger`.
+ *
+ * Besonderheiten dieses Treibers (aus dem früheren Rezept übernommen):
+ *   Setup (`--setup`): Vault aus docs/images/fixture bauen + Plugin deployen
  *
  * Der erste Lauf nach der Profilanlage ist ein Aufwärmlauf und zählt nicht; je Messlauf ein
  * frischer Prozess. Den Vertrauensdialog und den Restricted Mode erledigt `bereiteInstanzVor`.
