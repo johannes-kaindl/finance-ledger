@@ -11,6 +11,7 @@
  * Rein: „heute“ kommt als Parameter herein.
  */
 
+import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
 import { daysInMonth, splitIsoDate, type IsoDate } from "../dates";
 import type { BankTransaction } from "../import/transaction";
 import { Money, type MoneyValue, ZERO } from "../money";
@@ -91,6 +92,7 @@ export function computeBudgetForMonth(
 	month: number,
 	today: IsoDate,
 	categorizer: Categorizer,
+	kontenplan?: Kontenplan,
 ): BudgetState[] {
 	const tageImMonat = daysInMonth(year, month);
 	const t = splitIsoDate(today);
@@ -102,7 +104,7 @@ export function computeBudgetForMonth(
 	const key = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
 	const results: BudgetState[] = [];
 	for (const [suffix, prefix] of KATEGORIE_MAPPING) {
-		if (!prefix.startsWith("Ausgaben:")) continue;
+		if (kontoTyp(prefix, kontenplan) !== "expense") continue;
 		const monatlich = kategorieMonatlich(transactions, prefix, categorizer);
 		const { avg: soll, samples } = sollAusMonaten(monatlich);
 		const ist = monatlich.get(key) ?? ZERO;

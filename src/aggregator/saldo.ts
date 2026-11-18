@@ -1,5 +1,6 @@
 import type { Transaction } from '../parser/ledger';
 import type { OpeningBalance } from './openingBalances';
+import { kontoTyp, type Kontenplan } from '../core/accounts/kontoTyp';
 
 export interface AccountSaldo {
   account: string;
@@ -26,7 +27,8 @@ export interface AccountSaldo {
  */
 export function aggregateAccountSaldos(
   transactions: Transaction[],
-  openingBalances?: Map<string, OpeningBalance>
+  openingBalances?: Map<string, OpeningBalance>,
+  plan?: Kontenplan,
 ): AccountSaldo[] {
   const map = new Map<
     string,
@@ -43,7 +45,7 @@ export function aggregateAccountSaldos(
   // soll das Konto im Saldo-Output auftauchen.
   if (openingBalances) {
     for (const [account, ob] of openingBalances.entries()) {
-      if (!account.startsWith('Aktiva:')) continue;
+      if (kontoTyp(account, plan) !== 'asset') continue;
       map.set(account, {
         sum: ob.amount,
         count: 0,
@@ -56,7 +58,7 @@ export function aggregateAccountSaldos(
 
   for (const tx of transactions) {
     for (const posting of tx.postings) {
-      if (!posting.account.startsWith('Aktiva:')) continue;
+      if (kontoTyp(posting.account, plan) !== 'asset') continue;
       const opening = openingBalances?.get(posting.account);
       // Stand-Am-Filter: bei vorhandenem Anfangssaldo Tx vor Stand-Am skippen
       if (opening && tx.date <= opening.standAm) continue;

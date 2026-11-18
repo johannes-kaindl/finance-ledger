@@ -9,6 +9,7 @@
  * Float, auf eine Nachkommastelle gerundet (siehe `rundeEineStelle`).
  */
 
+import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
 import type { ImporterContext } from "../config/context";
 import type { CategorizationResult } from "../import/categorize";
 import type { BankTransaction } from "../import/transaction";
@@ -48,6 +49,8 @@ export interface AggregateOptions {
 	excludeIban?: string;
 	/** IBAN der Konto-Klasse, die allein zählt (Sicht „Vermietung“). */
 	onlyIban?: string;
+	/** Kontenplan für den Kontotyp des Gegenkontos; ohne ihn entscheidet die Wurzel des Namens. */
+	kontenplan?: Kontenplan;
 }
 
 /**
@@ -123,7 +126,8 @@ export function aggregateTransactions(
 		if (r.tags.includes("self-transfer")) continue;
 
 		const gegen = r.gegenAccount;
-		if (gegen.startsWith("Ausgaben:")) {
+		const typ = kontoTyp(gegen, opts.kontenplan);
+		if (typ === "expense") {
 			if (gegen.startsWith(UNKATEGORISIERT_PREFIX) && tx.betrag.gt(0)) {
 				unklassifiziert = unklassifiziert.plus(tx.betrag);
 				continue;
@@ -132,7 +136,7 @@ export function aggregateTransactions(
 			const treffer = KATEGORIE_MAPPING.find(([, prefix]) => gegen.startsWith(prefix));
 			add(ausgaben, treffer ? treffer[0] : "sonstiges", tx.betrag.neg());
 			if (gegen.startsWith(EINMALIG_PREFIX)) einmalig = einmalig.plus(tx.betrag.neg());
-		} else if (gegen.startsWith("Einnahmen:")) {
+		} else if (typ === "income") {
 			const parts = gegen.split(":");
 			// Python: split(":", 2) — der Rest ab dem dritten Teil bleibt zusammen.
 			const sub = parts.length > 2 ? parts.slice(2).join(":") : (parts[1] ?? gegen);
@@ -243,7 +247,7 @@ export function topEmpfaenger(
 		if (opts.onlyIban && tx.accountIban !== opts.onlyIban) continue;
 		const r = categorizer(tx);
 		if (r.tags.includes("self-transfer")) continue;
-		if (!r.gegenAccount.startsWith("Ausgaben:")) continue;
+		if (kontoTyp(r.gegenAccount, opts.kontenplan) !== "expense") continue;
 		const roh = tx.beguenstigter.trim() || tx.buchungstext.trim() || "(unbekannt)";
 		// Python kürzt nach Codepoints, nicht nach UTF-16-Einheiten.
 		const cp = Array.from(roh.replace(/\s+/g, " ")).slice(0, 60).join("");

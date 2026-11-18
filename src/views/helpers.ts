@@ -1,6 +1,7 @@
 import type { Transaction, LedgerDiagnostics } from '../parser/ledger';
 import { getLang, t, tPlural } from '../i18n/strings';
 import { splitList } from '../vendor/kit/split-list';
+import { kontoTyp, type Kontenplan, type KontoTyp } from '../core/accounts/kontoTyp';
 
 /**
  * One-line, human-readable summary of non-fatal parse findings — or `null` when
@@ -177,15 +178,11 @@ export function calculateVisibleSum(rows: PostingRow[]): number {
 
 // ── Design-System helpers (KSP wiring) ─────────────────────────────────────
 
-export type AccountType = 'asset' | 'liability' | 'income' | 'expense' | 'equity';
+export type AccountType = KontoTyp;
 
-export function accountType(account: string): AccountType | undefined {
-  if (account.startsWith('Aktiva:')) return 'asset';
-  if (account.startsWith('Passiva:')) return 'liability';
-  if (account.startsWith('Einnahmen:')) return 'income';
-  if (account.startsWith('Ausgaben:')) return 'expense';
-  if (account.startsWith('Eigenkapital:')) return 'equity';
-  return undefined;
+/** Kontotyp aus dem Kontenplan, sonst aus der Wurzel des Namens (`kontoTyp` im Kern). */
+export function accountType(account: string, plan?: Kontenplan): AccountType | undefined {
+  return kontoTyp(account, plan);
 }
 
 // ── Vorzeichen- & Farb-Darstellung (F1) ─────────────────────────────────────
@@ -206,8 +203,8 @@ export interface MoneyDisplay {
 }
 
 /** Leitet den Fluss-/Saldo-Kontext aus dem Konto-Präfix ab (undefined → balance). */
-export function moneyCtx(account: string): MoneyCtx {
-  const t = accountType(account);
+export function moneyCtx(account: string, plan?: Kontenplan): MoneyCtx {
+  const t = accountType(account, plan);
   if (t === 'income') return 'income';
   if (t === 'expense') return 'expense';
   return 'balance';

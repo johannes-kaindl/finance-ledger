@@ -17,6 +17,8 @@ import {
   type SortColumn,
   type SortDirection,
 } from './helpers';
+import { loadKontenplan } from './kontenplan';
+import { KEIN_KONTENPLAN, type Kontenplan } from '../core/accounts/kontoTyp';
 import { loadState, saveState, loadPresets, savePreset, deletePreset } from '../state/filterState';
 import { loadSlugMaps } from './slugMaps';
 import { promptText } from '../vendor/kit-obsidian/prompt-text';
@@ -33,6 +35,7 @@ export class LedgerPanel implements FinancePanel {
 
   private container!: HTMLElement;
   private allRows: PostingRow[] = [];
+  private plan: Kontenplan = KEIN_KONTENPLAN;
   private filter: FilterState = { dateFrom: '', dateTo: '', counterparty: '', account: '', tags: '' };
   private sortCol: SortColumn = 'date';
   private sortDir: SortDirection = 'asc';
@@ -83,6 +86,7 @@ export class LedgerPanel implements FinancePanel {
     // dashboard deep-link writes it, then switches to this tab.
     this.filter = loadState();
     this.slugMaps = await loadSlugMaps(this.app, paths);
+    this.plan = await loadKontenplan(this.app, paths.accounts);
     renderDiagnosticsBanner(container, diagnostics);
     this.buildFilterBar(container);
     this.buildTable(container);
@@ -283,7 +287,7 @@ export class LedgerPanel implements FinancePanel {
       // Account cell — clickable for navigation (A1.5), wrapped in .fl-acct-chip
       const accountTd = tr.createEl('td', { cls: 'fl-clickable' });
       const chip = accountTd.createSpan({ cls: 'fl-acct-chip fl-link-affordance', text: row.account });
-      const type = accountType(row.account);
+      const type = accountType(row.account, this.plan);
       if (type) chip.setAttribute('data-type', type);
       accountTd.onclick = () => {
         const file = resolveAccountNote(row.account, this.app);
@@ -294,7 +298,7 @@ export class LedgerPanel implements FinancePanel {
         }
       };
 
-      const amount = formatMoneyAmount(row.amountEur, moneyCtx(row.account), this.getDisplay());
+      const amount = formatMoneyAmount(row.amountEur, moneyCtx(row.account, this.plan), this.getDisplay());
       const amountTd = tr.createEl('td', { cls: 'fl-money' });
       amountTd.addClass(`is-${amount.tone}`);
       amountTd.setText(amount.text);

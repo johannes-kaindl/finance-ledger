@@ -1,4 +1,5 @@
 import type { Transaction } from '../parser/ledger';
+import { kontoTyp, type Kontenplan, type KontoTyp } from '../core/accounts/kontoTyp';
 
 export interface CategoryNode {
   account: string;
@@ -9,15 +10,23 @@ export interface CategoryNode {
   children?: CategoryNode[];
 }
 
+/** Filter nach Kontotyp (aus dem Kontenplan) statt nach Namenspräfix; `prefixFilter` bleibt für Aufrufer mit Pfad. */
+export interface CategoryTypeFilter {
+  typ: KontoTyp;
+  plan?: Kontenplan;
+}
+
 export function aggregateCategoryTotals(
   transactions: Transaction[],
-  prefixFilter: string
+  prefixFilter: string,
+  typeFilter?: CategoryTypeFilter,
 ): CategoryNode[] {
   // Collect leaf amounts
   const leafMap = new Map<string, { sum: number; count: number }>();
   for (const tx of transactions) {
     for (const posting of tx.postings) {
       if (prefixFilter && !posting.account.startsWith(prefixFilter)) continue;
+      if (typeFilter && kontoTyp(posting.account, typeFilter.plan) !== typeFilter.typ) continue;
       const cur = leafMap.get(posting.account) ?? { sum: 0, count: 0 };
       cur.sum += posting.amountEur;
       cur.count++;

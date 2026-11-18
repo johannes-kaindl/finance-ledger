@@ -9,6 +9,7 @@ import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financ
 import type { FinancePanel } from './hub/panelTypes';
 import { t } from '../i18n/strings';
 import { renderNotConfigured, renderNoJournal } from './emptyState';
+import { loadKontenplan } from './kontenplan';
 
 export class SaldoPanel implements FinancePanel {
   readonly id = 'saldo' as const;
@@ -59,7 +60,7 @@ export class SaldoPanel implements FinancePanel {
     const openingBalances = parseOpeningBalances(openingText);
 
     const { transactions: txs, diagnostics } = parseLedgerWithDiagnostics(text);
-    const saldos = aggregateAccountSaldos(txs, openingBalances);
+    const saldos = aggregateAccountSaldos(txs, openingBalances, await loadKontenplan(this.app, paths.accounts));
 
     renderDiagnosticsBanner(container, diagnostics);
 

@@ -10,6 +10,8 @@ import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financ
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
 import { t } from '../i18n/strings';
 import { renderNotConfigured, renderNoJournal } from './emptyState';
+import { loadKontenplan } from './kontenplan';
+import { KEIN_KONTENPLAN, type Kontenplan, type KontoTyp } from '../core/accounts/kontoTyp';
 
 type PrefixMode = 'Ausgaben' | 'Einnahmen' | 'Alle';
 
@@ -27,6 +29,7 @@ export class CategoryPanel implements FinancePanel {
 
   private container!: HTMLElement;
   private prefixMode: PrefixMode = 'Ausgaben';
+  private plan: Kontenplan = KEIN_KONTENPLAN;
   private allTransactions: Transaction[] = [];
   /** Zeitrahmen der Ansicht; bleibt über Tab-Wechsel erhalten, nicht über einen Neustart. */
   private range: DateRange = { from: '', to: '' };
@@ -67,6 +70,7 @@ export class CategoryPanel implements FinancePanel {
       return;
     }
 
+    this.plan = await loadKontenplan(this.app, paths.accounts);
     const { transactions, diagnostics } = parseLedgerWithDiagnostics(text);
     this.allTransactions = transactions;
     renderDiagnosticsBanner(container, diagnostics);
@@ -159,12 +163,17 @@ export class CategoryPanel implements FinancePanel {
   // ── Re-render ──────────────────────────────────────────────────────────────
 
   private rerender(): void {
-    const prefix =
-      this.prefixMode === 'Ausgaben' ? 'Ausgaben:'
-      : this.prefixMode === 'Einnahmen' ? 'Einnahmen:'
-      : '';
+    // Der Modus wählt einen Kontotyp aus dem Kontenplan, keinen Namenspräfix.
+    const typ: KontoTyp | null =
+      this.prefixMode === 'Ausgaben' ? 'expense'
+      : this.prefixMode === 'Einnahmen' ? 'income'
+      : null;
 
-    const nodes = aggregateCategoryTotals(transactionsInRange(this.allTransactions, this.range), prefix);
+    const nodes = aggregateCategoryTotals(
+      transactionsInRange(this.allTransactions, this.range),
+      '',
+      typ ? { typ, plan: this.plan } : undefined,
+    );
     this.treeContainer.empty();
 
     const table = this.treeContainer.createEl('table', { cls: 'fl-table' });
@@ -244,7 +253,7 @@ export class CategoryPanel implements FinancePanel {
       const namePart = nameTd.createSpan({ text: this.shortName(node.account, depth), cls: 'fl-link-affordance' });
       namePart.onclick = () => this.navigateToFilter(node.account);
 
-      const amt = formatMoneyAmount(node.totalEur, moneyCtx(node.account), this.getDisplay());
+      const amt = formatMoneyAmount(node.totalEur, moneyCtx(node.account, this.plan), this.getDisplay());
       const amtTd = tr.createEl('td', { text: amt.text, cls: 'fl-money fl-num' });
       amtTd.addClass(`is-${amt.tone}`);
 

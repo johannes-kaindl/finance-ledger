@@ -12,6 +12,8 @@ import { notConfiguredMessage, type ResolvedFinancePaths } from '../state/financ
 import type { FinancePanel, HubNavigate } from './hub/panelTypes';
 import { getLang, t } from '../i18n/strings';
 import { renderNotConfigured } from './emptyState';
+import { loadKontenplan } from './kontenplan';
+import { KEIN_KONTENPLAN, type Kontenplan } from '../core/accounts/kontoTyp';
 import { localYearMonth } from '../vendor/kit/local-stamp';
 import { confirmRebuild } from '../ui/confirmOverwrite';
 
@@ -41,6 +43,7 @@ export class DashboardPanel implements FinancePanel {
   readonly icon = 'layout-dashboard';
 
   private container!: HTMLElement;
+  private plan: Kontenplan = KEIN_KONTENPLAN;
 
   constructor(
     private readonly app: App,
@@ -77,6 +80,7 @@ export class DashboardPanel implements FinancePanel {
 
     const grid = container.createDiv({ cls: 'finance-dashboard-grid' });
 
+    this.plan = await loadKontenplan(this.app, paths.accounts);
     let txs: Transaction[] = [];
     let journalReadOk = false;
     try {
@@ -146,7 +150,7 @@ export class DashboardPanel implements FinancePanel {
       return;
     }
 
-    const saldos = aggregateAccountSaldos(txs, openingBalances);
+    const saldos = aggregateAccountSaldos(txs, openingBalances, this.plan);
     if (saldos.length === 0) {
       card.createEl('p', { text: t('dashboard.card.saldo.noAssets'), cls: 'fl-empty' });
       return;
@@ -156,7 +160,7 @@ export class DashboardPanel implements FinancePanel {
     for (const s of saldos) {
       total += s.saldoEur;
       const row = card.createDiv({ cls: 'fl-stat-row' });
-      const left = row.createSpan({ text: s.account.replace(/^Aktiva:/, ''), cls: 'fl-acct-chip fl-ellipsis fl-mr-2' });
+      const left = row.createSpan({ text: s.account.replace(/^[^:]+:/, ''), cls: 'fl-acct-chip fl-ellipsis fl-mr-2' });
       left.setAttribute('data-type', 'asset');
       const saldo = formatMoneyAmount(s.saldoEur, 'balance', this.getDisplay());
       const right = row.createSpan({ text: saldo.text, cls: 'fl-money fl-num' });
@@ -313,9 +317,11 @@ export class DashboardPanel implements FinancePanel {
       return;
     }
 
-    const nodes = aggregateCategoryTotals(filtered, 'Ausgaben:');
-    const root = nodes[0];
-    const top3 = (root?.children ?? []).slice(0, 3);
+    const nodes = aggregateCategoryTotals(filtered, '', { typ: 'expense', plan: this.plan });
+    const top3 = nodes
+      .flatMap(n => n.children ?? [])
+      .sort((a, b) => b.totalEur - a.totalEur)
+      .slice(0, 3);
 
     if (top3.length === 0) {
       card.createEl('p', { text: t('dashboard.card.topCategories.noExpense'), cls: 'fl-empty' });
@@ -325,7 +331,7 @@ export class DashboardPanel implements FinancePanel {
     for (const node of top3) {
       const row = card.createDiv({ cls: 'fl-stat-row fl-link-affordance' });
       row.createSpan({ text: node.account.split(':').slice(-1)[0] });
-      const amt = formatMoneyAmount(node.totalEur, moneyCtx(node.account), this.getDisplay());
+      const amt = formatMoneyAmount(node.totalEur, moneyCtx(node.account, this.plan), this.getDisplay());
       const right = row.createSpan({ text: amt.text, cls: 'fl-money' });
       right.addClass(`is-${amt.tone}`);
       row.onclick = () => this.openLedgerWithFilter(node.account);

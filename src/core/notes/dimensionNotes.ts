@@ -17,6 +17,7 @@
  *   (`neutralizeCellText` aus code-kit, auch für den Anzeigetext der Wikilinks).
  */
 
+import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
 import type { ImporterContext } from "../config/context";
 import {
 	KATEGORIE_MAPPING,
@@ -96,7 +97,11 @@ function sollUeberspringen(beguenstigter: string): boolean {
 }
 
 /** Empfänger-Konten über der Schwelle (≥ 5 Buchungen oder ≥ 200 €), nach Volumen absteigend. */
-export function detectEmpfaenger(transactions: readonly BankTransaction[], categorizer: Categorizer): EmpfaengerInfo[] {
+export function detectEmpfaenger(
+	transactions: readonly BankTransaction[],
+	categorizer: Categorizer,
+	kontenplan?: Kontenplan,
+): EmpfaengerInfo[] {
 	const summen = new Map<string, MoneyValue>();
 	const anzahl = new Map<string, number>();
 	for (const tx of transactions) {
@@ -105,7 +110,8 @@ export function detectEmpfaenger(transactions: readonly BankTransaction[], categ
 		if (sollUeberspringen(tx.beguenstigter)) continue;
 		const gegen = r.gegenAccount;
 		// Nur Ausgaben und Einnahmen, keine Aktiva-Übertragungen.
-		if (!gegen.startsWith("Ausgaben:") && !gegen.startsWith("Einnahmen:")) continue;
+		const typ = kontoTyp(gegen, kontenplan);
+		if (typ !== "expense" && typ !== "income") continue;
 		summen.set(gegen, (summen.get(gegen) ?? ZERO).plus(zweiStellen(tx.betrag.abs())));
 		anzahl.set(gegen, (anzahl.get(gegen) ?? 0) + 1);
 	}
