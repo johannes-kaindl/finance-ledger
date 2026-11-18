@@ -12,6 +12,7 @@
  * Ersetzt die Pydantic-Modelle in `mapping/konten_loader.py`.
  */
 
+import { leseWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import { ConfigError } from "../errors";
 
 export interface KontoSpec {
@@ -33,6 +34,8 @@ export interface KontoSpec {
 
 export interface KontenConfig {
 	konten: KontoSpec[];
+	/** Abweichende Wurzelnamen des Kontenbaums (`kontowurzeln`); nicht Genanntes bleibt deutsch. */
+	wurzeln?: Partial<KontoWurzeln>;
 }
 
 /** Pflichtfelder je Konto — fehlt eines, ist die Konfiguration unbrauchbar. */
@@ -111,7 +114,8 @@ export function parseKontenConfig(data: unknown): KontenConfig {
 	if (konten.length === 0) {
 		throw new ConfigError("konten.yaml enthält kein einziges Konto.");
 	}
-	return { konten };
+	const wurzeln = leseWurzeln(data.kontowurzeln);
+	return wurzeln ? { konten, wurzeln } : { konten };
 }
 
 /** Nur die aktiven Konten — jede Ableitung unten baut darauf auf. */

@@ -11,12 +11,13 @@
  * Rein: „heute“ kommt als Parameter herein.
  */
 
-import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
+import { kontoTyp } from "../accounts/kontoTyp";
+import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import { daysInMonth, splitIsoDate, type IsoDate } from "../dates";
 import type { BankTransaction } from "../import/transaction";
 import { Money, type MoneyValue, ZERO } from "../money";
 import { type Categorizer, zweiStellen } from "./aggregate";
-import { KATEGORIE_MAPPING } from "./kategorien";
+import { kategorieMapping } from "./kategorien";
 
 export const AMPEL_GRUEN_SCHWELLE: MoneyValue = new Money("0.90");
 export const AMPEL_ROT_SCHWELLE: MoneyValue = new Money("1.10");
@@ -92,7 +93,7 @@ export function computeBudgetForMonth(
 	month: number,
 	today: IsoDate,
 	categorizer: Categorizer,
-	kontenplan?: Kontenplan,
+	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
 ): BudgetState[] {
 	const tageImMonat = daysInMonth(year, month);
 	const t = splitIsoDate(today);
@@ -103,8 +104,9 @@ export function computeBudgetForMonth(
 
 	const key = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
 	const results: BudgetState[] = [];
-	for (const [suffix, prefix] of KATEGORIE_MAPPING) {
-		if (kontoTyp(prefix, kontenplan) !== "expense") continue;
+	const plan = kontenplanAusWurzeln(wurzeln);
+	for (const [suffix, prefix] of kategorieMapping(wurzeln)) {
+		if (kontoTyp(prefix, plan) !== "expense") continue;
 		const monatlich = kategorieMonatlich(transactions, prefix, categorizer);
 		const { avg: soll, samples } = sollAusMonaten(monatlich);
 		const ist = monatlich.get(key) ?? ZERO;

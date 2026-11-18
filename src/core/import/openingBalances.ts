@@ -13,6 +13,7 @@
  * und ein naiver Parser macht daraus stillschweigend Unsinn.
  */
 
+import { type KontoWurzeln, } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import type { IsoDate } from "../dates";
 import { Money, type MoneyValue } from "../money";
@@ -21,6 +22,11 @@ import { readFrontmatter } from "../notes/frontmatter";
 
 /** Gegenkonto jeder Eröffnungsbuchung. */
 export const EIGENKAPITAL_ACCOUNT = "Eigenkapital:Eroeffnungsbilanz";
+
+/** Das Eigenkapital-Gegenkonto unter der gewählten Eigenkapital-Wurzel. */
+export function eigenkapitalAccount(w: KontoWurzeln): string {
+	return `${w.equity}:Eroeffnungsbilanz`;
+}
 
 export interface Anfangssaldo {
 	betrag: MoneyValue | null;
@@ -117,7 +123,7 @@ export function formatOpeningBalances(
 			lines.push(
 				`${standAm} * Eröffnungsbilanz ${filename}`,
 				`    ${spec.ledgerAccount}  ${fmtEur(betrag)}`,
-				`    ${EIGENKAPITAL_ACCOUNT}  ${fmtEur(betrag.negated())}`,
+				`    ${eigenkapitalAccount(ctx.wurzeln)}  ${fmtEur(betrag.negated())}`,
 				"",
 			);
 			continue;

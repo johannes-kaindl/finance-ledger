@@ -56,8 +56,7 @@ export class CategorizerRuleModal extends Modal {
       .setName(t('modal.categorizerRule.account.name'))
       .setDesc(t('modal.categorizerRule.account.desc'))
       .addText(text => {
-        // Beispiel-Konto-Präfix bleibt Deutsch (Daten-Konvention, F1) — kein t().
-        text.setPlaceholder('Ausgaben:...');
+        text.setPlaceholder(t('modal.categorizerRule.account.placeholder'));
         text.inputEl.setAttribute('list', datalistId);
         accountInput = text.inputEl;
       });

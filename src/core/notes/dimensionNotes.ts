@@ -17,10 +17,11 @@
  *   (`neutralizeCellText` aus code-kit, auch für den Anzeigetext der Wikilinks).
  */
 
-import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
+import { kontoTyp } from "../accounts/kontoTyp";
+import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import {
-	KATEGORIE_MAPPING,
+	kategorieMapping,
 	TX_TYP_DISPLAY,
 	TX_TYP_KLASSEN,
 	detectTxTyp,
@@ -76,19 +77,21 @@ export interface EmpfaengerInfo {
 export function detectKategorien(
 	transactions: readonly BankTransaction[],
 	categorizer: Categorizer,
+	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
 ): Array<readonly [string, string]> {
+	const mapping = kategorieMapping(wurzeln);
 	const treffer = new Set<string>();
 	for (const tx of transactions) {
 		const r = categorizer(tx);
 		if (r.tags.includes("self-transfer")) continue;
-		for (const [suffix, prefix] of KATEGORIE_MAPPING) {
+		for (const [suffix, prefix] of mapping) {
 			if (r.gegenAccount.startsWith(prefix)) {
 				treffer.add(suffix);
 				break;
 			}
 		}
 	}
-	return KATEGORIE_MAPPING.filter(([suffix]) => treffer.has(suffix)).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+	return mapping.filter(([suffix]) => treffer.has(suffix)).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
 }
 
 function sollUeberspringen(beguenstigter: string): boolean {
@@ -100,8 +103,9 @@ function sollUeberspringen(beguenstigter: string): boolean {
 export function detectEmpfaenger(
 	transactions: readonly BankTransaction[],
 	categorizer: Categorizer,
-	kontenplan?: Kontenplan,
+	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
 ): EmpfaengerInfo[] {
+	const plan = kontenplanAusWurzeln(wurzeln);
 	const summen = new Map<string, MoneyValue>();
 	const anzahl = new Map<string, number>();
 	for (const tx of transactions) {
@@ -110,7 +114,7 @@ export function detectEmpfaenger(
 		if (sollUeberspringen(tx.beguenstigter)) continue;
 		const gegen = r.gegenAccount;
 		// Nur Ausgaben und Einnahmen, keine Aktiva-Übertragungen.
-		const typ = kontoTyp(gegen, kontenplan);
+		const typ = kontoTyp(gegen, plan);
 		if (typ !== "expense" && typ !== "income") continue;
 		summen.set(gegen, (summen.get(gegen) ?? ZERO).plus(zweiStellen(tx.betrag.abs())));
 		anzahl.set(gegen, (anzahl.get(gegen) ?? 0) + 1);
@@ -176,13 +180,13 @@ export function dimensionPaths(
 
 function eintraege(ctx: ImporterContext, transactions: readonly BankTransaction[], categorizer: Categorizer): Eintrag[] {
 	const out: Eintrag[] = [];
-	for (const [suffix, prefix] of detectKategorien(transactions, categorizer)) {
+	for (const [suffix, prefix] of detectKategorien(transactions, categorizer, ctx.wurzeln)) {
 		out.push({
 			path: kategoriePath(ctx, suffix),
 			render: (existing) => renderKategorie(ctx, suffix, prefix, transactions, categorizer, existing),
 		});
 	}
-	for (const info of detectEmpfaenger(transactions, categorizer)) {
+	for (const info of detectEmpfaenger(transactions, categorizer, ctx.wurzeln)) {
 		out.push({
 			path: empfaengerPath(ctx, info.ledgerAccount),
 			render: (existing) => renderEmpfaenger(ctx, info.ledgerAccount, info.counterpartyCanonical, transactions, categorizer, existing),

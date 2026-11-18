@@ -16,19 +16,22 @@
  * Richtung). Dann entfällt diese Liste ganz.
  */
 
+import { DEUTSCHE_WURZELN, type KontoWurzeln, } from "../accounts/wurzeln";
 import type { SignDependentRule } from "./categorize";
 
-export const DEFAULT_SIGN_RULES: readonly SignDependentRule[] = [
+/** Die Vorbelegung unter den gewählten Wurzeln. */
+export function defaultSignRules(w: KontoWurzeln): readonly SignDependentRule[] {
+	return [
 	{
 		// Doppelrolle: zahlt Krankengeld aus und zieht Beiträge ein.
 		match: "krankenkasse muster",
 		positive: {
-			account: "Einnahmen:Krankengeld:KK_Muster",
+			account: `${w.income}:Krankengeld:KK_Muster`,
 			tags: ["recurring"],
 			ruleName: "kk-eingang",
 		},
 		negative: {
-			account: "Ausgaben:Versicherung:Krankenversicherung:KK_Muster_Beitrag",
+			account: `${w.expense}:Versicherung:Krankenversicherung:KK_Muster_Beitrag`,
 			tags: ["recurring", "tbc"],
 			ruleName: "kk-ausgang",
 		},
@@ -38,17 +41,21 @@ export const DEFAULT_SIGN_RULES: readonly SignDependentRule[] = [
 		// Eingang ist Mieteinnahme, der seltene Ausgang bleibt zur Prüfung offen.
 		match: "erika muster",
 		positive: {
-			account: "Einnahmen:Mieteinnahmen:Mieter_Erika",
+			account: `${w.income}:Mieteinnahmen:Mieter_Erika`,
 			tags: ["recurring"],
 			ruleName: "erika-eingang",
 		},
 		negative: {
-			account: "Ausgaben:Privat_Transfers:Familie:Erika",
+			account: `${w.expense}:Privat_Transfers:Familie:Erika`,
 			tags: ["tbc"],
 			ruleName: "erika-ausgang",
 		},
 	},
-];
+	];
+}
+
+/** Die Vorbelegung mit den deutschen Wurzeln. */
+export const DEFAULT_SIGN_RULES: readonly SignDependentRule[] = defaultSignRules(DEUTSCHE_WURZELN);
 
 /** Alle Konten, die diese Regeln erzeugen können — für den Kontenplan. */
 export function signRuleAccounts(

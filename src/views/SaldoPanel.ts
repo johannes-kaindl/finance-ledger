@@ -57,10 +57,11 @@ export class SaldoPanel implements FinancePanel {
     } catch {
       // opening_balances.ledger fehlt → leere Map, alle Konten Bootstrap-Pending
     }
-    const openingBalances = parseOpeningBalances(openingText);
+    const plan = await loadKontenplan(this.app, paths.accounts);
+    const openingBalances = parseOpeningBalances(openingText, plan);
 
     const { transactions: txs, diagnostics } = parseLedgerWithDiagnostics(text);
-    const saldos = aggregateAccountSaldos(txs, openingBalances, await loadKontenplan(this.app, paths.accounts));
+    const saldos = aggregateAccountSaldos(txs, openingBalances, plan);
 
     renderDiagnosticsBanner(container, diagnostics);
 

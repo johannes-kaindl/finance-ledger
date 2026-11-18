@@ -11,13 +11,18 @@
  * da, und eine Änderung muss beim nächsten Lauf greifen.
  */
 
+import { type KontoWurzeln, } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import { parsePaypalRecipient } from "./paypal";
 import { findMatchingRule, type CategorizerRules } from "./rules";
 import type { BankTransaction } from "./transaction";
 
-export const LEDGER_BARGELD = "Aktiva:Bargeld";
-export const LEDGER_UNBEKANNTE_SELBSTBEWEGUNG = "Aktiva:Sonstige_Selbst-Bewegung";
+export function ledgerBargeld(w: KontoWurzeln): string {
+	return `${w.asset}:Bargeld`;
+}
+export function ledgerUnbekannteSelbstbewegung(w: KontoWurzeln): string {
+	return `${w.asset}:Sonstige_Selbst-Bewegung`;
+}
 
 /** Konto-Rollen, auf die sich die strukturellen Sonderregeln beziehen. */
 export const ROLLE_HAUPTKONTO = "hauptkonto_privat";
@@ -84,7 +89,7 @@ export function categorize(
 		}
 	}
 	if (tx.buchungstext === "VISA-FX-GEBUEHR") {
-		return result("Ausgaben:Bankgebuehren:FX_Aufschlag", [], "visa-fx-gebuehr");
+		return result(`${ctx.wurzeln.expense}:Bankgebuehren:FX_Aufschlag`, [], "visa-fx-gebuehr");
 	}
 
 	// 5. Bargeldabhebung.
@@ -96,15 +101,15 @@ export function categorize(
 		const tags = tx.buchungstext.startsWith("AUSZAHLUNG MIT")
 			? ["review-needed"]
 			: [];
-		return result(LEDGER_BARGELD, tags, "bargeld");
+		return result(ledgerBargeld(ctx.wurzeln), tags, "bargeld");
 	}
 
 	// 6. Bankgebühren und Rechnungsabschluss.
 	if (tx.buchungstext === "ENTGELTABSCHLUSS") {
-		return result("Ausgaben:Bankgebuehren:Entgelt", [], "entgelt");
+		return result(`${ctx.wurzeln.expense}:Bankgebuehren:Entgelt`, [], "entgelt");
 	}
 	if (tx.buchungstext === "ABSCHLUSS") {
-		return classifyAbschluss(tx);
+		return classifyAbschluss(tx, ctx.wurzeln);
 	}
 
 	// 7. Beteiligte, die in beide Richtungen buchen.
@@ -118,7 +123,7 @@ export function categorize(
 	// 8. PayPal — lockerer Vergleich, weil die Sparkasse mal „PayPal Europe",
 	//    mal „PayPal (Europe) S.a r.l." schreibt.
 	if (beguenstigterLower.includes("paypal")) {
-		return classifyPaypal(tx, rules);
+		return classifyPaypal(tx, rules, ctx.wurzeln);
 	}
 
 	// 9. Regeln aus dem Vault.
@@ -134,7 +139,7 @@ export function categorize(
 	// 10. Auffangkorb: nach Quelldatei getrennt, damit die Triage-Ansicht
 	//     zeigt, aus welchem Auszug die offenen Posten stammen.
 	return result(
-		`Ausgaben:Unkategorisiert:${quelleStem(tx.quelle)}`,
+		`${ctx.wurzeln.expense}:Unkategorisiert:${quelleStem(tx.quelle)}`,
 		["tbc", "unkategorisiert"],
 		"catchall",
 	);
@@ -145,7 +150,7 @@ export function postingAccount(
 	tx: BankTransaction,
 	ctx: ImporterContext,
 ): string {
-	return ctx.ibanToLedger.get(tx.accountIban) ?? LEDGER_UNBEKANNTE_SELBSTBEWEGUNG;
+	return ctx.ibanToLedger.get(tx.accountIban) ?? ledgerUnbekannteSelbstbewegung(ctx.wurzeln);
 }
 
 /** Inhabernamen aus der Konten-Konfiguration, kleingeschrieben und sortiert. */
@@ -170,25 +175,26 @@ function classifySelfTransfer(
 	}
 	// Eigener Name, aber unbekannte Gegen-IBAN — das will angesehen werden.
 	return result(
-		LEDGER_UNBEKANNTE_SELBSTBEWEGUNG,
+		ledgerUnbekannteSelbstbewegung(ctx.wurzeln),
 		["self-transfer", "review-needed"],
 		"self-transfer-unbekannt",
 	);
 }
 
-function classifyAbschluss(tx: BankTransaction): CategorizationResult {
+function classifyAbschluss(tx: BankTransaction, w: KontoWurzeln): CategorizationResult {
 	if (tx.betrag.lessThan(0)) {
-		return result("Ausgaben:Bankgebuehren:Soll_Zinsen", [], "abschluss-sollzinsen");
+		return result(`${w.expense}:Bankgebuehren:Soll_Zinsen`, [], "abschluss-sollzinsen");
 	}
 	if (tx.betrag.greaterThan(0)) {
-		return result("Einnahmen:Habenzinsen", [], "abschluss-haben");
+		return result(`${w.income}:Habenzinsen`, [], "abschluss-haben");
 	}
-	return result("Ausgaben:Bankgebuehren:Entgelt", ["info"], "abschluss-zero");
+	return result(`${w.expense}:Bankgebuehren:Entgelt`, ["info"], "abschluss-zero");
 }
 
 function classifyPaypal(
 	tx: BankTransaction,
 	rules: CategorizerRules,
+	w: KontoWurzeln,
 ): CategorizationResult {
 	const recipient = parsePaypalRecipient(tx.verwendungszweck);
 	if (recipient) {
@@ -204,7 +210,7 @@ function classifyPaypal(
 		}
 	}
 	return result(
-		"Ausgaben:Unkategorisiert:PayPal",
+		`${w.expense}:Unkategorisiert:PayPal`,
 		["tbc", "paypal-via"],
 		"paypal-unknown",
 	);

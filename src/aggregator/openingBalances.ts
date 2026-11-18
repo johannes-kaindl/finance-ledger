@@ -1,3 +1,4 @@
+import { kontoTyp, type Kontenplan } from '../core/accounts/kontoTyp';
 /**
  * Mini-Parser für `opening_balances.ledger`.
  *
@@ -22,7 +23,7 @@ export interface OpeningBalance {
 const HEADER_RE = /^(\d{4}-\d{2}-\d{2})\s+\*\s+Eröffnungsbilanz/;
 const POSTING_RE = /^\s+(\S+(?:\s+\S+)*?)\s+(-?\d+(?:\.\d+)?)\s+EUR\s*$/;
 
-export function parseOpeningBalances(text: string): Map<string, OpeningBalance> {
+export function parseOpeningBalances(text: string, plan?: Kontenplan): Map<string, OpeningBalance> {
   const result = new Map<string, OpeningBalance>();
   const lines = text.split('\n');
 
@@ -51,7 +52,7 @@ export function parseOpeningBalances(text: string): Map<string, OpeningBalance> 
         const account = postingMatch[1].trim();
         const amount = parseFloat(postingMatch[2]);
         // Skip Eigenkapital-Gegenposting (kein Aktiva/Passiva-Konto-Saldo)
-        if (!account.startsWith('Eigenkapital:')) {
+        if (kontoTyp(account, plan) !== 'equity') {
           result.set(account, { amount, standAm: currentStandAm });
           captureFirstPosting = false;
         }

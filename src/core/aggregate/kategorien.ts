@@ -8,28 +8,48 @@
  * gleichem Betrag die Reihenfolge der Tabellenzeilen.
  */
 
-/** (Kategorie-Suffix, Ausgaben-Account-Präfix). */
-export const KATEGORIE_MAPPING: ReadonlyArray<readonly [string, string]> = [
-	["wohnen", "Ausgaben:Wohnen:"],
-	["tech_abos", "Ausgaben:Tech_Abos:"],
-	["versicherung", "Ausgaben:Versicherung:"],
-	["lebensmittel", "Ausgaben:Lebensmittel:"],
-	["essen_auswaerts", "Ausgaben:Essen_Auswaerts:"],
-	["kommunikation", "Ausgaben:Kommunikation:"],
-	["mobilitaet", "Ausgaben:Mobilitaet:"],
-	["steuern", "Ausgaben:Steuern:"],
-	["gesundheit", "Ausgaben:Gesundheit:"],
-	["freizeit", "Ausgaben:Freizeit:"],
-	["sonstiges", "Ausgaben:Sonstiges:"],
-	["online_shopping", "Ausgaben:Online_Shopping:"],
-	["spende", "Ausgaben:Spende:"],
-	["mitgliedschaft", "Ausgaben:Mitgliedschaft:"],
-	["privat_transfers", "Ausgaben:Privat_Transfers:"],
-	["bankgebuehren", "Ausgaben:Bankgebuehren:"],
-	["unkategorisiert", "Ausgaben:Unkategorisiert:"],
+import { DEUTSCHE_WURZELN, type KontoWurzeln, } from "../accounts/wurzeln";
+
+/** (Kategorie-Suffix, Ordnername unter der Ausgaben-Wurzel). Die Namen sind Kategorien, keine Wurzeln. */
+const KATEGORIE_ORDNER: ReadonlyArray<readonly [string, string]> = [
+	["wohnen", "Wohnen"],
+	["tech_abos", "Tech_Abos"],
+	["versicherung", "Versicherung"],
+	["lebensmittel", "Lebensmittel"],
+	["essen_auswaerts", "Essen_Auswaerts"],
+	["kommunikation", "Kommunikation"],
+	["mobilitaet", "Mobilitaet"],
+	["steuern", "Steuern"],
+	["gesundheit", "Gesundheit"],
+	["freizeit", "Freizeit"],
+	["sonstiges", "Sonstiges"],
+	["online_shopping", "Online_Shopping"],
+	["spende", "Spende"],
+	["mitgliedschaft", "Mitgliedschaft"],
+	["privat_transfers", "Privat_Transfers"],
+	["bankgebuehren", "Bankgebuehren"],
+	["unkategorisiert", "Unkategorisiert"],
 ];
 
-export const EINMALIG_PREFIX = "Ausgaben:Sonstiges:Einmalig:";
+/** (Kategorie-Suffix, Ausgaben-Account-Präfix) unter der gewählten Ausgaben-Wurzel. */
+export function kategorieMapping(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): ReadonlyArray<readonly [string, string]> {
+	return KATEGORIE_ORDNER.map(([suffix, ordner]) => [suffix, `${wurzeln.expense}:${ordner}:`] as const);
+}
+
+/** Präfix der Einmal-Ausgaben unter der gewählten Ausgaben-Wurzel. */
+export function einmaligPrefix(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): string {
+	return `${wurzeln.expense}:Sonstiges:Einmalig:`;
+}
+
+/** Präfix des Auffangkontos unter der gewählten Ausgaben-Wurzel. */
+export function unkategorisiertPrefix(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): string {
+	return `${wurzeln.expense}:Unkategorisiert:`;
+}
+
+/** Die Fassung mit den deutschen Wurzeln; Reihenfolge und Inhalt wie im Python-Original. */
+export const KATEGORIE_MAPPING: ReadonlyArray<readonly [string, string]> = kategorieMapping();
+
+export const EINMALIG_PREFIX = einmaligPrefix();
 
 /** Kategorien, die zu den festen Kosten zählen (Rest ist variabel). */
 export const FIX_FELDER: ReadonlySet<string> = new Set(["wohnen", "versicherung", "kommunikation"]);

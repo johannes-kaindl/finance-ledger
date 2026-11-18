@@ -98,7 +98,7 @@ export class DashboardPanel implements FinancePanel {
     let openingBalances = new Map<string, OpeningBalance>();
     try {
       const openingText = await this.app.vault.adapter.read(normalizePath(paths.openingBalances));
-      openingBalances = parseOpeningBalances(openingText);
+      openingBalances = parseOpeningBalances(openingText, this.plan);
     } catch {
       // opening_balances.ledger missing → movement-only fallback (as in SaldoPanel)
     }

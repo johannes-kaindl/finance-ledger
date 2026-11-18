@@ -13,6 +13,7 @@
  * am Fundament, damit ihn keine spätere Etappe nachziehen muss.
  */
 
+import { type KontoWurzeln, normalizeWurzeln } from "../accounts/wurzeln";
 import { isFrontmatterKeyName } from "../../vendor/kit/frontmatter-patch";
 import { localDate } from "../../vendor/kit/local-stamp";
 import type { IsoDate } from "../dates";
@@ -61,6 +62,8 @@ export interface ImporterContextInput {
 	/** Schlüssel der Verknüpfung zur Projektnotiz im Frontmatter; leer oder unbrauchbar ergibt `projektbezug`. */
 	projektKey?: string;
 	clock?: ClockPort;
+	/** Wurzelnamen des Kontenbaums; ohne Angabe gilt `konten.wurzeln`, sonst der deutsche Standard. */
+	wurzeln?: Partial<KontoWurzeln>;
 }
 
 /**
@@ -122,6 +125,8 @@ export interface ImporterContext {
 	readonly projektKey: string;
 	readonly folders: NoteFolders;
 	readonly clock: ClockPort;
+	/** Wurzelnamen, unter denen der Importer Konten anlegt (vollständig, Standard deutsch). */
+	readonly wurzeln: KontoWurzeln;
 
 	readonly ibanToLedger: ReadonlyMap<string, string>;
 	readonly ledgerByRolle: ReadonlyMap<string, string>;
@@ -159,6 +164,7 @@ export function createImporterContext(
 		projektKey: normalizeProjektKey(input.projektKey),
 		folders: { ...DEFAULT_NOTE_FOLDERS, ...input.folders },
 		clock: input.clock ?? systemClock(),
+		wurzeln: normalizeWurzeln(input.wurzeln ?? input.konten.wurzeln),
 		ibanToLedger: ibanToLedger(input.konten),
 		ledgerByRolle: ledgerByRolle(input.konten),
 		ibanByRolle: ibanByRolle(input.konten),

@@ -9,15 +9,14 @@
  * Float, auf eine Nachkommastelle gerundet (siehe `rundeEineStelle`).
  */
 
-import { type Kontenplan, kontoTyp } from "../accounts/kontoTyp";
+import { kontoTyp } from "../accounts/kontoTyp";
+import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import type { CategorizationResult } from "../import/categorize";
 import type { BankTransaction } from "../import/transaction";
 import { formatGermanEuro, type MoneyValue, ZERO } from "../money";
 import { kategorieWikilink } from "../notes/wikilinks";
-import { EINMALIG_PREFIX, FIX_FELDER, KATEGORIE_MAPPING } from "./kategorien";
-
-const UNKATEGORISIERT_PREFIX = "Ausgaben:Unkategorisiert:";
+import { einmaligPrefix, FIX_FELDER, KATEGORIE_MAPPING, kategorieMapping, unkategorisiertPrefix } from "./kategorien";
 
 export type Categorizer = (tx: BankTransaction) => CategorizationResult;
 
@@ -49,8 +48,8 @@ export interface AggregateOptions {
 	excludeIban?: string;
 	/** IBAN der Konto-Klasse, die allein zählt (Sicht „Vermietung“). */
 	onlyIban?: string;
-	/** Kontenplan für den Kontotyp des Gegenkontos; ohne ihn entscheidet die Wurzel des Namens. */
-	kontenplan?: Kontenplan;
+	/** Wurzelnamen des Kontenbaums; ohne Angabe gelten die deutschen. */
+	wurzeln?: KontoWurzeln;
 }
 
 /**
@@ -109,6 +108,11 @@ export function aggregateTransactions(
 	categorizer: Categorizer,
 	opts: AggregateOptions = {},
 ): SichtAggregat {
+	const wurzeln = opts.wurzeln ?? DEUTSCHE_WURZELN;
+	const plan = kontenplanAusWurzeln(wurzeln);
+	const mapping = kategorieMapping(wurzeln);
+	const unkategorisiert = unkategorisiertPrefix(wurzeln);
+	const einmaligPraefix = einmaligPrefix(wurzeln);
 	const ausgaben = new Map<string, MoneyValue>();
 	const einnahmen = new Map<string, MoneyValue>();
 	let einmalig: MoneyValue = ZERO;
@@ -126,16 +130,16 @@ export function aggregateTransactions(
 		if (r.tags.includes("self-transfer")) continue;
 
 		const gegen = r.gegenAccount;
-		const typ = kontoTyp(gegen, opts.kontenplan);
+		const typ = kontoTyp(gegen, plan);
 		if (typ === "expense") {
-			if (gegen.startsWith(UNKATEGORISIERT_PREFIX) && tx.betrag.gt(0)) {
+			if (gegen.startsWith(unkategorisiert) && tx.betrag.gt(0)) {
 				unklassifiziert = unklassifiziert.plus(tx.betrag);
 				continue;
 			}
 			// Ein Ausgabenkonto außerhalb der Kategorienliste zählt unter Sonstiges, nicht gar nicht.
-			const treffer = KATEGORIE_MAPPING.find(([, prefix]) => gegen.startsWith(prefix));
+			const treffer = mapping.find(([, prefix]) => gegen.startsWith(prefix));
 			add(ausgaben, treffer ? treffer[0] : "sonstiges", tx.betrag.neg());
-			if (gegen.startsWith(EINMALIG_PREFIX)) einmalig = einmalig.plus(tx.betrag.neg());
+			if (gegen.startsWith(einmaligPraefix)) einmalig = einmalig.plus(tx.betrag.neg());
 		} else if (typ === "income") {
 			const parts = gegen.split(":");
 			// Python: split(":", 2) — der Rest ab dem dritten Teil bleibt zusammen.
@@ -240,6 +244,7 @@ export function topEmpfaenger(
 	opts: AggregateOptions & { limit?: number } = {},
 ): TopEmpfaenger[] {
 	const limit = opts.limit ?? 5;
+	const plan = kontenplanAusWurzeln(opts.wurzeln ?? DEUTSCHE_WURZELN);
 	const agg = new Map<string, { vol: MoneyValue; cnt: number; accounts: Map<string, MoneyValue> }>();
 	for (const tx of transactions) {
 		if (!datePredicate(tx.buchungstag)) continue;
@@ -247,7 +252,7 @@ export function topEmpfaenger(
 		if (opts.onlyIban && tx.accountIban !== opts.onlyIban) continue;
 		const r = categorizer(tx);
 		if (r.tags.includes("self-transfer")) continue;
-		if (kontoTyp(r.gegenAccount, opts.kontenplan) !== "expense") continue;
+		if (kontoTyp(r.gegenAccount, plan) !== "expense") continue;
 		const roh = tx.beguenstigter.trim() || tx.buchungstext.trim() || "(unbekannt)";
 		// Python kürzt nach Codepoints, nicht nach UTF-16-Einheiten.
 		const cp = Array.from(roh.replace(/\s+/g, " ")).slice(0, 60).join("");

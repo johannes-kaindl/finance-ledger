@@ -24,7 +24,7 @@ import { silentLog, type LogPort, type VaultPort } from "../ports";
 import { decodeLatin1, decodeUtf8OrLatin1 } from "../text/decode";
 import type { CategorizationResult, SignDependentRule } from "./categorize";
 import { txHash } from "./dedupe";
-import { DEFAULT_SIGN_RULES, signRuleAccounts } from "./defaultSignRules";
+import { defaultSignRules, signRuleAccounts } from "./defaultSignRules";
 import { detectSchema, SCHEMA_VISA } from "./detectSchema";
 import {
 	categorizeAll,
@@ -129,7 +129,7 @@ interface ParsedFile {
 
 export async function runImport(options: ImportOptions): Promise<ImportResult> {
 	const log = options.log ?? silentLog;
-	const signRules = options.signRules ?? DEFAULT_SIGN_RULES;
+	const signRules = options.signRules ?? defaultSignRules(options.ctx.wurzeln);
 
 	const parsed = await readCsvFiles(options, log);
 	const { transactions, duplicatesSkipped } = dedupeAcrossFiles(parsed, log);
