@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-11-18
+
 ### Added
 
 - The type of an account (asset, liability, income, expense, equity) now comes from the chart of accounts, not from the German name prefix. A `type:` tag on an `account` line in `accounts.ledger` decides; without a tag the root of the name does, in German as before and now in English as well (`Assets`, `Liabilities`, `Income`, `Expenses`, `Equity`). Existing German charts behave exactly as before.
