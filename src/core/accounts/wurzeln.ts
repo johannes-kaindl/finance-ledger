@@ -34,7 +34,7 @@ export const DEUTSCHE_WURZELN: Readonly<KontoWurzeln> = {
 export const WURZEL_SCHLUESSEL = ["asset", "liability", "income", "expense", "equity", "clearing"] as const;
 
 /** Eine Wurzel ist ein einzelnes Segment: nicht leer, ohne Doppelpunkt, Semikolon oder Zeilenumbruch. */
-function istWurzelName(wert: unknown): wert is string {
+export function istWurzelName(wert: unknown): wert is string {
 	return typeof wert === "string" && wert.trim() !== "" && !/[:;\r\n\t]|\s{2,}/.test(wert) && wert === wert.trim();
 }
 

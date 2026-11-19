@@ -8,42 +8,28 @@
  * gleichem Betrag die Reihenfolge der Tabellenzeilen.
  */
 
-import { DEUTSCHE_WURZELN, type KontoWurzeln, } from "../accounts/wurzeln";
-
-/** (Kategorie-Suffix, Ordnername unter der Ausgaben-Wurzel). Die Namen sind Kategorien, keine Wurzeln. */
-const KATEGORIE_ORDNER: ReadonlyArray<readonly [string, string]> = [
-	["wohnen", "Wohnen"],
-	["tech_abos", "Tech_Abos"],
-	["versicherung", "Versicherung"],
-	["lebensmittel", "Lebensmittel"],
-	["essen_auswaerts", "Essen_Auswaerts"],
-	["kommunikation", "Kommunikation"],
-	["mobilitaet", "Mobilitaet"],
-	["steuern", "Steuern"],
-	["gesundheit", "Gesundheit"],
-	["freizeit", "Freizeit"],
-	["sonstiges", "Sonstiges"],
-	["online_shopping", "Online_Shopping"],
-	["spende", "Spende"],
-	["mitgliedschaft", "Mitgliedschaft"],
-	["privat_transfers", "Privat_Transfers"],
-	["bankgebuehren", "Bankgebuehren"],
-	["unkategorisiert", "Unkategorisiert"],
-];
+import { type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
+import { DEUTSCHE_WURZELN, type KontoWurzeln } from "../accounts/wurzeln";
 
 /** (Kategorie-Suffix, Ausgaben-Account-Präfix) unter der gewählten Ausgaben-Wurzel. */
-export function kategorieMapping(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): ReadonlyArray<readonly [string, string]> {
-	return KATEGORIE_ORDNER.map(([suffix, ordner]) => [suffix, `${wurzeln.expense}:${ordner}:`] as const);
+export function kategorieMapping(
+	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
+	ordner: Readonly<KategorieOrdner> = STANDARD_ORDNER,
+): ReadonlyArray<readonly [string, string]> {
+	return Object.entries(ordner).map(([suffix, name]) => [suffix, `${wurzeln.expense}:${name}:`] as const);
 }
 
 /** Präfix der Einmal-Ausgaben unter der gewählten Ausgaben-Wurzel. */
-export function einmaligPrefix(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): string {
-	return `${wurzeln.expense}:Sonstiges:Einmalig:`;
+export function einmaligPrefix(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN, ordner: Readonly<KategorieOrdner> = STANDARD_ORDNER): string {
+	return `${wurzeln.expense}:${ordner.sonstiges ?? "Sonstiges"}:Einmalig:`;
 }
 
 /** Präfix des Auffangkontos unter der gewählten Ausgaben-Wurzel. */
-export function unkategorisiertPrefix(wurzeln: KontoWurzeln = DEUTSCHE_WURZELN): string {
-	return `${wurzeln.expense}:Unkategorisiert:`;
+export function unkategorisiertPrefix(
+	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
+	ordner: Readonly<KategorieOrdner> = STANDARD_ORDNER,
+): string {
+	return `${wurzeln.expense}:${ordner.unkategorisiert ?? "Unkategorisiert"}:`;
 }
 
 /** Die Fassung mit den deutschen Wurzeln; Reihenfolge und Inhalt wie im Python-Original. */

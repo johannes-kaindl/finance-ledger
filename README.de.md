@@ -140,7 +140,20 @@ kontowurzeln:
   clearing: Clearing
 ```
 
-Nenne nur die Wurzeln, die du ändern willst. Für Wurzeln, die vom deutschen Standard abweichen, schreibt der Import die passenden `type:`-Tags in die `accounts.ledger`. Die Kategorienamen unter der Ausgaben-Wurzel (`Wohnen`, `Lebensmittel`, …) sind keine Wurzeln und bleiben, wie sie sind.
+Nenne nur die Wurzeln, die du ändern willst. Für Wurzeln, die vom deutschen Standard abweichen, schreibt der Import die passenden `type:`-Tags in die `accounts.ledger`. 
+
+Die Berichte ordnen die Ausgaben in 17 Kategorien nach dem Ordner direkt unter der Ausgaben-Wurzel (`Ausgaben:Lebensmittel:...`). Die Ordnernamen sind standardmäßig deutsch (`Wohnen`, `Lebensmittel`, …); der Schlüssel jeder Kategorie (`wohnen`, `lebensmittel`, …) steht fest, weil er das Frontmatter-Feld der Berichte und Budgets ist. Ein Block `kategorien:` in der `konten.yaml` benennt die Ordner um, damit ein Kontenplan mit `Expenses:Groceries` unter *Lebensmittel* landet statt unter *Sonstiges*:
+
+```yaml
+kategorien:
+  lebensmittel: Groceries
+  wohnen: Housing
+  bankgebuehren: Bank_Fees
+  sonstiges: Misc
+  unkategorisiert: Uncategorized
+```
+
+Nenne nur die Kategorien, die du ändern willst; die Schlüssel sind `wohnen`, `tech_abos`, `versicherung`, `lebensmittel`, `essen_auswaerts`, `kommunikation`, `mobilitaet`, `steuern`, `gesundheit`, `freizeit`, `sonstiges`, `online_shopping`, `spende`, `mitgliedschaft`, `privat_transfers`, `bankgebuehren`, `unkategorisiert`. Ein Ordnername ist ein einzelnes Segment und gehört genau einer Kategorie; ein unbekannter Schlüssel oder ein doppelter Name wird beim Lesen der `konten.yaml` gemeldet. Die eigenen Konten des Imports (Bankgebühren, Auffangkonto) legt er unter den gewählten Ordnernamen an.
 
 ## Installation
 

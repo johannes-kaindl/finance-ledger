@@ -129,7 +129,7 @@ interface ParsedFile {
 
 export async function runImport(options: ImportOptions): Promise<ImportResult> {
 	const log = options.log ?? silentLog;
-	const signRules = options.signRules ?? defaultSignRules(options.ctx.wurzeln);
+	const signRules = options.signRules ?? defaultSignRules(options.ctx.wurzeln, options.ctx.ordner);
 
 	const parsed = await readCsvFiles(options, log);
 	const { transactions, duplicatesSkipped } = dedupeAcrossFiles(parsed, log);

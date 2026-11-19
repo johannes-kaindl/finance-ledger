@@ -16,11 +16,12 @@
  * Richtung). Dann entfällt diese Liste ganz.
  */
 
-import { DEUTSCHE_WURZELN, type KontoWurzeln, } from "../accounts/wurzeln";
+import { ausgabenKonto, type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
+import { DEUTSCHE_WURZELN, type KontoWurzeln } from "../accounts/wurzeln";
 import type { SignDependentRule } from "./categorize";
 
-/** Die Vorbelegung unter den gewählten Wurzeln. */
-export function defaultSignRules(w: KontoWurzeln): readonly SignDependentRule[] {
+/** Die Vorbelegung unter den gewählten Wurzeln und Kategorien-Ordnern. */
+export function defaultSignRules(w: KontoWurzeln, o: Readonly<KategorieOrdner> = STANDARD_ORDNER): readonly SignDependentRule[] {
 	return [
 	{
 		// Doppelrolle: zahlt Krankengeld aus und zieht Beiträge ein.
@@ -31,7 +32,7 @@ export function defaultSignRules(w: KontoWurzeln): readonly SignDependentRule[] 
 			ruleName: "kk-eingang",
 		},
 		negative: {
-			account: `${w.expense}:Versicherung:Krankenversicherung:KK_Muster_Beitrag`,
+			account: ausgabenKonto(w, o, "versicherung", "Krankenversicherung", "KK_Muster_Beitrag"),
 			tags: ["recurring", "tbc"],
 			ruleName: "kk-ausgang",
 		},
@@ -46,7 +47,7 @@ export function defaultSignRules(w: KontoWurzeln): readonly SignDependentRule[] 
 			ruleName: "erika-eingang",
 		},
 		negative: {
-			account: `${w.expense}:Privat_Transfers:Familie:Erika`,
+			account: ausgabenKonto(w, o, "privat_transfers", "Familie", "Erika"),
 			tags: ["tbc"],
 			ruleName: "erika-ausgang",
 		},

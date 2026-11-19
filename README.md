@@ -138,7 +138,20 @@ kontowurzeln:
   clearing: Clearing
 ```
 
-Name only the roots you want to change. For roots that differ from the German defaults the import writes the matching `type:` tags into `accounts.ledger`. The category names below the expense root (`Wohnen`, `Lebensmittel`, …) are not roots and stay as they are.
+Name only the roots you want to change. For roots that differ from the German defaults the import writes the matching `type:` tags into `accounts.ledger`. 
+
+The reports sort expenses into 17 categories by the folder directly below the expense root (`Expenses:Groceries:...`). The folder names default to German (`Wohnen`, `Lebensmittel`, …); the key of each category (`wohnen`, `lebensmittel`, …) is fixed, because it is the front matter field of the reports and budgets. A `kategorien:` block in `konten.yaml` renames the folders, so a chart of accounts with `Expenses:Groceries` lands under *Lebensmittel* instead of *Sonstiges*:
+
+```yaml
+kategorien:
+  lebensmittel: Groceries
+  wohnen: Housing
+  bankgebuehren: Bank_Fees
+  sonstiges: Misc
+  unkategorisiert: Uncategorized
+```
+
+Name only the categories you want to change; the keys are `wohnen`, `tech_abos`, `versicherung`, `lebensmittel`, `essen_auswaerts`, `kommunikation`, `mobilitaet`, `steuern`, `gesundheit`, `freizeit`, `sonstiges`, `online_shopping`, `spende`, `mitgliedschaft`, `privat_transfers`, `bankgebuehren`, `unkategorisiert`. A folder name must be a single segment and may belong to one category only; an unknown key or a duplicate is reported when `konten.yaml` is read. The import creates its own accounts (bank fees, catch-all) under the folder names you chose.
 
 ## Install
 

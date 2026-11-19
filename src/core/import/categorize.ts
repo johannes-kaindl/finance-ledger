@@ -11,7 +11,8 @@
  * da, und eine Änderung muss beim nächsten Lauf greifen.
  */
 
-import { type KontoWurzeln, } from "../accounts/wurzeln";
+import { ausgabenKonto, type KategorieOrdner } from "../accounts/kategorienOrdner";
+import { type KontoWurzeln } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import { parsePaypalRecipient } from "./paypal";
 import { findMatchingRule, type CategorizerRules } from "./rules";
@@ -89,7 +90,7 @@ export function categorize(
 		}
 	}
 	if (tx.buchungstext === "VISA-FX-GEBUEHR") {
-		return result(`${ctx.wurzeln.expense}:Bankgebuehren:FX_Aufschlag`, [], "visa-fx-gebuehr");
+		return result(ausgabenKonto(ctx.wurzeln, ctx.ordner, "bankgebuehren", "FX_Aufschlag"), [], "visa-fx-gebuehr");
 	}
 
 	// 5. Bargeldabhebung.
@@ -106,10 +107,10 @@ export function categorize(
 
 	// 6. Bankgebühren und Rechnungsabschluss.
 	if (tx.buchungstext === "ENTGELTABSCHLUSS") {
-		return result(`${ctx.wurzeln.expense}:Bankgebuehren:Entgelt`, [], "entgelt");
+		return result(ausgabenKonto(ctx.wurzeln, ctx.ordner, "bankgebuehren", "Entgelt"), [], "entgelt");
 	}
 	if (tx.buchungstext === "ABSCHLUSS") {
-		return classifyAbschluss(tx, ctx.wurzeln);
+		return classifyAbschluss(tx, ctx.wurzeln, ctx.ordner);
 	}
 
 	// 7. Beteiligte, die in beide Richtungen buchen.
@@ -123,7 +124,7 @@ export function categorize(
 	// 8. PayPal — lockerer Vergleich, weil die Sparkasse mal „PayPal Europe",
 	//    mal „PayPal (Europe) S.a r.l." schreibt.
 	if (beguenstigterLower.includes("paypal")) {
-		return classifyPaypal(tx, rules, ctx.wurzeln);
+		return classifyPaypal(tx, rules, ctx.wurzeln, ctx.ordner);
 	}
 
 	// 9. Regeln aus dem Vault.
@@ -139,7 +140,7 @@ export function categorize(
 	// 10. Auffangkorb: nach Quelldatei getrennt, damit die Triage-Ansicht
 	//     zeigt, aus welchem Auszug die offenen Posten stammen.
 	return result(
-		`${ctx.wurzeln.expense}:Unkategorisiert:${quelleStem(tx.quelle)}`,
+		ausgabenKonto(ctx.wurzeln, ctx.ordner, "unkategorisiert", quelleStem(tx.quelle)),
 		["tbc", "unkategorisiert"],
 		"catchall",
 	);
@@ -181,20 +182,21 @@ function classifySelfTransfer(
 	);
 }
 
-function classifyAbschluss(tx: BankTransaction, w: KontoWurzeln): CategorizationResult {
+function classifyAbschluss(tx: BankTransaction, w: KontoWurzeln, o: KategorieOrdner): CategorizationResult {
 	if (tx.betrag.lessThan(0)) {
-		return result(`${w.expense}:Bankgebuehren:Soll_Zinsen`, [], "abschluss-sollzinsen");
+		return result(ausgabenKonto(w, o, "bankgebuehren", "Soll_Zinsen"), [], "abschluss-sollzinsen");
 	}
 	if (tx.betrag.greaterThan(0)) {
 		return result(`${w.income}:Habenzinsen`, [], "abschluss-haben");
 	}
-	return result(`${w.expense}:Bankgebuehren:Entgelt`, ["info"], "abschluss-zero");
+	return result(ausgabenKonto(w, o, "bankgebuehren", "Entgelt"), ["info"], "abschluss-zero");
 }
 
 function classifyPaypal(
 	tx: BankTransaction,
 	rules: CategorizerRules,
 	w: KontoWurzeln,
+	o: KategorieOrdner,
 ): CategorizationResult {
 	const recipient = parsePaypalRecipient(tx.verwendungszweck);
 	if (recipient) {
@@ -210,7 +212,7 @@ function classifyPaypal(
 		}
 	}
 	return result(
-		`${w.expense}:Unkategorisiert:PayPal`,
+		ausgabenKonto(w, o, "unkategorisiert", "PayPal"),
 		["tbc", "paypal-via"],
 		"paypal-unknown",
 	);

@@ -13,6 +13,7 @@
  * am Fundament, damit ihn keine spätere Etappe nachziehen muss.
  */
 
+import { type KategorieOrdner, normalizeOrdner } from "../accounts/kategorienOrdner";
 import { type KontoWurzeln, normalizeWurzeln } from "../accounts/wurzeln";
 import { isFrontmatterKeyName } from "../../vendor/kit/frontmatter-patch";
 import { localDate } from "../../vendor/kit/local-stamp";
@@ -64,6 +65,8 @@ export interface ImporterContextInput {
 	clock?: ClockPort;
 	/** Wurzelnamen des Kontenbaums; ohne Angabe gilt `konten.wurzeln`, sonst der deutsche Standard. */
 	wurzeln?: Partial<KontoWurzeln>;
+	/** Ordnernamen der Berichts-Kategorien; ohne Angabe gilt `konten.kategorien`, sonst die deutsche Liste. */
+	kategorien?: Partial<KategorieOrdner>;
 }
 
 /**
@@ -127,6 +130,8 @@ export interface ImporterContext {
 	readonly clock: ClockPort;
 	/** Wurzelnamen, unter denen der Importer Konten anlegt (vollständig, Standard deutsch). */
 	readonly wurzeln: KontoWurzeln;
+	/** Ordner der Berichts-Kategorien unter der Ausgaben-Wurzel (Suffix → Ordnername, vollständig, Standard deutsch). */
+	readonly ordner: KategorieOrdner;
 
 	readonly ibanToLedger: ReadonlyMap<string, string>;
 	readonly ledgerByRolle: ReadonlyMap<string, string>;
@@ -165,6 +170,7 @@ export function createImporterContext(
 		folders: { ...DEFAULT_NOTE_FOLDERS, ...input.folders },
 		clock: input.clock ?? systemClock(),
 		wurzeln: normalizeWurzeln(input.wurzeln ?? input.konten.wurzeln),
+		ordner: normalizeOrdner(input.kategorien ?? input.konten.kategorien),
 		ibanToLedger: ibanToLedger(input.konten),
 		ledgerByRolle: ledgerByRolle(input.konten),
 		ibanByRolle: ibanByRolle(input.konten),

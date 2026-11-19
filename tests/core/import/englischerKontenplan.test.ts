@@ -148,3 +148,65 @@ describe('Deutscher Standard bleibt unverändert', () => {
     expect(kategorieMapping(ctx.wurzeln)[0]).toEqual(['wohnen', 'Ausgaben:Wohnen:']);
   });
 });
+
+describe('Englische Kategorien-Ordner (kategorien in konten.yaml)', () => {
+  const KATEGORIEN = {
+    wohnen: 'Housing', lebensmittel: 'Groceries', versicherung: 'Insurance', privat_transfers: 'Private_Transfers',
+    bankgebuehren: 'Bank_Fees', sonstiges: 'Misc', unkategorisiert: 'Uncategorized',
+  };
+  const ctx = createImporterContext({
+    notesPrefix: 'Finance',
+    konten: parseKontenConfig({
+      konten: [{ id: 'm', iban: 'DE1', ledger_account: 'Assets:Bank:Checking', bank: 'B', konto_typ: 'giro', konto_rolle: 'm', csv_schema: 'x', inhaber: 'Pat Example' }],
+      kontowurzeln: WURZELN,
+      kategorien: KATEGORIEN,
+    }),
+  });
+  const input = { ctx, rules: EMPTY_RULES, ownerNames: deriveOwnerNames(ctx), signRules: defaultSignRules(ctx.wurzeln, ctx.ordner) };
+
+  it('eine Buchung auf Expenses:Groceries zählt in den Berichten unter lebensmittel, nicht unter sonstiges', () => {
+    const tx = makeTx({ buchungstag: '2026-03-05', betrag: new Money('-50.00') });
+    const kategorisierer = () => ({ gegenAccount: 'Expenses:Groceries:Market', tags: [], ruleName: 'r' });
+    const agg = aggregateTransactions([tx], () => true, kategorisierer, { wurzeln: ctx.wurzeln, ordner: ctx.ordner });
+    expect(agg.kategorie.get('lebensmittel')?.toString()).toBe('50');
+    expect(agg.kategorie.get('sonstiges')?.toString() ?? '0').toBe('0');
+    // Gegenprobe: ohne die Ordner-Angabe landet dieselbe Buchung unter sonstiges (der Test kann rot werden).
+    const ohne = aggregateTransactions([tx], () => true, kategorisierer, { wurzeln: ctx.wurzeln });
+    expect(ohne.kategorie.get('lebensmittel')?.toString() ?? '0').toBe('0');
+    expect(ohne.kategorie.get('sonstiges')?.toString()).toBe('50');
+  });
+
+  it('das Budget führt die umbenannte Kategorie', () => {
+    const tx = makeTx({ buchungstag: '2026-03-05', betrag: new Money('-50.00') });
+    const kategorisierer = () => ({ gegenAccount: 'Expenses:Groceries:Market', tags: [], ruleName: 'r' });
+    const budget = computeBudgetForMonth([tx], 2026, 3, '2026-03-31', kategorisierer, ctx.wurzeln, ctx.ordner);
+    expect(budget.map((b) => b.istEur.toString())).toContain('50');
+  });
+
+  it('der Importer legt Gebühren- und Auffangkonten unter den umbenannten Ordnern an', () => {
+    expect(categorize(makeTx({ buchungstext: 'ENTGELTABSCHLUSS' }), input).gegenAccount).toBe('Expenses:Bank_Fees:Entgelt');
+    expect(categorize(makeTx({ beguenstigter: 'Unbekannt AG', quelle: 'a.CSV' }), input).gegenAccount).toBe(
+      'Expenses:Uncategorized:a',
+    );
+  });
+
+  it('Vorzeichenregeln und accounts.ledger tragen keinen deutschen Ordnernamen mehr', () => {
+    const konten = defaultSignRules(ctx.wurzeln, ctx.ordner).flatMap((r) => [r.positive.account, r.negative.account]);
+    expect(konten).toContain('Expenses:Insurance:Krankenversicherung:KK_Muster_Beitrag');
+    expect(konten).toContain('Expenses:Private_Transfers:Familie:Erika');
+    const text = formatAccounts(ctx, EMPTY_RULES);
+    expect(text).toContain('account Expenses:Bank_Fees:Entgelt');
+    expect(text).toContain('account Expenses:Uncategorized:PayPal');
+    expect(text).not.toMatch(/account Expenses:(Bankgebuehren|Unkategorisiert|Versicherung|Privat_Transfers)/);
+  });
+
+  it('Gesamtweg: das Journal des Importers landet in der richtigen Kategorie', () => {
+    const rules = { counterparty: [{ pattern: 'markt', ledgerAccount: 'Expenses:Groceries:Markt', tags: [] }], paypal: [] };
+    const buchungen = [makeTx({ buchungstag: '2026-04-02', betrag: new Money('-30.00'), beguenstigter: 'Markt GmbH', rawRowIdx: 1 })];
+    const categorized = categorizeAll(buchungen, { ...input, rules });
+    const kategorisierer = (tx: Parameters<typeof categorize>[0]) => categorize(tx, { ...input, rules });
+    const agg = aggregateTransactions(buchungen, () => true, kategorisierer, { wurzeln: ctx.wurzeln, ordner: ctx.ordner });
+    expect(categorized[0]?.result.gegenAccount).toBe('Expenses:Groceries:Markt');
+    expect(agg.kategorie.get('lebensmittel')?.toString()).toBe('30');
+  });
+});

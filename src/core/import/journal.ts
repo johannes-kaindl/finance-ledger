@@ -7,6 +7,7 @@
  * korrekt ist: ein CSV-Import ändert keinen Anfangssaldo.
  */
 
+import { type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
 import { DEUTSCHE_WURZELN, type KontoWurzeln, wurzelDirektiven } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import type { MoneyValue } from "../money";
@@ -38,14 +39,23 @@ export function clearingAccount(w: KontoWurzeln): string {
 }
 
 /**
- * Ein Konto der deutschen Vorbelegung unter die gewählten Wurzeln stellen (`Aktiva:Bargeld` → `Assets:Bargeld`).
+ * Ein Konto der deutschen Vorbelegung unter die gewählten Wurzeln und Kategorien-Ordner stellen (`Aktiva:Bargeld` → `Assets:Bargeld`).
  * Die Listen unten bleiben so in der Schreibweise des Originals lesbar; mit dem Standard ist es die Identität.
  */
-function unterGewaehlteWurzeln(konto: string, w: KontoWurzeln): string {
+function unterGewaehlteWurzeln(konto: string, w: KontoWurzeln, o: KategorieOrdner): string {
 	const i = konto.indexOf(":");
 	const wurzel = i < 0 ? konto : konto.slice(0, i);
 	const key = (Object.keys(DEUTSCHE_WURZELN) as Array<keyof KontoWurzeln>).find((k) => DEUTSCHE_WURZELN[k] === wurzel);
-	return key ? w[key] + (i < 0 ? "" : konto.slice(i)) : konto;
+	if (!key) return konto;
+	const rest = i < 0 ? "" : konto.slice(i);
+	return w[key] + (key === "expense" ? unterGewaehlterKategorie(rest, o) : rest);
+}
+
+/** Der Ordner der Kategorie unter der Ausgaben-Wurzel (`:Bankgebuehren:Entgelt` → `:Bank_Fees:Entgelt`). */
+function unterGewaehlterKategorie(rest: string, o: KategorieOrdner): string {
+	const [, ordner = "", ...tail] = rest.split(":");
+	const suffix = Object.keys(STANDARD_ORDNER).find((s) => STANDARD_ORDNER[s] === ordner);
+	return suffix ? ["", o[suffix] ?? ordner, ...tail].join(":") : rest;
 }
 
 const WHITESPACE_RUN = /\s+/g;
@@ -162,7 +172,7 @@ export function formatAccounts(
 	signRuleAccounts: readonly string[] = [],
 ): string {
 	const accounts = new Set<string>([
-		...[...STATIC_ACCOUNTS, ...CATEGORIZER_ACCOUNTS].map((a) => unterGewaehlteWurzeln(a, ctx.wurzeln)),
+		...[...STATIC_ACCOUNTS, ...CATEGORIZER_ACCOUNTS].map((a) => unterGewaehlteWurzeln(a, ctx.wurzeln, ctx.ordner)),
 		...signRuleAccounts,
 		// Die konfigurierten Bankkonten selbst — sonst fehlt genau das Konto,
 		// das der Nutzer gerade neu angelegt hat.

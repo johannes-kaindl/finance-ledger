@@ -6,6 +6,10 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+### Added
+
+- `kategorien` in `konten.yaml` sets the folder names of the report categories below the expense root (category key → folder, for example `lebensmittel: Groceries`). The default stays the German list. A chart of accounts with English folders (`Expenses:Groceries`) now lands in the reports, budgets and category notes under the right category instead of under *Sonstiges*; the front matter fields of the reports do not change, and the import creates its own accounts (bank fees, catch-all) under the chosen folder names.
+
 ## [0.10.0] — 2026-11-18
 
 ### Added

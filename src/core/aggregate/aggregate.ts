@@ -10,6 +10,7 @@
  */
 
 import { kontoTyp } from "../accounts/kontoTyp";
+import { type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
 import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import type { CategorizationResult } from "../import/categorize";
@@ -50,6 +51,8 @@ export interface AggregateOptions {
 	onlyIban?: string;
 	/** Wurzelnamen des Kontenbaums; ohne Angabe gelten die deutschen. */
 	wurzeln?: KontoWurzeln;
+	/** Ordnernamen der Berichts-Kategorien; ohne Angabe gilt die deutsche Liste. */
+	ordner?: KategorieOrdner;
 }
 
 /**
@@ -110,9 +113,10 @@ export function aggregateTransactions(
 ): SichtAggregat {
 	const wurzeln = opts.wurzeln ?? DEUTSCHE_WURZELN;
 	const plan = kontenplanAusWurzeln(wurzeln);
-	const mapping = kategorieMapping(wurzeln);
-	const unkategorisiert = unkategorisiertPrefix(wurzeln);
-	const einmaligPraefix = einmaligPrefix(wurzeln);
+	const ordner = opts.ordner ?? STANDARD_ORDNER;
+	const mapping = kategorieMapping(wurzeln, ordner);
+	const unkategorisiert = unkategorisiertPrefix(wurzeln, ordner);
+	const einmaligPraefix = einmaligPrefix(wurzeln, ordner);
 	const ausgaben = new Map<string, MoneyValue>();
 	const einnahmen = new Map<string, MoneyValue>();
 	let einmalig: MoneyValue = ZERO;

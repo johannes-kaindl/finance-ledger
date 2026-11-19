@@ -12,6 +12,7 @@
  */
 
 import { kontoTyp } from "../accounts/kontoTyp";
+import { type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
 import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import { daysInMonth, splitIsoDate, type IsoDate } from "../dates";
 import type { BankTransaction } from "../import/transaction";
@@ -94,6 +95,7 @@ export function computeBudgetForMonth(
 	today: IsoDate,
 	categorizer: Categorizer,
 	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
+	ordner: KategorieOrdner = STANDARD_ORDNER,
 ): BudgetState[] {
 	const tageImMonat = daysInMonth(year, month);
 	const t = splitIsoDate(today);
@@ -105,7 +107,7 @@ export function computeBudgetForMonth(
 	const key = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
 	const results: BudgetState[] = [];
 	const plan = kontenplanAusWurzeln(wurzeln);
-	for (const [suffix, prefix] of kategorieMapping(wurzeln)) {
+	for (const [suffix, prefix] of kategorieMapping(wurzeln, ordner)) {
 		if (kontoTyp(prefix, plan) !== "expense") continue;
 		const monatlich = kategorieMonatlich(transactions, prefix, categorizer);
 		const { avg: soll, samples } = sollAusMonaten(monatlich);

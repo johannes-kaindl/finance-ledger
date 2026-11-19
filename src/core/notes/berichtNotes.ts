@@ -240,15 +240,15 @@ function berechneSichten(
 	categorizer: Categorizer,
 	predicate: (day: string) => boolean,
 ): Sichten {
-	const gesamt = aggregateTransactions(transactions, predicate, categorizer, { wurzeln: ctx.wurzeln });
+	const gesamt = aggregateTransactions(transactions, predicate, categorizer, { wurzeln: ctx.wurzeln, ordner: ctx.ordner });
 	const vermietungIban = ctx.ibanByRolle.get(VERMIETUNG_ROLLE);
 	if (vermietungIban === undefined) {
 		return { gesamt, privat: null, vermietung: null };
 	}
 	return {
 		gesamt,
-		privat: aggregateTransactions(transactions, predicate, categorizer, { excludeIban: vermietungIban, wurzeln: ctx.wurzeln }),
-		vermietung: aggregateTransactions(transactions, predicate, categorizer, { onlyIban: vermietungIban, wurzeln: ctx.wurzeln }),
+		privat: aggregateTransactions(transactions, predicate, categorizer, { excludeIban: vermietungIban, wurzeln: ctx.wurzeln, ordner: ctx.ordner }),
+		vermietung: aggregateTransactions(transactions, predicate, categorizer, { onlyIban: vermietungIban, wurzeln: ctx.wurzeln, ordner: ctx.ordner }),
 	};
 }
 
@@ -385,15 +385,15 @@ function renderAuto(
 	}
 
 	if (periode.art === "monat") {
-		const budget = computeBudgetForMonth(transactions, periode.year, periode.month, today, categorizer, ctx.wurzeln);
+		const budget = computeBudgetForMonth(transactions, periode.year, periode.month, today, categorizer, ctx.wurzeln, ctx.ordner);
 		if (budget.length > 0) sektionen.push(budgetSektion(ctx, budget));
-		const top = topEmpfaenger(transactions, info.predicate, categorizer, { limit: 5, wurzeln: ctx.wurzeln });
+		const top = topEmpfaenger(transactions, info.predicate, categorizer, { limit: 5, wurzeln: ctx.wurzeln, ordner: ctx.ordner });
 		if (top.length > 0) sektionen.push(topEmpfaengerSektion(ctx, top));
 		sektionen.push(embedCallout(ctx, "finanzen-empfaenger", "📊 Empfänger-Übersicht", "📚 Vollständige Empfänger-Liste (Base-Embed)"));
 	} else if (periode.art === "quartal") {
 		const zeilen = QUARTAL_MONATE[periode.quarter].map((m) => ({
 			label: monatsberichtWikilink(ctx, periode.year, m, { forTable: true }),
-			sicht: aggregateTransactions(transactions, periodeInfo(ctx, { art: "monat", year: periode.year, month: m }).predicate, categorizer, { wurzeln: ctx.wurzeln }),
+			sicht: aggregateTransactions(transactions, periodeInfo(ctx, { art: "monat", year: periode.year, month: m }).predicate, categorizer, { wurzeln: ctx.wurzeln, ordner: ctx.ordner }),
 		}));
 		sektionen.push(unterperiodenTabelle("## 📅 Monate im Quartal", "Monat", zeilen));
 		sektionen.push(embedCallout(ctx, "finanzen-quartalsberichte", "📊 Quartals-Trend", "📚 Quartals-Trend (Base-Embed)"));
@@ -401,7 +401,7 @@ function renderAuto(
 		const zeilen = ([1, 2, 3, 4] as const)
 			.map((q) => ({
 				label: quartalsberichtWikilink(ctx, periode.year, q, { forTable: true }),
-				sicht: aggregateTransactions(transactions, periodeInfo(ctx, { art: "quartal", year: periode.year, quarter: q }).predicate, categorizer, { wurzeln: ctx.wurzeln }),
+				sicht: aggregateTransactions(transactions, periodeInfo(ctx, { art: "quartal", year: periode.year, quarter: q }).predicate, categorizer, { wurzeln: ctx.wurzeln, ordner: ctx.ordner }),
 			}))
 			// Quartale ohne Bewegung entfallen (typisch bei einem laufenden Jahr).
 			.filter((z) => !(z.sicht.einnahmenGesamt.isZero() && z.sicht.ausgabenGesamt.isZero()));

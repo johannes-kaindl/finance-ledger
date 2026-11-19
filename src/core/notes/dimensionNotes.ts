@@ -18,6 +18,7 @@
  */
 
 import { kontoTyp } from "../accounts/kontoTyp";
+import { type KategorieOrdner, STANDARD_ORDNER } from "../accounts/kategorienOrdner";
 import { DEUTSCHE_WURZELN, kontenplanAusWurzeln, type KontoWurzeln } from "../accounts/wurzeln";
 import type { ImporterContext } from "../config/context";
 import {
@@ -78,8 +79,9 @@ export function detectKategorien(
 	transactions: readonly BankTransaction[],
 	categorizer: Categorizer,
 	wurzeln: KontoWurzeln = DEUTSCHE_WURZELN,
+	ordner: KategorieOrdner = STANDARD_ORDNER,
 ): Array<readonly [string, string]> {
-	const mapping = kategorieMapping(wurzeln);
+	const mapping = kategorieMapping(wurzeln, ordner);
 	const treffer = new Set<string>();
 	for (const tx of transactions) {
 		const r = categorizer(tx);
@@ -180,7 +182,7 @@ export function dimensionPaths(
 
 function eintraege(ctx: ImporterContext, transactions: readonly BankTransaction[], categorizer: Categorizer): Eintrag[] {
 	const out: Eintrag[] = [];
-	for (const [suffix, prefix] of detectKategorien(transactions, categorizer, ctx.wurzeln)) {
+	for (const [suffix, prefix] of detectKategorien(transactions, categorizer, ctx.wurzeln, ctx.ordner)) {
 		out.push({
 			path: kategoriePath(ctx, suffix),
 			render: (existing) => renderKategorie(ctx, suffix, prefix, transactions, categorizer, existing),
