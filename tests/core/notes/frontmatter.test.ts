@@ -212,8 +212,11 @@ describe("patchFrontmatter — fertige Skalare des Importers", () => {
 		expect(patchFrontmatter(offen, { set: { saldo_eur: "2" } })).toBe(offen);
 	});
 
-	it("verweigert einen Wert mit Zeilenumbruch und nennt den Schlüssel", () => {
-		expect(() => patchFrontmatter(NOTE, { set: { notiz: "a\nb" } })).toThrow(/notiz.*invalid-value/);
+	it("schreibt einen Wert mit Zeilenumbruch gequotet mit Escape und liest ihn gleich zurück (Datenfix obsidian-kit 0.96.0; vorher warf der Import mit invalid-value)", () => {
+		const out = patchFrontmatter(NOTE, { set: { notiz: "a\nb\r\nc" } });
+		expect(out).toContain('\nnotiz: "a\\nb\\r\\nc"\n');
+		expect(readFrontmatter(out).data.notiz).toBe("a\nb\r\nc");
+		expect(out.split("\n").length).toBe(patchFrontmatter(NOTE, { set: { notiz: "a b c" } }).split("\n").length);
 	});
 });
 
@@ -341,7 +344,9 @@ describe("patchFrontmatter — lists (Blocklisten, die der Import besitzt)", () 
 		expect(neu).not.toContain("A:2");
 	});
 
-	it("ein Eintrag mit Zeilenumbruch wirft mit Schlüssel und Grund", () => {
-		expect(() => patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["a\nb"]))).toThrow(/ledger_accounts.*invalid-value/);
+	it("ein Eintrag mit Zeilenumbruch steht gequotet mit Escape in einer Zeile und liest sich gleich zurück (Kit 0.96.0; vorher warf der Import mit invalid-value)", () => {
+		const out = patchFrontmatter(mit(["ledger_accounts:", "  - A:1"]), lists("ledger_accounts", ["a\nb", "c"]));
+		expect(out).toContain('\n  - "a\\nb"\n  - c\n');
+		expect(readFrontmatter(out).data.ledger_accounts).toEqual(["a\nb", "c"]);
 	});
 });
