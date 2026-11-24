@@ -6,6 +6,8 @@ All notable changes to the Finance Ledger plugin. Format after
 
 ## [Unreleased]
 
+## [0.11.1] — 2026-11-24
+
 ### Fixed
 - **A value with a line break no longer stops the write of a note's properties.** The kit's property writer used to refuse such a value and the import ended with an error for that note; it now writes the value quoted on one line and reads it back unchanged, for single values and for list entries (obsidian-kit 0.96.0).
 
